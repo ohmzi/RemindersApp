@@ -19,9 +19,7 @@ fun AppNavHost(navController: NavHostController) {
         startDestination = Screen.List.route
     ) {
         composable(Screen.List.route) {
-            ReminderListScreen(
-                onAddReminderClick = { navController.navigate(Screen.Add.route) }
-            )
+            ReminderListScreen()
         }
         composable(Screen.Add.route) {
             AddReminderScreen(

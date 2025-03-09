@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.navigation.compose.rememberNavController
 import com.ohmz.remindersapp.ui.navigations.AppNavHost
+import com.ohmz.remindersapp.ui.theme.RemindersAppTheme
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -14,7 +15,9 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             val navController = rememberNavController()
-            AppNavHost(navController = navController)
+            RemindersAppTheme {
+                AppNavHost(navController = navController)
+            }
         }
     }
 }

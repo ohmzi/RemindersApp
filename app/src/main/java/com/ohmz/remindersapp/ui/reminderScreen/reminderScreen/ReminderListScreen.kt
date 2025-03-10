@@ -5,12 +5,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -32,6 +32,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -41,6 +42,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -68,9 +70,18 @@ fun ReminderListScreen(
     )
 
     // State for controlling the bottom sheet
-    var showBottomSheet by remember { mutableStateOf(false) }
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val coroutineScope = rememberCoroutineScope()
+
+    var showBottomSheet by remember { mutableStateOf(false) }
+
+    // Create the bottom sheet state
+    val sheetState = rememberModalBottomSheetState(
+        skipPartiallyExpanded = true,          // or false, depending on your preference
+        confirmValueChange = { newValue ->
+            // Optional: confirm or veto a state change
+            true
+        }
+    )
 
     // Main Scaffold layout
     Scaffold(
@@ -137,7 +148,8 @@ fun ReminderListScreen(
                 coroutineScope.launch { sheetState.hide() }
                 showBottomSheet = false
             },
-            sheetState = sheetState
+            sheetState = sheetState,
+            dragHandle = {}
         ) {
             // Wrap the AddReminderScreen in a Column with height 90% of the screen
             Column(
@@ -179,8 +191,8 @@ fun ReminderItem(
         ) {
             Column {
                 Text(text = reminder.title, style = MaterialTheme.typography.bodyMedium)
-                if (!reminder.description.isNullOrBlank()) {
-                    Text(text = reminder.description)
+                if (!reminder.notes.isNullOrBlank()) {
+                    Text(text = reminder.notes)
                 }
                 if (reminder.dueDate != null) {
                     Text(text = "Due: ${reminder.dueDate}") // Format the date as needed

@@ -19,11 +19,11 @@ class RemindersViewModel @Inject constructor(
     val reminders = repository.getAllReminders()
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
-    fun addReminder(title: String, description: String?, dueDate: Long?) {
+    fun addReminder(title: String, notes: String?, dueDate: Long?) {
         viewModelScope.launch {
             val reminder = ReminderEntity(
                 title = title,
-                description = description,
+                notes = notes,
                 dueDate = dueDate,
                 isCompleted = false
             )

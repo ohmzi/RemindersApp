@@ -1,7 +1,6 @@
 package com.ohmz.remindersapp
 
 import android.os.Bundle
-import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -22,13 +21,13 @@ import dagger.hilt.android.AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
+
         // Make system bars (status and navigation) transparent and draw content behind them
         enableEdgeToEdge()
-        
+
         // Make the status and navigation bars blend with the app background
         WindowCompat.setDecorFitsSystemWindows(window, false)
-        
+
         setContent {
             RemindersAppTheme {
                 // A surface container using the 'background' color from the theme

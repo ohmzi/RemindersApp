@@ -4,11 +4,8 @@ import AccessoryBar
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -35,15 +32,13 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.ohmz.remindersapp.domain.model.ReminderAction
 import com.ohmz.remindersapp.presentation.common.components.DateTimePicker
 import com.ohmz.remindersapp.presentation.common.components.TitleNotesCard
-import kotlinx.coroutines.launch
 import java.util.Calendar
 import java.util.Date
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddReminderScreen(
-    onNavigateBack: () -> Unit,
-    viewModel: AddReminderViewModel = hiltViewModel()
+    onNavigateBack: () -> Unit, viewModel: AddReminderViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val coroutineScope = rememberCoroutineScope()
@@ -78,8 +73,7 @@ fun AddReminderScreen(
                 selectedAction = uiState.selectedAction,
                 onActionSelected = { action ->
                     viewModel.toggleAction(action)
-                },
-                onTodaySelected = {
+                }, onTodaySelected = {
                     // Set due date to today
                     val today = Calendar.getInstance().time
                     viewModel.updateDueDate(today)
@@ -87,8 +81,7 @@ fun AddReminderScreen(
                     if (uiState.selectedAction == ReminderAction.CALENDAR) {
                         viewModel.toggleAction(ReminderAction.CALENDAR)
                     }
-                },
-                onTomorrowSelected = {
+                }, onTomorrowSelected = {
                     // Set due date to tomorrow
                     val tomorrow = Calendar.getInstance().apply {
                         add(Calendar.DAY_OF_YEAR, 1)
@@ -98,8 +91,7 @@ fun AddReminderScreen(
                     if (uiState.selectedAction == ReminderAction.CALENDAR) {
                         viewModel.toggleAction(ReminderAction.CALENDAR)
                     }
-                },
-                onWeekendSelected = {
+                }, onWeekendSelected = {
                     // Set due date to next weekend (Saturday)
                     val calendar = Calendar.getInstance()
                     val dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK)
@@ -114,16 +106,14 @@ fun AddReminderScreen(
                     if (uiState.selectedAction == ReminderAction.CALENDAR) {
                         viewModel.toggleAction(ReminderAction.CALENDAR)
                     }
-                },
-                onDateTimeSelected = {
+                }, onDateTimeSelected = {
                     // Show the date time picker
                     showDateTimePicker = true
                     // Hide the date selector, date will be set in the picker callback
                     if (uiState.selectedAction == ReminderAction.CALENDAR) {
                         viewModel.toggleAction(ReminderAction.CALENDAR)
                     }
-                },
-                hasDate = uiState.dueDate != null, // Pass whether we have a date set
+                }, hasDate = uiState.dueDate != null, // Pass whether we have a date set
                 dueDate = uiState.dueDate, // Pass the actual due date for highlighting
                 onLowPrioritySelected = {
                     viewModel.updatePriority(com.ohmz.remindersapp.domain.model.Priority.LOW)
@@ -131,22 +121,19 @@ fun AddReminderScreen(
                     if (uiState.selectedAction == ReminderAction.TAG) {
                         viewModel.toggleAction(ReminderAction.TAG)
                     }
-                },
-                onMediumPrioritySelected = {
+                }, onMediumPrioritySelected = {
                     viewModel.updatePriority(com.ohmz.remindersapp.domain.model.Priority.MEDIUM)
                     // Deselect TAG to hide the priority selector
                     if (uiState.selectedAction == ReminderAction.TAG) {
                         viewModel.toggleAction(ReminderAction.TAG)
                     }
-                },
-                onHighPrioritySelected = {
+                }, onHighPrioritySelected = {
                     viewModel.updatePriority(com.ohmz.remindersapp.domain.model.Priority.HIGH)
                     // Deselect TAG to hide the priority selector
                     if (uiState.selectedAction == ReminderAction.TAG) {
                         viewModel.toggleAction(ReminderAction.TAG)
                     }
-                },
-                currentPriority = uiState.priority // Pass current priority for highlighting
+                }, currentPriority = uiState.priority // Pass current priority for highlighting
             )
         },
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
@@ -154,8 +141,7 @@ fun AddReminderScreen(
         contentWindowInsets = WindowInsets(0, 0, 0, 0)
     ) { padding ->
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
+            modifier = Modifier.fillMaxWidth()
         ) {
             // iOS-like top row
             Row(
@@ -167,8 +153,7 @@ fun AddReminderScreen(
                 // Left: "Cancel" button
                 TextButton(onClick = onNavigateBack) {
                     Text(
-                        text = "Cancel",
-                        color = MaterialTheme.colorScheme.primary
+                        text = "Cancel", color = MaterialTheme.colorScheme.primary
                     )
                 }
 
@@ -182,18 +167,14 @@ fun AddReminderScreen(
 
                 // Right: "Add" button
                 TextButton(
-                    onClick = { viewModel.saveReminder() },
-                    enabled = uiState.title.isNotBlank()
+                    onClick = { viewModel.saveReminder() }, enabled = uiState.title.isNotBlank()
                 ) {
-                    val textColor = if (uiState.title.isNotBlank())
-                        MaterialTheme.colorScheme.primary
-                    else
-                        Color.Gray
+                    val textColor =
+                        if (uiState.title.isNotBlank()) MaterialTheme.colorScheme.primary
+                        else Color.Gray
 
                     Text(
-                        text = "Add",
-                        fontWeight = FontWeight.ExtraBold,
-                        color = textColor
+                        text = "Add", fontWeight = FontWeight.ExtraBold, color = textColor
                     )
                 }
             }
@@ -231,8 +212,7 @@ fun AddReminderScreen(
 
     // Show DateTimePicker if needed
     if (showDateTimePicker) {
-        DateTimePicker(
-            initialDate = uiState.dueDate ?: Date(),
+        DateTimePicker(initialDate = uiState.dueDate ?: Date(),
             onDateTimeSelected = { selectedDateTime ->
                 viewModel.updateDueDate(selectedDateTime)
                 showDateTimePicker = false
@@ -240,20 +220,17 @@ fun AddReminderScreen(
             },
             onDismiss = {
                 showDateTimePicker = false
-            }
-        )
+            })
     }
 }
 
+
 @Composable
 private fun PriorityButton(
-    text: String,
-    isSelected: Boolean,
-    onClick: () -> Unit
+    text: String, isSelected: Boolean, onClick: () -> Unit
 ) {
     TextButton(
-        onClick = onClick,
-        modifier = Modifier.padding(horizontal = 4.dp)
+        onClick = onClick, modifier = Modifier.padding(horizontal = 4.dp)
     ) {
         Text(
             text = text,

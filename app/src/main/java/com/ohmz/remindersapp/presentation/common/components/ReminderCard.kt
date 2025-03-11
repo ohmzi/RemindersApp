@@ -1,6 +1,5 @@
 package com.ohmz.remindersapp.presentation.common.components
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -8,8 +7,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -23,12 +23,10 @@ import androidx.compose.ui.unit.sp
 import com.ohmz.remindersapp.domain.model.ReminderType
 
 data class ReminderCardData(
-    val type: ReminderType,
-    val title: String,
-    val count: Int,
-    val icon: ImageVector
+    val type: ReminderType, val title: String, val count: Int, val icon: ImageVector
 )
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReminderCard(
     data: ReminderCardData,
@@ -36,17 +34,15 @@ fun ReminderCard(
     onClick: (ReminderType) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Card(
-        modifier = modifier
-            .width(100.dp)
-            .height(120.dp)
-            .padding(8.dp)
-            .clickable { onClick(data.type) },
+    ElevatedCard(modifier = modifier
+        .width(100.dp)
+        .height(120.dp)
+        .padding(8.dp),
         shape = MaterialTheme.shapes.medium,
-        colors = CardDefaults.cardColors(
+        colors = CardDefaults.elevatedCardColors(
             containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface
-        )
-    ) {
+        ),
+        onClick = { onClick(data.type) }) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -58,27 +54,21 @@ fun ReminderCard(
                 imageVector = data.icon,
                 contentDescription = data.title,
                 modifier = Modifier.size(24.dp),
-                tint = if (isSelected)
-                    MaterialTheme.colorScheme.primary
-                else
-                    MaterialTheme.colorScheme.onSurface
+                tint = if (isSelected) MaterialTheme.colorScheme.primary
+                else MaterialTheme.colorScheme.onSurface
             )
             Column {
                 Text(
                     text = data.title,
                     style = MaterialTheme.typography.bodyMedium.copy(fontSize = 16.sp),
-                    color = if (isSelected)
-                        MaterialTheme.colorScheme.primary
-                    else
-                        MaterialTheme.colorScheme.onSurface
+                    color = if (isSelected) MaterialTheme.colorScheme.primary
+                    else MaterialTheme.colorScheme.onSurface
                 )
                 Text(
                     text = data.count.toString(),
                     style = MaterialTheme.typography.bodyMedium.copy(fontSize = 14.sp),
-                    color = if (isSelected)
-                        MaterialTheme.colorScheme.primary
-                    else
-                        Color.Gray
+                    color = if (isSelected) MaterialTheme.colorScheme.primary
+                    else Color.Gray
                 )
             }
         }

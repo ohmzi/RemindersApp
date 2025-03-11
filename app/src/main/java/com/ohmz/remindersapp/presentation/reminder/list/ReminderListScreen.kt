@@ -52,13 +52,13 @@ import com.ohmz.remindersapp.domain.model.ReminderType
 import com.ohmz.remindersapp.presentation.common.components.ReminderCard
 import com.ohmz.remindersapp.presentation.common.components.ReminderCardData
 import com.ohmz.remindersapp.presentation.reminder.add.AddReminderScreen
+import com.ohmz.remindersapp.presentation.reminder.add.AddReminderViewModel
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReminderListScreen(
-    navigateToAddReminder: () -> Unit = {},
-    viewModel: ReminderListViewModel = hiltViewModel()
+    navigateToAddReminder: () -> Unit = {}, viewModel: ReminderListViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val coroutineScope = rememberCoroutineScope()
@@ -67,6 +67,7 @@ fun ReminderListScreen(
     // State for showing the bottom sheet
     var showBottomSheet by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val bottomSheetViewModel: AddReminderViewModel = hiltViewModel()
 
     // Show error in a snackbar if one exists
     LaunchedEffect(uiState.error) {
@@ -87,31 +88,28 @@ fun ReminderListScreen(
                 reminder.dueDate?.let { date ->
                     val today = java.util.Calendar.getInstance()
                     val reminderDate = java.util.Calendar.getInstance().apply { time = date }
-                    today.get(java.util.Calendar.YEAR) == reminderDate.get(java.util.Calendar.YEAR) &&
-                            today.get(java.util.Calendar.DAY_OF_YEAR) == reminderDate.get(java.util.Calendar.DAY_OF_YEAR)
+                    today.get(java.util.Calendar.YEAR) == reminderDate.get(java.util.Calendar.YEAR) && today.get(
+                        java.util.Calendar.DAY_OF_YEAR
+                    ) == reminderDate.get(java.util.Calendar.DAY_OF_YEAR)
                 } ?: false
             },
             icon = Icons.Default.Notifications
-        ),
-        ReminderCardData(
+        ), ReminderCardData(
             type = ReminderType.SCHEDULED,
             title = "Scheduled",
             count = viewModel.getFilteredReminders().count { it.dueDate != null },
             icon = Icons.Default.DateRange
-        ),
-        ReminderCardData(
+        ), ReminderCardData(
             type = ReminderType.ALL,
             title = "All",
             count = viewModel.getFilteredReminders().size,
             icon = Icons.Default.List
-        ),
-        ReminderCardData(
+        ), ReminderCardData(
             type = ReminderType.FLAGGED,
             title = "Flagged",
             count = viewModel.getFilteredReminders().count { it.isFavorite },
             icon = Icons.Default.Favorite
-        ),
-        ReminderCardData(
+        ), ReminderCardData(
             type = ReminderType.COMPLETED,
             title = "Completed",
             count = viewModel.getFilteredReminders().count { it.isCompleted },
@@ -119,58 +117,49 @@ fun ReminderListScreen(
         )
     )
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Reminders") }
-            )
-        },
-        bottomBar = {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                TextButton(
-                    onClick = {
-                        showBottomSheet = true
-                        coroutineScope.launch { sheetState.show() }
-                    }
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = Icons.Default.Add,
-                            contentDescription = "Add",
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                        Text(
-                            text = "New Reminder",
-                            color = MaterialTheme.colorScheme.primary,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 18.sp,
-                            modifier = Modifier.padding(start = 4.dp)
-                        )
-                    }
-                }
-
-                TextButton(onClick = { /* Show add list dialog */ }) {
+    Scaffold(topBar = {
+        TopAppBar(title = { Text("Reminders") })
+    }, bottomBar = {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            TextButton(onClick = {
+                showBottomSheet = true
+                coroutineScope.launch { sheetState.show() }
+            }) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = "Add",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
                     Text(
-                        text = "Add List",
+                        text = "New Reminder",
                         color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 18.sp
+                        fontSize = 18.sp,
+                        modifier = Modifier.padding(start = 4.dp)
                     )
                 }
             }
-        },
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
-    ) { paddingValues ->
+
+            TextButton(onClick = { /* Show add list dialog */ }) {
+                Text(
+                    text = "Add List",
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp
+                )
+            }
+        }
+    }, snackbarHost = { SnackbarHost(hostState = snackbarHostState) }) { paddingValues ->
         if (uiState.isLoading) {
             Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
+                modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center
             ) {
                 CircularProgressIndicator()
             }
@@ -189,13 +178,11 @@ fun ReminderListScreen(
                         .padding(horizontal = 8.dp, vertical = 8.dp)
                 ) {
                     items(reminderCards) { cardData ->
-                        ReminderCard(
-                            data = cardData,
+                        ReminderCard(data = cardData,
                             isSelected = uiState.selectedType == cardData.type,
                             onClick = { type ->
                                 viewModel.selectReminderType(type)
-                            }
-                        )
+                            })
                     }
                 }
 
@@ -251,8 +238,7 @@ fun ReminderListScreen(
         ModalBottomSheet(
             onDismissRequest = {
                 showBottomSheet = false
-            },
-            sheetState = sheetState
+            }, sheetState = sheetState
         ) {
             Box(
                 modifier = Modifier
@@ -262,10 +248,11 @@ fun ReminderListScreen(
                 AddReminderScreen(
                     onNavigateBack = {
                         coroutineScope.launch {
+                            bottomSheetViewModel.resetState()
                             sheetState.hide()
                             showBottomSheet = false
                         }
-                    }
+                    }, viewModel = bottomSheetViewModel
                 )
             }
         }

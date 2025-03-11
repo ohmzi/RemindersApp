@@ -30,28 +30,27 @@ sealed class Screen(val route: String) {
  */
 @Composable
 fun AppNavHost(
-    navController: NavHostController,
-    startDestination: String = Screen.ReminderList.route
+    navController: NavHostController, startDestination: String = Screen.ReminderList.route
 ) {
     NavHost(
-        navController = navController,
-        startDestination = startDestination
+        navController = navController, startDestination = startDestination
     ) {
         // Reminder List Screen
         composable(route = Screen.ReminderList.route) {
-            ReminderListScreen(
-                navigateToAddReminder = {
-                    navController.navigate(Screen.AddReminder.route)
-                }
-            )
+            ReminderListScreen(navigateToAddReminder = {
+                navController.navigate(Screen.AddReminder.route)
+            })
         }
 
         // Add Reminder Screen
         composable(route = Screen.AddReminder.route) {
+            val viewModel: com.ohmz.remindersapp.presentation.reminder.add.AddReminderViewModel =
+                androidx.hilt.navigation.compose.hiltViewModel()
             AddReminderScreen(
                 onNavigateBack = {
+                    viewModel.resetState()
                     navController.popBackStack()
-                }
+                }, viewModel = viewModel
             )
         }
     }

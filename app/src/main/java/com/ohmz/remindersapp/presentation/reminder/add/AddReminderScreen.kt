@@ -30,14 +30,12 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.ohmz.remindersapp.domain.model.ReminderAction
 import com.ohmz.remindersapp.presentation.common.components.AccessoryBar
 import com.ohmz.remindersapp.presentation.common.components.TitleNotesCard
-import kotlinx.coroutines.launch
 import java.util.Calendar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddReminderScreen(
-    onNavigateBack: () -> Unit,
-    viewModel: AddReminderViewModel = hiltViewModel()
+    onNavigateBack: () -> Unit, viewModel: AddReminderViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val coroutineScope = rememberCoroutineScope()
@@ -60,6 +58,7 @@ fun AddReminderScreen(
     LaunchedEffect(uiState.isSuccess) {
         if (uiState.isSuccess) {
             viewModel.resetSuccess()
+            viewModel.resetState()
             onNavigateBack()
         }
     }
@@ -67,44 +66,37 @@ fun AddReminderScreen(
     Scaffold(
         topBar = {},
         bottomBar = {
-            AccessoryBar(
-                selectedAction = uiState.selectedAction,
-                onActionSelected = { action ->
-                    viewModel.toggleAction(action)
-                },
-                onTodaySelected = {
-                    // Set due date to today
-                    val today = Calendar.getInstance().time
-                    viewModel.updateDueDate(today)
-                },
-                onTomorrowSelected = {
-                    // Set due date to tomorrow
-                    val tomorrow = Calendar.getInstance().apply {
-                        add(Calendar.DAY_OF_YEAR, 1)
-                    }.time
-                    viewModel.updateDueDate(tomorrow)
-                },
-                onWeekendSelected = {
-                    // Set due date to next weekend (Saturday)
-                    val calendar = Calendar.getInstance()
-                    val dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK)
-                    val daysUntilSaturday = if (dayOfWeek <= Calendar.SATURDAY) {
-                        Calendar.SATURDAY - dayOfWeek
-                    } else {
-                        7 - (dayOfWeek - Calendar.SATURDAY)
-                    }
-                    calendar.add(Calendar.DAY_OF_YEAR, daysUntilSaturday)
-                    viewModel.updateDueDate(calendar.time)
-                },
-                onDateTimeSelected = {
-                    // In a real app, you would show a date/time picker dialog here
-                    // For now, we'll just set it to one week from today
-                    val nextWeek = Calendar.getInstance().apply {
-                        add(Calendar.WEEK_OF_YEAR, 1)
-                    }.time
-                    viewModel.updateDueDate(nextWeek)
+            AccessoryBar(selectedAction = uiState.selectedAction, onActionSelected = { action ->
+                viewModel.toggleAction(action)
+            }, onTodaySelected = {
+                // Set due date to today
+                val today = Calendar.getInstance().time
+                viewModel.updateDueDate(today)
+            }, onTomorrowSelected = {
+                // Set due date to tomorrow
+                val tomorrow = Calendar.getInstance().apply {
+                    add(Calendar.DAY_OF_YEAR, 1)
+                }.time
+                viewModel.updateDueDate(tomorrow)
+            }, onWeekendSelected = {
+                // Set due date to next weekend (Saturday)
+                val calendar = Calendar.getInstance()
+                val dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK)
+                val daysUntilSaturday = if (dayOfWeek <= Calendar.SATURDAY) {
+                    Calendar.SATURDAY - dayOfWeek
+                } else {
+                    7 - (dayOfWeek - Calendar.SATURDAY)
                 }
-            )
+                calendar.add(Calendar.DAY_OF_YEAR, daysUntilSaturday)
+                viewModel.updateDueDate(calendar.time)
+            }, onDateTimeSelected = {
+                // In a real app, you would show a date/time picker dialog here
+                // For now, we'll just set it to one week from today
+                val nextWeek = Calendar.getInstance().apply {
+                    add(Calendar.WEEK_OF_YEAR, 1)
+                }.time
+                viewModel.updateDueDate(nextWeek)
+            })
         },
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         containerColor = Color.Transparent,
@@ -124,10 +116,12 @@ fun AddReminderScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 // Left: "Cancel" button
-                TextButton(onClick = onNavigateBack) {
+                TextButton(onClick = {
+                    viewModel.resetState()
+                    onNavigateBack()
+                }) {
                     Text(
-                        text = "Cancel",
-                        color = MaterialTheme.colorScheme.primary
+                        text = "Cancel", color = MaterialTheme.colorScheme.primary
                     )
                 }
 
@@ -141,18 +135,14 @@ fun AddReminderScreen(
 
                 // Right: "Add" button
                 TextButton(
-                    onClick = { viewModel.saveReminder() },
-                    enabled = uiState.title.isNotBlank()
+                    onClick = { viewModel.saveReminder() }, enabled = uiState.title.isNotBlank()
                 ) {
-                    val textColor = if (uiState.title.isNotBlank())
-                        MaterialTheme.colorScheme.primary
-                    else
-                        Color.Gray
+                    val textColor =
+                        if (uiState.title.isNotBlank()) MaterialTheme.colorScheme.primary
+                        else Color.Gray
 
                     Text(
-                        text = "Add",
-                        fontWeight = FontWeight.ExtraBold,
-                        color = textColor
+                        text = "Add", fontWeight = FontWeight.ExtraBold, color = textColor
                     )
                 }
             }
@@ -205,15 +195,24 @@ fun AddReminderScreen(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = androidx.compose.foundation.layout.Arrangement.SpaceEvenly
                     ) {
-                        PriorityButton("Low", isSelected = uiState.priority == com.ohmz.remindersapp.domain.model.Priority.LOW) {
+                        PriorityButton(
+                            "Low",
+                            isSelected = uiState.priority == com.ohmz.remindersapp.domain.model.Priority.LOW
+                        ) {
                             viewModel.updatePriority(com.ohmz.remindersapp.domain.model.Priority.LOW)
                         }
 
-                        PriorityButton("Medium", isSelected = uiState.priority == com.ohmz.remindersapp.domain.model.Priority.MEDIUM) {
+                        PriorityButton(
+                            "Medium",
+                            isSelected = uiState.priority == com.ohmz.remindersapp.domain.model.Priority.MEDIUM
+                        ) {
                             viewModel.updatePriority(com.ohmz.remindersapp.domain.model.Priority.MEDIUM)
                         }
 
-                        PriorityButton("High", isSelected = uiState.priority == com.ohmz.remindersapp.domain.model.Priority.HIGH) {
+                        PriorityButton(
+                            "High",
+                            isSelected = uiState.priority == com.ohmz.remindersapp.domain.model.Priority.HIGH
+                        ) {
                             viewModel.updatePriority(com.ohmz.remindersapp.domain.model.Priority.HIGH)
                         }
                     }
@@ -225,13 +224,10 @@ fun AddReminderScreen(
 
 @Composable
 private fun PriorityButton(
-    text: String,
-    isSelected: Boolean,
-    onClick: () -> Unit
+    text: String, isSelected: Boolean, onClick: () -> Unit
 ) {
     TextButton(
-        onClick = onClick,
-        modifier = Modifier.padding(horizontal = 4.dp)
+        onClick = onClick, modifier = Modifier.padding(horizontal = 4.dp)
     ) {
         Text(
             text = text,

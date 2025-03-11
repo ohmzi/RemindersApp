@@ -90,9 +90,7 @@ class AddReminderViewModel @Inject constructor(
      * Removes a tag from the reminder
      */
     fun removeTag(tag: String) {
-        _uiState.value = _uiState.value.copy(
-            tags = _uiState.value.tags.filter { it != tag }
-        )
+        _uiState.value = _uiState.value.copy(tags = _uiState.value.tags.filter { it != tag })
     }
 
     /**
@@ -151,8 +149,7 @@ class AddReminderViewModel @Inject constructor(
                 addReminderUseCase(reminder)
 
                 _uiState.value = state.copy(
-                    isLoading = false,
-                    isSuccess = true
+                    isLoading = false, isSuccess = true
                 )
             } catch (e: Exception) {
                 _uiState.value = state.copy(
@@ -175,5 +172,12 @@ class AddReminderViewModel @Inject constructor(
      */
     fun resetSuccess() {
         _uiState.value = _uiState.value.copy(isSuccess = false)
+    }
+
+    /**
+     * Resets the entire state to initial values
+     */
+    fun resetState() {
+        _uiState.value = AddReminderUiState()
     }
 }

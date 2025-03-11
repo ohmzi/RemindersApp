@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -180,7 +182,9 @@ fun ReminderListScreen(
                 modifier = Modifier
                     .padding(paddingValues)
                     .fillMaxSize()
-                    .background(Color(0xFFF5F6F8)) // Light background for iOS feel
+                    .statusBarsPadding() // Add padding for status bar
+                    .navigationBarsPadding() // Add padding for navigation bar
+                    .background(Color(0xFFF2F2F7)) // iOS-style light background
             ) {
                 // Grid of reminder type cards
                 LazyVerticalGrid(

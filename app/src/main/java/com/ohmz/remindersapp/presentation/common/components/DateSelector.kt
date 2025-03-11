@@ -61,8 +61,8 @@ fun DateSelector(
         DateButton(
             date = today.toString(),
             label = "Today",
-            backgroundColor = Color.Red.copy(alpha = 0.1f),
-            borderColor = Color.Red,
+            backgroundColor = Color(0xFF007AFF).copy(alpha = 0.1f),
+            borderColor = Color(0xFF007AFF),
             textColor = Color.Black,
             onClick = onTodaySelected
         )
@@ -71,8 +71,8 @@ fun DateSelector(
         DateButton(
             date = tomorrow.toString(),
             label = "Tomorrow",
-            backgroundColor = Color.Red.copy(alpha = 0.1f),
-            borderColor = Color.Red,
+            backgroundColor = Color(0xFF007AFF).copy(alpha = 0.1f),
+            borderColor = Color(0xFF007AFF),
             textColor = Color.Black,
             onClick = onTomorrowSelected
         )
@@ -81,8 +81,8 @@ fun DateSelector(
         DateButton(
             date = weekend.toString(),
             label = "Next Weekend",
-            backgroundColor = Color.Red.copy(alpha = 0.1f),
-            borderColor = Color.Red,
+            backgroundColor = Color(0xFF007AFF).copy(alpha = 0.1f),
+            borderColor = Color(0xFF007AFF),
             textColor = Color.Black,
             onClick = onNextWeekendSelected
         )
@@ -91,8 +91,8 @@ fun DateSelector(
         DateButton(
             date = "...",
             label = "Date & Time",
-            backgroundColor = Color.Red.copy(alpha = 0.1f),
-            borderColor = Color.Red,
+            backgroundColor = Color(0xFF007AFF).copy(alpha = 0.1f),
+            borderColor = Color(0xFF007AFF),
             textColor = Color.Black,
             onClick = onDateTimeSelected
         )

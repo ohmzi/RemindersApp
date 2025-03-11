@@ -21,7 +21,8 @@ fun AccessoryBar(
     onTodaySelected: () -> Unit = {},
     onTomorrowSelected: () -> Unit = {},
     onWeekendSelected: () -> Unit = {},
-    onDateTimeSelected: () -> Unit = {}
+    onDateTimeSelected: () -> Unit = {},
+    hasDate: Boolean = false // New parameter to indicate if a date is set
 ) {
     Column(
         modifier = modifier
@@ -31,7 +32,7 @@ fun AccessoryBar(
             .windowInsetsPadding(WindowInsets.navigationBars) // For navigation bar
             .wrapContentHeight() // Force the bar to wrap its content
     ) {
-        // If calendar is selected, show the date selector
+        // If calendar is selected, show the date selector (regardless of whether a date is already set)
         if (selectedAction == ReminderAction.CALENDAR) {
             DateSelector(
                 onTodaySelected = onTodaySelected,
@@ -57,8 +58,8 @@ fun AccessoryBar(
                 Icon(
                     imageVector = Icons.Default.DateRange,
                     contentDescription = "Calendar",
-                    tint = if (selectedAction == ReminderAction.CALENDAR)
-                        Color(0xFF0000FF) else Color.Gray,
+                    tint = if (selectedAction == ReminderAction.CALENDAR || hasDate)
+                        Color(0xFF007AFF) else Color.Gray,
                     modifier = Modifier.size(28.dp)
                 )
             }
@@ -72,7 +73,7 @@ fun AccessoryBar(
                     imageVector = Icons.Default.LocationOn,
                     contentDescription = "Location",
                     tint = if (selectedAction == ReminderAction.LOCATION)
-                        Color(0xFF0000FF) else Color.Gray,
+                        Color(0xFF007AFF) else Color.Gray,
                     modifier = Modifier.size(28.dp)
                 )
             }
@@ -86,7 +87,7 @@ fun AccessoryBar(
                     imageVector = Icons.Default.Warning,
                     contentDescription = "Priority",
                     tint = if (selectedAction == ReminderAction.TAG)
-                        Color(0xFF0000FF) else Color.Gray,
+                        Color(0xFF007AFF) else Color.Gray,
                     modifier = Modifier.size(28.dp)
                 )
             }
@@ -103,7 +104,7 @@ fun AccessoryBar(
                         Icons.Default.FavoriteBorder,
                     contentDescription = "Favorite",
                     tint = if (selectedAction == ReminderAction.FAVORITE)
-                        Color(0xFF0000FF) else Color.Gray,
+                        Color(0xFF007AFF) else Color.Gray,
                     modifier = Modifier.size(28.dp)
                 )
             }
@@ -117,7 +118,7 @@ fun AccessoryBar(
                     imageVector = Icons.Default.AccountBox,
                     contentDescription = "Photo",
                     tint = if (selectedAction == ReminderAction.CAMERA)
-                        Color(0xFF0000FF) else Color.Gray,
+                        Color(0xFF007AFF) else Color.Gray,
                     modifier = Modifier.size(28.dp)
                 )
             }

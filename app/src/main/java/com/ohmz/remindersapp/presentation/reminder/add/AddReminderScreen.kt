@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -81,6 +83,10 @@ fun AddReminderScreen(
                     // Set due date to today
                     val today = Calendar.getInstance().time
                     viewModel.updateDueDate(today)
+                    // Auto-deselect calendar after date is selected
+                    if (uiState.selectedAction == ReminderAction.CALENDAR) {
+                        viewModel.toggleAction(ReminderAction.CALENDAR)
+                    }
                 },
                 onTomorrowSelected = {
                     // Set due date to tomorrow
@@ -88,6 +94,10 @@ fun AddReminderScreen(
                         add(Calendar.DAY_OF_YEAR, 1)
                     }.time
                     viewModel.updateDueDate(tomorrow)
+                    // Auto-deselect calendar after date is selected
+                    if (uiState.selectedAction == ReminderAction.CALENDAR) {
+                        viewModel.toggleAction(ReminderAction.CALENDAR)
+                    }
                 },
                 onWeekendSelected = {
                     // Set due date to next weekend (Saturday)
@@ -100,11 +110,16 @@ fun AddReminderScreen(
                     }
                     calendar.add(Calendar.DAY_OF_YEAR, daysUntilSaturday)
                     viewModel.updateDueDate(calendar.time)
+                    // Auto-deselect calendar after date is selected
+                    if (uiState.selectedAction == ReminderAction.CALENDAR) {
+                        viewModel.toggleAction(ReminderAction.CALENDAR)
+                    }
                 },
                 onDateTimeSelected = {
                     // Show the date time picker
                     showDateTimePicker = true
-                }
+                },
+                hasDate = uiState.dueDate != null // Pass whether we have a date set
             )
         },
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
@@ -167,25 +182,7 @@ fun AddReminderScreen(
                     .padding(16.dp)
             )
 
-            // Display selected date if there is one
-            uiState.dueDate?.let { date ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "Due Date: ${date.toString()}",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-
-                    TextButton(onClick = { viewModel.updateDueDate(null) }) {
-                        Text("X", color = MaterialTheme.colorScheme.error)
-                    }
-                }
-            }
+            // Remove the due date display - now we just show a blue calendar icon instead
 
             // Display priority selection if priority action is selected
             if (uiState.selectedAction == ReminderAction.TAG) {
@@ -227,6 +224,10 @@ fun AddReminderScreen(
             onDateTimeSelected = { selectedDateTime ->
                 viewModel.updateDueDate(selectedDateTime)
                 showDateTimePicker = false
+                // Auto-deselect calendar after date is selected via picker
+                if (uiState.selectedAction == ReminderAction.CALENDAR) {
+                    viewModel.toggleAction(ReminderAction.CALENDAR)
+                }
             },
             onDismiss = {
                 showDateTimePicker = false

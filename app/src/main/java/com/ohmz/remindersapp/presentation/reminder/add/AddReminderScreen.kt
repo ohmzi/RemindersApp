@@ -17,8 +17,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -29,9 +31,11 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.ohmz.remindersapp.domain.model.ReminderAction
 import com.ohmz.remindersapp.presentation.common.components.AccessoryBar
+import com.ohmz.remindersapp.presentation.common.components.DateTimePicker
 import com.ohmz.remindersapp.presentation.common.components.TitleNotesCard
 import kotlinx.coroutines.launch
 import java.util.Calendar
+import java.util.Date
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -43,6 +47,7 @@ fun AddReminderScreen(
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     val keyboardController = LocalSoftwareKeyboardController.current
+    var showDateTimePicker by remember { mutableStateOf(false) }
 
     // Show the keyboard automatically when the screen is shown
     LaunchedEffect(Unit) {
@@ -97,12 +102,8 @@ fun AddReminderScreen(
                     viewModel.updateDueDate(calendar.time)
                 },
                 onDateTimeSelected = {
-                    // In a real app, you would show a date/time picker dialog here
-                    // For now, we'll just set it to one week from today
-                    val nextWeek = Calendar.getInstance().apply {
-                        add(Calendar.WEEK_OF_YEAR, 1)
-                    }.time
-                    viewModel.updateDueDate(nextWeek)
+                    // Show the date time picker
+                    showDateTimePicker = true
                 }
             )
         },
@@ -112,9 +113,7 @@ fun AddReminderScreen(
     ) { padding ->
         Column(
             modifier = Modifier
-                .padding(padding)
-                .padding(top = 10.dp)
-                .fillMaxSize()
+                .fillMaxWidth()
         ) {
             // iOS-like top row
             Row(
@@ -183,7 +182,7 @@ fun AddReminderScreen(
                     )
 
                     TextButton(onClick = { viewModel.updateDueDate(null) }) {
-                        Text("Clear", color = MaterialTheme.colorScheme.error)
+                        Text("X", color = MaterialTheme.colorScheme.error)
                     }
                 }
             }
@@ -220,6 +219,18 @@ fun AddReminderScreen(
                 }
             }
         }
+    }
+
+    // Show DateTimePicker if needed
+    if (showDateTimePicker) {
+        DateTimePicker(initialDate = uiState.dueDate ?: Date(),
+            onDateTimeSelected = { selectedDateTime ->
+                viewModel.updateDueDate(selectedDateTime)
+                showDateTimePicker = false
+            },
+            onDismiss = {
+                showDateTimePicker = false
+            })
     }
 }
 

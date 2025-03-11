@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -250,14 +251,17 @@ fun ReminderListScreen(
     if (showBottomSheet) {
         ModalBottomSheet(
             onDismissRequest = {
+                coroutineScope.launch { sheetState.hide() }
                 showBottomSheet = false
             },
-            sheetState = sheetState
+            sheetState = sheetState,
+            dragHandle = {}
         ) {
-            Box(
+            // Wrap the AddReminderScreen in a Column with height 90% of the screen
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 20.dp) // Add padding to avoid overlap with system bars
+                    .fillMaxHeight(0.9f)
             ) {
                 AddReminderScreen(
                     onNavigateBack = {

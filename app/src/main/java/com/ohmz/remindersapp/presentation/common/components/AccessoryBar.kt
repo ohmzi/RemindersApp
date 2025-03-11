@@ -1,23 +1,12 @@
 package com.ohmz.remindersapp.presentation.common.components
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountBox
-import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -34,60 +23,79 @@ fun AccessoryBar(
     onWeekendSelected: () -> Unit = {},
     onDateTimeSelected: () -> Unit = {}
 ) {
-    // A column that can contain both the "sub-row" and the main row
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .imePadding()
+            .background(Color.White)
+            .imePadding() // This ensures the bar stays above the keyboard 
+            .windowInsetsPadding(WindowInsets.navigationBars) // For navigation bar
+            .wrapContentHeight() // Force the bar to wrap its content
     ) {
-        // If the user has selected Calendar, show the sub-row
+        // If calendar is selected, show the date selector
         if (selectedAction == ReminderAction.CALENDAR) {
-            CalendarSubOptions(
+            DateSelector(
                 onTodaySelected = onTodaySelected,
                 onTomorrowSelected = onTomorrowSelected,
-                onWeekendSelected = onWeekendSelected,
+                onNextWeekendSelected = onWeekendSelected,
                 onDateTimeSelected = onDateTimeSelected
             )
         }
 
-        // Main row of icons
+        // Main action bar with icons
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 8.dp, vertical = 4.dp),
-            horizontalArrangement = Arrangement.SpaceAround
+                .padding(horizontal = 16.dp, vertical = 16.dp)
+                .background(Color.White),
+            horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            IconButton(onClick = { onActionSelected(ReminderAction.CALENDAR) }) {
+            // Calendar icon
+            IconButton(
+                onClick = { onActionSelected(ReminderAction.CALENDAR) },
+                modifier = Modifier.size(48.dp)
+            ) {
                 Icon(
                     imageVector = Icons.Default.DateRange,
                     contentDescription = "Calendar",
                     tint = if (selectedAction == ReminderAction.CALENDAR)
-                        MaterialTheme.colorScheme.primary
-                    else
-                        Color.Gray
+                        Color(0xFF0000FF) else Color.Gray,
+                    modifier = Modifier.size(28.dp)
                 )
             }
-            IconButton(onClick = { onActionSelected(ReminderAction.LOCATION) }) {
+
+            // Location icon
+            IconButton(
+                onClick = { onActionSelected(ReminderAction.LOCATION) },
+                modifier = Modifier.size(48.dp)
+            ) {
                 Icon(
                     imageVector = Icons.Default.LocationOn,
                     contentDescription = "Location",
                     tint = if (selectedAction == ReminderAction.LOCATION)
-                        MaterialTheme.colorScheme.primary
-                    else
-                        Color.Gray
+                        Color(0xFF0000FF) else Color.Gray,
+                    modifier = Modifier.size(28.dp)
                 )
             }
-            IconButton(onClick = { onActionSelected(ReminderAction.TAG) }) {
+
+            // Tag/Priority icon
+            IconButton(
+                onClick = { onActionSelected(ReminderAction.TAG) },
+                modifier = Modifier.size(48.dp)
+            ) {
                 Icon(
                     imageVector = Icons.Default.Warning,
-                    contentDescription = "Tag",
+                    contentDescription = "Priority",
                     tint = if (selectedAction == ReminderAction.TAG)
-                        MaterialTheme.colorScheme.primary
-                    else
-                        Color.Gray
+                        Color(0xFF0000FF) else Color.Gray,
+                    modifier = Modifier.size(28.dp)
                 )
             }
-            IconButton(onClick = { onActionSelected(ReminderAction.FAVORITE) }) {
+
+            // Favorite icon
+            IconButton(
+                onClick = { onActionSelected(ReminderAction.FAVORITE) },
+                modifier = Modifier.size(48.dp)
+            ) {
                 Icon(
                     imageVector = if (selectedAction == ReminderAction.FAVORITE)
                         Icons.Default.Favorite
@@ -95,49 +103,24 @@ fun AccessoryBar(
                         Icons.Default.FavoriteBorder,
                     contentDescription = "Favorite",
                     tint = if (selectedAction == ReminderAction.FAVORITE)
-                        MaterialTheme.colorScheme.primary
-                    else
-                        Color.Gray
+                        Color(0xFF0000FF) else Color.Gray,
+                    modifier = Modifier.size(28.dp)
                 )
             }
-            IconButton(onClick = { onActionSelected(ReminderAction.CAMERA) }) {
+
+            // Person/Photo icon
+            IconButton(
+                onClick = { onActionSelected(ReminderAction.CAMERA) },
+                modifier = Modifier.size(48.dp)
+            ) {
                 Icon(
                     imageVector = Icons.Default.AccountBox,
-                    contentDescription = "Camera",
+                    contentDescription = "Photo",
                     tint = if (selectedAction == ReminderAction.CAMERA)
-                        MaterialTheme.colorScheme.primary
-                    else
-                        Color.Gray
+                        Color(0xFF0000FF) else Color.Gray,
+                    modifier = Modifier.size(28.dp)
                 )
             }
-        }
-    }
-}
-
-@Composable
-private fun CalendarSubOptions(
-    onTodaySelected: () -> Unit,
-    onTomorrowSelected: () -> Unit,
-    onWeekendSelected: () -> Unit,
-    onDateTimeSelected: () -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(8.dp),
-        horizontalArrangement = Arrangement.SpaceEvenly
-    ) {
-        TextButton(onClick = onTodaySelected) {
-            Text("Today", color = MaterialTheme.colorScheme.primary)
-        }
-        TextButton(onClick = onTomorrowSelected) {
-            Text("Tomorrow", color = MaterialTheme.colorScheme.primary)
-        }
-        TextButton(onClick = onWeekendSelected) {
-            Text("Next Weekend", color = MaterialTheme.colorScheme.primary)
-        }
-        TextButton(onClick = onDateTimeSelected) {
-            Text("Date & Time", color = MaterialTheme.colorScheme.primary)
         }
     }
 }

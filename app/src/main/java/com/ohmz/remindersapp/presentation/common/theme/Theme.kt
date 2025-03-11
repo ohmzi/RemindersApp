@@ -30,10 +30,14 @@ private val LightColorScheme = lightColorScheme(
 
 @Composable
 fun RemindersAppTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(), // default to system setting
+    darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit
 ) {
-    val colorScheme = if (darkTheme) DarkColors else LightColors
+    val colorScheme = if (darkTheme) {
+        IOSDarkColorScheme
+    } else {
+        IOSLightColorScheme
+    }
 
     MaterialTheme(
         colorScheme = colorScheme,

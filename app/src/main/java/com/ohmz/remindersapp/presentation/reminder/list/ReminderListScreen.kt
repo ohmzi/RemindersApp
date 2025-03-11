@@ -52,6 +52,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.ohmz.remindersapp.ReminderItem
 import com.ohmz.remindersapp.domain.model.ReminderType
+import com.ohmz.remindersapp.presentation.common.components.EnhancedReminderItem
 import com.ohmz.remindersapp.presentation.common.components.ReminderCard
 import com.ohmz.remindersapp.presentation.common.components.ReminderCardData
 import com.ohmz.remindersapp.presentation.reminder.add.AddReminderScreen
@@ -230,10 +231,12 @@ fun ReminderListScreen(
                         }
                     } else {
                         LazyColumn(
-                            modifier = Modifier.fillMaxSize()
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(vertical = 8.dp)
                         ) {
                             items(filteredReminders) { reminder ->
-                                ReminderItem(
+                                EnhancedReminderItem(
                                     reminder = reminder,
                                     onToggleComplete = {
                                         viewModel.toggleReminderCompletion(reminder)

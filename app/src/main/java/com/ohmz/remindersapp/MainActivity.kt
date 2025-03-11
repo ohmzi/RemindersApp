@@ -28,6 +28,9 @@ class MainActivity : ComponentActivity() {
         // Make the status and navigation bars blend with the app background
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
+        // Optional: Set status bar color to transparent
+        window.statusBarColor = android.graphics.Color.TRANSPARENT
+
         setContent {
             RemindersAppTheme {
                 // A surface container using the 'background' color from the theme

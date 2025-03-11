@@ -1,10 +1,13 @@
 package com.ohmz.remindersapp.presentation.reminder.main
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -17,17 +20,20 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.ohmz.remindersapp.domain.model.ReminderType
-import com.ohmz.remindersapp.presentation.common.components.ReminderCard
-import com.ohmz.remindersapp.presentation.common.components.ReminderCardData
+import com.ohmz.remindersapp.presentation.common.components.ReminderCategoryCardAlt
+import com.ohmz.remindersapp.presentation.common.components.EnhancedListItem
 import com.ohmz.remindersapp.presentation.reminder.add.AddReminderScreen
 import com.ohmz.remindersapp.presentation.reminder.list.ReminderListViewModel
 import kotlinx.coroutines.launch
+import com.ohmz.remindersapp.presentation.common.components.ReminderCategoryData
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -44,9 +50,20 @@ fun ReminderMainScreen(
     var showBottomSheet by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    // Create reminder category cards
-    val reminderCards = listOf(
-        ReminderCardData(
+    // Background color that matches iOS light gray
+    val iosBackgroundColor = Color(0xFFF2F2F7)
+    val iosBlue = Color(0xFF007AFF)
+
+    // Define colors for each category
+    val todayColor = Color(0xFF007AFF) // iOS blue
+    val scheduledColor = Color(0xFFFF3B30) // iOS red
+    val allColor = Color(0xFF000000) // Black
+    val flaggedColor = Color(0xFFFF9500) // iOS orange
+    val completedColor = Color(0xFF8E8E93) // iOS gray
+
+    // Create reminder category data with iOS-like icons and colors
+    val reminderCategories = listOf(
+        ReminderCategoryData(
             type = ReminderType.TODAY,
             title = "Today",
             count = viewModel.getFilteredReminders().count { reminder ->
@@ -57,148 +74,203 @@ fun ReminderMainScreen(
                             today.get(java.util.Calendar.DAY_OF_YEAR) == reminderDate.get(java.util.Calendar.DAY_OF_YEAR)
                 } ?: false
             },
+            color = todayColor,
             icon = Icons.Default.DateRange
         ),
-        ReminderCardData(
+        ReminderCategoryData(
             type = ReminderType.SCHEDULED,
             title = "Scheduled",
             count = viewModel.getFilteredReminders().count { it.dueDate != null },
+            color = scheduledColor,
             icon = Icons.Default.DateRange
         ),
-        ReminderCardData(
+        ReminderCategoryData(
             type = ReminderType.ALL,
             title = "All",
             count = viewModel.getFilteredReminders().size,
+            color = allColor,
             icon = Icons.Default.List
         ),
-        ReminderCardData(
+        ReminderCategoryData(
             type = ReminderType.FLAGGED,
             title = "Flagged",
             count = viewModel.getFilteredReminders().count { it.isFavorite },
-            icon = Icons.Default.Favorite
+            color = flaggedColor,
+            icon = Icons.Default.Warning
         ),
-        ReminderCardData(
+        ReminderCategoryData(
             type = ReminderType.COMPLETED,
             title = "Completed",
             count = viewModel.getFilteredReminders().count { it.isCompleted },
+            color = completedColor,
             icon = Icons.Default.CheckCircle
         )
     )
 
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Reminders") }
-            )
-        },
-        bottomBar = {
-            BottomAppBar(
-                actions = {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 8.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        TextButton(
-                            onClick = {
-                                // Open the bottom sheet instead of navigating
-                                showBottomSheet = true
-                                coroutineScope.launch { sheetState.show() }
-                            }
-                        ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(
-                                    imageVector = Icons.Default.Add,
-                                    contentDescription = "Add",
-                                    tint = MaterialTheme.colorScheme.primary
-                                )
-                                Text(
-                                    text = "New Reminder",
-                                    color = MaterialTheme.colorScheme.primary,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 18.sp,
-                                    modifier = Modifier.padding(start = 4.dp)
-                                )
-                            }
-                        }
-
-                        TextButton(onClick = { /* Show add list dialog */ }) {
-                            Text(
-                                text = "Add List",
-                                color = MaterialTheme.colorScheme.primary,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 18.sp
-                            )
-                        }
-                    }
-                }
-            )
-        },
+        containerColor = iosBackgroundColor,
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
     ) { paddingValues ->
-        if (uiState.isLoading) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                // Add status bar padding to avoid content spilling into status bar
+                .statusBarsPadding()
+        ) {
+            // iOS-style Search Bar
             Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator()
-            }
-        } else {
-            Column(
                 modifier = Modifier
-                    .padding(paddingValues)
-                    .fillMaxSize()
-                    .background(Color(0xFFF2F2F7)) // iOS-style light background
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 16.dp)
             ) {
-                // Section title for "My Reminders"
-                Text(
-                    text = "My Reminders",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(start = 16.dp, top = 16.dp, bottom = 8.dp)
-                )
-
-                // Grid of reminder type cards
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(2),
+                // iOS-height search bar (36dp) with subtle shadow
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 8.dp)
+                        .height(36.dp)
+                        .shadow(
+                            elevation = 1.dp,
+                            shape = RoundedCornerShape(10.dp),
+                            clip = true
+                        )
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(Color(0xFFE3E3E8)),
+                    contentAlignment = Alignment.CenterStart
                 ) {
-                    items(reminderCards) { cardData ->
-                        ReminderCard(
-                            data = cardData,
-                            isSelected = false, // Not using selection on main screen
-                            onClick = { type ->
-                                // Navigate to filtered list screen
-                                navigateToFilteredList(type)
-                            }
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(start = 10.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Search,
+                            contentDescription = "Search",
+                            tint = Color(0xFF8E8E93),
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Search",
+                            color = Color(0xFF8E8E93),
+                            fontSize = 16.sp
+                        )
+                    }
+                }
+            }
+
+            // Main content
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(horizontal = 16.dp)
+            ) {
+                // Grid of reminder categories with improved spacing and shadows
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(2),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    items(reminderCategories) { category ->
+                        // Use the updated card with consistent rounded shadows
+                        ReminderCategoryCardAlt(
+                            category = category,
+                            onClick = { navigateToFilteredList(category.type) }
                         )
                     }
                 }
 
-                // Section title for "My Lists"
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // "My Lists" title like iOS
                 Text(
                     text = "My Lists",
-                    style = MaterialTheme.typography.titleLarge,
+                    fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(start = 16.dp, top = 24.dp, bottom = 8.dp)
+                    modifier = Modifier.padding(vertical = 8.dp)
                 )
 
-                // Placeholder for custom lists
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(100.dp)
-                        .padding(horizontal = 16.dp)
-                        .background(Color.White, shape = MaterialTheme.shapes.medium),
-                    contentAlignment = Alignment.Center
+                // Lists section with consistent shadow
+                EnhancedListItem(
+                    title = "Reminders",
+                    count = viewModel.getFilteredReminders().size,
+                    icon = Icons.Default.List,
+                    iconBackgroundColor = Color(0xFFFF9500),
+                    onClick = { /* Show all reminders */ }
+                )
+            }
+
+            // Bottom bar with buttons
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(iosBackgroundColor)
+                    .padding(horizontal = 16.dp, vertical = 16.dp)
+                    // Add navigation bar padding to avoid content hiding behind system navigation
+                    .navigationBarsPadding()
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
+                    // New Reminder button with iOS-style
+                    Card(
+                        shape = RoundedCornerShape(24.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = Color.Transparent
+                        ),
+                        elevation = CardDefaults.cardElevation(
+                            defaultElevation = 0.dp
+                        )
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .clickable {
+                                    showBottomSheet = true
+                                    coroutineScope.launch { sheetState.show() }
+                                }
+                                .padding(end = 8.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(30.dp)
+                                    .clip(CircleShape)
+                                    .background(iosBlue)
+                                    .shadow(
+                                        elevation = 2.dp,
+                                        shape = CircleShape,
+                                        clip = false
+                                    ),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Add,
+                                    contentDescription = "Add",
+                                    tint = Color.White,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "New Reminder",
+                                color = iosBlue,
+                                fontWeight = FontWeight.Medium,
+                                fontSize = 16.sp
+                            )
+                        }
+                    }
+
+                    // Add List button (iOS style)
                     Text(
-                        text = "Custom lists will appear here",
-                        color = Color.Gray
+                        text = "Add List",
+                        color = iosBlue,
+                        fontWeight = FontWeight.Medium,
+                        fontSize = 16.sp,
+                        modifier = Modifier
+                            .clickable { /* Show add list dialog */ }
+                            .padding(8.dp) // Add some padding for the touch target
                     )
                 }
             }
@@ -215,7 +287,6 @@ fun ReminderMainScreen(
             sheetState = sheetState,
             dragHandle = {}
         ) {
-            // Wrap the AddReminderScreen in a Column with height 90% of the screen
             Column(
                 modifier = Modifier
                     .fillMaxWidth()

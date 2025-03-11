@@ -1,5 +1,6 @@
 package com.ohmz.remindersapp.presentation.reminder.add
 
+import AccessoryBar
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
@@ -32,7 +33,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.ohmz.remindersapp.domain.model.ReminderAction
-import com.ohmz.remindersapp.presentation.common.components.AccessoryBar
 import com.ohmz.remindersapp.presentation.common.components.DateTimePicker
 import com.ohmz.remindersapp.presentation.common.components.TitleNotesCard
 import kotlinx.coroutines.launch
@@ -124,7 +124,29 @@ fun AddReminderScreen(
                     }
                 },
                 hasDate = uiState.dueDate != null, // Pass whether we have a date set
-                dueDate = uiState.dueDate // Pass the actual due date for highlighting
+                dueDate = uiState.dueDate, // Pass the actual due date for highlighting
+                onLowPrioritySelected = {
+                    viewModel.updatePriority(com.ohmz.remindersapp.domain.model.Priority.LOW)
+                    // Deselect TAG to hide the priority selector
+                    if (uiState.selectedAction == ReminderAction.TAG) {
+                        viewModel.toggleAction(ReminderAction.TAG)
+                    }
+                },
+                onMediumPrioritySelected = {
+                    viewModel.updatePriority(com.ohmz.remindersapp.domain.model.Priority.MEDIUM)
+                    // Deselect TAG to hide the priority selector
+                    if (uiState.selectedAction == ReminderAction.TAG) {
+                        viewModel.toggleAction(ReminderAction.TAG)
+                    }
+                },
+                onHighPrioritySelected = {
+                    viewModel.updatePriority(com.ohmz.remindersapp.domain.model.Priority.HIGH)
+                    // Deselect TAG to hide the priority selector
+                    if (uiState.selectedAction == ReminderAction.TAG) {
+                        viewModel.toggleAction(ReminderAction.TAG)
+                    }
+                },
+                currentPriority = uiState.priority // Pass current priority for highlighting
             )
         },
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
@@ -187,35 +209,14 @@ fun AddReminderScreen(
                     .padding(16.dp)
             )
 
-            // Display priority selection if priority action is selected
-            if (uiState.selectedAction == ReminderAction.TAG) {
+            // Remove the old priority selection UI since we now have the animated selector
+            if (false) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp)
                 ) {
-                    Text(
-                        text = "Priority",
-                        style = MaterialTheme.typography.titleMedium,
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    )
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.SpaceEvenly
-                    ) {
-                        PriorityButton("Low", isSelected = uiState.priority == com.ohmz.remindersapp.domain.model.Priority.LOW) {
-                            viewModel.updatePriority(com.ohmz.remindersapp.domain.model.Priority.LOW)
-                        }
-
-                        PriorityButton("Medium", isSelected = uiState.priority == com.ohmz.remindersapp.domain.model.Priority.MEDIUM) {
-                            viewModel.updatePriority(com.ohmz.remindersapp.domain.model.Priority.MEDIUM)
-                        }
-
-                        PriorityButton("High", isSelected = uiState.priority == com.ohmz.remindersapp.domain.model.Priority.HIGH) {
-                            viewModel.updatePriority(com.ohmz.remindersapp.domain.model.Priority.HIGH)
-                        }
-                    }
+                    // This code is now unused, kept for reference
                 }
             }
 

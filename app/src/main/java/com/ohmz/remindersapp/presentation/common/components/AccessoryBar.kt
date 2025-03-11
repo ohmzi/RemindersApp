@@ -1,23 +1,51 @@
-package com.ohmz.remindersapp.presentation.common.components
-
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.AccountBox
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.ohmz.remindersapp.domain.model.ReminderAction
+import com.ohmz.remindersapp.presentation.common.components.DateSelector
 import java.util.Calendar
+import java.util.Date
+import androidx.compose.foundation.layout.*
+import androidx.compose.animation.*
+import androidx.compose.material.icons.filled.*
+import com.ohmz.remindersapp.domain.model.Priority
+import com.ohmz.remindersapp.presentation.common.components.PrioritySelector
 
 /**
  * Utility function to get the current date with time set to midnight
  */
-private fun java.util.Date.atMidnight(): java.util.Date {
+private fun Date.atMidnight(): Date {
     val calendar = Calendar.getInstance()
     calendar.time = this
     calendar.set(Calendar.HOUR_OF_DAY, 0)
@@ -36,8 +64,12 @@ fun AccessoryBar(
     onTomorrowSelected: () -> Unit = {},
     onWeekendSelected: () -> Unit = {},
     onDateTimeSelected: () -> Unit = {},
+    onLowPrioritySelected: () -> Unit = {},
+    onMediumPrioritySelected: () -> Unit = {},
+    onHighPrioritySelected: () -> Unit = {},
     hasDate: Boolean = false, // Parameter to indicate if a date is set
-    dueDate: java.util.Date? = null // Add the due date parameter to pass to DateSelector
+    dueDate: Date? = null, // Due date parameter to pass to DateSelector
+    currentPriority: Priority = Priority.MEDIUM // Current priority for highlighting
 ) {
     Column(
         modifier = modifier
@@ -47,14 +79,64 @@ fun AccessoryBar(
             .windowInsetsPadding(WindowInsets.navigationBars) // For navigation bar
             .wrapContentHeight() // Force the bar to wrap its content
     ) {
-        // If calendar is selected, show the date selector
-        if (selectedAction == ReminderAction.CALENDAR) {
+        // Animated priority selector with sliding effect
+        AnimatedVisibility(
+            visible = selectedAction == ReminderAction.TAG,
+            enter = slideInVertically(
+                initialOffsetY = { -it }, // Slide in from above
+                animationSpec = tween(durationMillis = 500)
+            ) + expandVertically(
+                expandFrom = Alignment.Top,
+                animationSpec = tween(durationMillis = 500)
+            ) + fadeIn(
+                animationSpec = tween(durationMillis = 500)
+            ),
+            exit = slideOutVertically(
+                targetOffsetY = { -it }, // Slide out to above
+                animationSpec = tween(durationMillis = 600)
+            ) + shrinkVertically(
+                shrinkTowards = Alignment.Top,
+                animationSpec = tween(durationMillis = 600)
+            ) + fadeOut(
+                animationSpec = tween(durationMillis = 600)
+            )
+        ) {
+            PrioritySelector(
+                onLowPrioritySelected = onLowPrioritySelected,
+                onMediumPrioritySelected = onMediumPrioritySelected,
+                onHighPrioritySelected = onHighPrioritySelected,
+                currentPriority = currentPriority
+            )
+        }
+
+        // Animated date selector with sliding effect
+        AnimatedVisibility(
+            visible = selectedAction == ReminderAction.CALENDAR,
+            enter = slideInVertically(
+                initialOffsetY = { -it }, // Slide in from above
+                animationSpec = tween(durationMillis = 500)
+            ) + expandVertically(
+                expandFrom = Alignment.Top,
+                animationSpec = tween(durationMillis = 500)
+            ) + fadeIn(
+                animationSpec = tween(durationMillis = 500)
+            ),
+            exit = slideOutVertically(
+                targetOffsetY = { -it }, // Slide out to above
+                animationSpec = tween(durationMillis = 600)
+            ) + shrinkVertically(
+                shrinkTowards = Alignment.Top,
+                animationSpec = tween(durationMillis = 600)
+            ) + fadeOut(
+                animationSpec = tween(durationMillis = 600)
+            )
+        ) {
             DateSelector(
                 onTodaySelected = onTodaySelected,
                 onTomorrowSelected = onTomorrowSelected,
                 onNextWeekendSelected = onWeekendSelected,
                 onDateTimeSelected = onDateTimeSelected,
-                currentDate = dueDate // Pass the current due date to highlight the correct option
+                currentDate = dueDate
             )
         }
 

@@ -12,6 +12,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.ohmz.remindersapp.domain.model.ReminderAction
+import java.util.Calendar
+
+/**
+ * Utility function to get the current date with time set to midnight
+ */
+private fun java.util.Date.atMidnight(): java.util.Date {
+    val calendar = Calendar.getInstance()
+    calendar.time = this
+    calendar.set(Calendar.HOUR_OF_DAY, 0)
+    calendar.set(Calendar.MINUTE, 0)
+    calendar.set(Calendar.SECOND, 0)
+    calendar.set(Calendar.MILLISECOND, 0)
+    return calendar.time
+}
 
 @Composable
 fun AccessoryBar(
@@ -22,23 +36,25 @@ fun AccessoryBar(
     onTomorrowSelected: () -> Unit = {},
     onWeekendSelected: () -> Unit = {},
     onDateTimeSelected: () -> Unit = {},
-    hasDate: Boolean = false // New parameter to indicate if a date is set
+    hasDate: Boolean = false, // Parameter to indicate if a date is set
+    dueDate: java.util.Date? = null // Add the due date parameter to pass to DateSelector
 ) {
     Column(
         modifier = modifier
             .fillMaxWidth()
             .background(Color.White)
-            .imePadding() // This ensures the bar stays above the keyboard 
+            .imePadding() // This ensures the bar stays above the keyboard
             .windowInsetsPadding(WindowInsets.navigationBars) // For navigation bar
             .wrapContentHeight() // Force the bar to wrap its content
     ) {
-        // If calendar is selected, show the date selector (regardless of whether a date is already set)
+        // If calendar is selected, show the date selector
         if (selectedAction == ReminderAction.CALENDAR) {
             DateSelector(
                 onTodaySelected = onTodaySelected,
                 onTomorrowSelected = onTomorrowSelected,
                 onNextWeekendSelected = onWeekendSelected,
-                onDateTimeSelected = onDateTimeSelected
+                onDateTimeSelected = onDateTimeSelected,
+                currentDate = dueDate // Pass the current due date to highlight the correct option
             )
         }
 
@@ -50,7 +66,7 @@ fun AccessoryBar(
                 .background(Color.White),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            // Calendar icon
+            // Calendar icon - now colored only if hasDate is true (not just when selected)
             IconButton(
                 onClick = { onActionSelected(ReminderAction.CALENDAR) },
                 modifier = Modifier.size(48.dp)
@@ -58,8 +74,7 @@ fun AccessoryBar(
                 Icon(
                     imageVector = Icons.Default.DateRange,
                     contentDescription = "Calendar",
-                    tint = if (selectedAction == ReminderAction.CALENDAR || hasDate)
-                        Color(0xFF007AFF) else Color.Gray,
+                    tint = if (hasDate) Color(0xFF007AFF) else Color.Gray,
                     modifier = Modifier.size(28.dp)
                 )
             }

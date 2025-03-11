@@ -10,6 +10,8 @@ import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -18,7 +20,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import java.text.SimpleDateFormat
 import java.util.*
 
 /**
@@ -30,8 +31,64 @@ fun DateSelector(
     onTomorrowSelected: () -> Unit,
     onNextWeekendSelected: () -> Unit,
     onDateTimeSelected: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    currentDate: Date? = null
 ) {
+    // Determine which option should be initially selected based on the current date
+    val initialSelection = if (currentDate != null) {
+        val today = Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }.time
+
+        val tomorrow = Calendar.getInstance().apply {
+            add(Calendar.DAY_OF_YEAR, 1)
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }.time
+
+        val weekend = Calendar.getInstance().apply {
+            val dayOfWeek = get(Calendar.DAY_OF_WEEK)
+            val daysUntilSaturday = if (dayOfWeek <= Calendar.SATURDAY) {
+                Calendar.SATURDAY - dayOfWeek
+            } else {
+                7 - (dayOfWeek - Calendar.SATURDAY)
+            }
+            add(Calendar.DAY_OF_YEAR, daysUntilSaturday)
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }.time
+
+        val currentCal = Calendar.getInstance().apply { time = currentDate }
+        val normalizedCurrentDate = Calendar.getInstance().apply {
+            set(Calendar.YEAR, currentCal.get(Calendar.YEAR))
+            set(Calendar.MONTH, currentCal.get(Calendar.MONTH))
+            set(Calendar.DAY_OF_MONTH, currentCal.get(Calendar.DAY_OF_MONTH))
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }.time
+
+        when {
+            normalizedCurrentDate.time == today.time -> "Today"
+            normalizedCurrentDate.time == tomorrow.time -> "Tomorrow"
+            normalizedCurrentDate.time == weekend.time -> "Weekend"
+            else -> "DateTime" // Default to DateTime for custom dates
+        }
+    } else {
+        "" // No selection if no date is set
+    }
+
+    // Remember which option is currently selected, initialized with the current date's value
+    val selectedOption = remember { mutableStateOf(initialSelection) }
+
     val calendar = Calendar.getInstance()
     val today = calendar.get(Calendar.DAY_OF_MONTH)
 
@@ -51,6 +108,11 @@ fun DateSelector(
     weekendCalendar.add(Calendar.DAY_OF_YEAR, daysUntilSaturday)
     val weekend = weekendCalendar.get(Calendar.DAY_OF_MONTH)
 
+    // Define colors
+    val iosBlue = Color(0xFF007AFF)
+    val grayColor = Color(0xFFE0E0E0)
+    val grayBorder = Color(0xFFBDBDBD)
+
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -61,40 +123,52 @@ fun DateSelector(
         DateButton(
             date = today.toString(),
             label = "Today",
-            backgroundColor = Color(0xFF007AFF).copy(alpha = 0.1f),
-            borderColor = Color(0xFF007AFF),
-            textColor = Color.Black,
-            onClick = onTodaySelected
+            backgroundColor = if (selectedOption.value == "Today") iosBlue.copy(alpha = 0.15f) else grayColor,
+            borderColor = if (selectedOption.value == "Today") iosBlue else grayBorder,
+            textColor = if (selectedOption.value == "Today") Color.Black else Color.DarkGray,
+            onClick = {
+                selectedOption.value = "Today"
+                onTodaySelected()
+            }
         )
 
         // Tomorrow date button
         DateButton(
             date = tomorrow.toString(),
             label = "Tomorrow",
-            backgroundColor = Color(0xFF007AFF).copy(alpha = 0.1f),
-            borderColor = Color(0xFF007AFF),
-            textColor = Color.Black,
-            onClick = onTomorrowSelected
+            backgroundColor = if (selectedOption.value == "Tomorrow") iosBlue.copy(alpha = 0.15f) else grayColor,
+            borderColor = if (selectedOption.value == "Tomorrow") iosBlue else grayBorder,
+            textColor = if (selectedOption.value == "Tomorrow") Color.Black else Color.DarkGray,
+            onClick = {
+                selectedOption.value = "Tomorrow"
+                onTomorrowSelected()
+            }
         )
 
         // Next Weekend date button
         DateButton(
             date = weekend.toString(),
-            label = "Next Weekend",
-            backgroundColor = Color(0xFF007AFF).copy(alpha = 0.1f),
-            borderColor = Color(0xFF007AFF),
-            textColor = Color.Black,
-            onClick = onNextWeekendSelected
+            label = "Weekend",
+            backgroundColor = if (selectedOption.value == "Weekend") iosBlue.copy(alpha = 0.15f) else grayColor,
+            borderColor = if (selectedOption.value == "Weekend") iosBlue else grayBorder,
+            textColor = if (selectedOption.value == "Weekend") Color.Black else Color.DarkGray,
+            onClick = {
+                selectedOption.value = "Weekend"
+                onNextWeekendSelected()
+            }
         )
 
         // Date & Time button
         DateButton(
             date = "...",
             label = "Date & Time",
-            backgroundColor = Color(0xFF007AFF).copy(alpha = 0.1f),
-            borderColor = Color(0xFF007AFF),
-            textColor = Color.Black,
-            onClick = onDateTimeSelected
+            backgroundColor = if (selectedOption.value == "DateTime") iosBlue.copy(alpha = 0.15f) else grayColor,
+            borderColor = if (selectedOption.value == "DateTime") iosBlue else grayBorder,
+            textColor = if (selectedOption.value == "DateTime") Color.Black else Color.DarkGray,
+            onClick = {
+                selectedOption.value = "DateTime"
+                onDateTimeSelected()
+            }
         )
     }
 }
@@ -170,13 +244,12 @@ fun DateActionBar(
             icon = Icons.Default.DateRange,
             contentDescription = "Calendar",
             isSelected = isCalendarSelected,
-            selectedColor = Color(0xFF0000FF), // Blue for selected
+            selectedColor = Color(0xFF007AFF), // iOS Blue for selected
             unselectedColor = Color.Gray,
             onClick = onCalendarClick
         )
 
         // Add the location, tag, favorite, and person icons similarly
-        // You'll need to import appropriate icons for each
     }
 }
 

@@ -83,7 +83,7 @@ fun AddReminderScreen(
                     // Set due date to today
                     val today = Calendar.getInstance().time
                     viewModel.updateDueDate(today)
-                    // Auto-deselect calendar after date is selected
+                    // Deselect calendar to hide the date selector
                     if (uiState.selectedAction == ReminderAction.CALENDAR) {
                         viewModel.toggleAction(ReminderAction.CALENDAR)
                     }
@@ -94,7 +94,7 @@ fun AddReminderScreen(
                         add(Calendar.DAY_OF_YEAR, 1)
                     }.time
                     viewModel.updateDueDate(tomorrow)
-                    // Auto-deselect calendar after date is selected
+                    // Deselect calendar to hide the date selector
                     if (uiState.selectedAction == ReminderAction.CALENDAR) {
                         viewModel.toggleAction(ReminderAction.CALENDAR)
                     }
@@ -110,7 +110,7 @@ fun AddReminderScreen(
                     }
                     calendar.add(Calendar.DAY_OF_YEAR, daysUntilSaturday)
                     viewModel.updateDueDate(calendar.time)
-                    // Auto-deselect calendar after date is selected
+                    // Deselect calendar to hide the date selector
                     if (uiState.selectedAction == ReminderAction.CALENDAR) {
                         viewModel.toggleAction(ReminderAction.CALENDAR)
                     }
@@ -118,8 +118,13 @@ fun AddReminderScreen(
                 onDateTimeSelected = {
                     // Show the date time picker
                     showDateTimePicker = true
+                    // Hide the date selector, date will be set in the picker callback
+                    if (uiState.selectedAction == ReminderAction.CALENDAR) {
+                        viewModel.toggleAction(ReminderAction.CALENDAR)
+                    }
                 },
-                hasDate = uiState.dueDate != null // Pass whether we have a date set
+                hasDate = uiState.dueDate != null, // Pass whether we have a date set
+                dueDate = uiState.dueDate // Pass the actual due date for highlighting
             )
         },
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
@@ -182,8 +187,6 @@ fun AddReminderScreen(
                     .padding(16.dp)
             )
 
-            // Remove the due date display - now we just show a blue calendar icon instead
-
             // Display priority selection if priority action is selected
             if (uiState.selectedAction == ReminderAction.TAG) {
                 Column(
@@ -215,23 +218,29 @@ fun AddReminderScreen(
                     }
                 }
             }
+
+            // Handle favorite selection
+            if (uiState.selectedAction == ReminderAction.FAVORITE) {
+                viewModel.toggleFavorite()
+                // Auto-deselect favorite after toggling
+                viewModel.toggleAction(ReminderAction.FAVORITE)
+            }
         }
     }
 
     // Show DateTimePicker if needed
     if (showDateTimePicker) {
-        DateTimePicker(initialDate = uiState.dueDate ?: Date(),
+        DateTimePicker(
+            initialDate = uiState.dueDate ?: Date(),
             onDateTimeSelected = { selectedDateTime ->
                 viewModel.updateDueDate(selectedDateTime)
                 showDateTimePicker = false
-                // Auto-deselect calendar after date is selected via picker
-                if (uiState.selectedAction == ReminderAction.CALENDAR) {
-                    viewModel.toggleAction(ReminderAction.CALENDAR)
-                }
+                // The calendar icon will be blue because hasDate = true, but date selector will be hidden
             },
             onDismiss = {
                 showDateTimePicker = false
-            })
+            }
+        )
     }
 }
 

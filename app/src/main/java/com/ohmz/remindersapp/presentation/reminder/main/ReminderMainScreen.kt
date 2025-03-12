@@ -18,8 +18,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
@@ -40,7 +42,8 @@ import com.ohmz.remindersapp.presentation.common.components.ReminderCategoryData
 fun ReminderMainScreen(
     navigateToAddReminder: () -> Unit,
     navigateToFilteredList: (ReminderType) -> Unit,
-    viewModel: ReminderListViewModel = hiltViewModel()
+    viewModel: ReminderListViewModel = hiltViewModel(),
+    mainViewModel: ReminderMainViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -49,6 +52,10 @@ fun ReminderMainScreen(
     // State for showing the bottom sheet
     var showBottomSheet by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    
+    // Get all reminder lists from the dedicated view model
+    val mainViewModel: ReminderMainViewModel = hiltViewModel()
+    val mainUiState by mainViewModel.uiState.collectAsState()
 
     // Background color that matches iOS light gray
     val iosBackgroundColor = Color(0xFFF2F2F7)
@@ -181,23 +188,34 @@ fun ReminderMainScreen(
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
-
-                // "My Lists" title like iOS
-                Text(
-                    text = "My Lists",
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(vertical = 8.dp)
-                )
-
-                // Lists section with consistent shadow
-                EnhancedListItem(
-                    title = "Reminders",
-                    count = viewModel.getFilteredReminders().size,
-                    icon = Icons.Default.List,
-                    iconBackgroundColor = Color(0xFFFF9500),
-                    onClick = { /* Show all reminders */ }
-                )
+                
+                // Only show "My Lists" section if there are lists available
+                if (mainUiState.lists.isNotEmpty()) {
+                    // "My Lists" title like iOS
+                    Text(
+                        text = "My Lists",
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(vertical = 8.dp)
+                    )
+                
+                    // Display actual lists instead of the hardcoded "Reminders" 
+                    mainUiState.lists.forEach { list ->
+                        val listColor = try {
+                            Color(android.graphics.Color.parseColor(list.color))
+                        } catch (e: Exception) {
+                            Color(0xFF007AFF) // Default iOS blue
+                        }
+                        
+                        EnhancedListItem(
+                            title = list.name,
+                            count = viewModel.getFilteredReminders().count { it.listId == list.id },
+                            icon = Icons.Default.List,
+                            iconBackgroundColor = listColor,
+                            onClick = { /* Navigate to this list */ }
+                        )
+                    }
+                }
             }
 
             // Bottom bar with buttons
@@ -263,15 +281,28 @@ fun ReminderMainScreen(
                     }
 
                     // Add List button (iOS style)
+                    var showAddListDialog by remember { mutableStateOf(false) }
+                    
                     Text(
                         text = "Add List",
                         color = iosBlue,
                         fontWeight = FontWeight.Medium,
                         fontSize = 16.sp,
                         modifier = Modifier
-                            .clickable { /* Show add list dialog */ }
+                            .clickable { showAddListDialog = true }
                             .padding(8.dp) // Add some padding for the touch target
                     )
+                    
+                    // Add list dialog
+                    if (showAddListDialog) {
+                        AddListDialog(
+                            onDismiss = { showAddListDialog = false },
+                            onAddList = { name -> 
+                                mainViewModel.addList(name)
+                                showAddListDialog = false
+                            }
+                        )
+                    }
                 }
             }
         }
@@ -300,6 +331,59 @@ fun ReminderMainScreen(
                         }
                     }
                 )
+            }
+        }
+    }
+}
+
+@Composable
+private fun AddListDialog(
+    onDismiss: () -> Unit,
+    onAddList: (String) -> Unit
+) {
+    var listName by remember { mutableStateOf("") }
+    
+    Dialog(onDismissRequest = onDismiss) {
+        Surface(
+            shape = RoundedCornerShape(16.dp),
+            color = Color.White
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(24.dp)
+            ) {
+                Text(
+                    text = "New List",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+                
+                OutlinedTextField(
+                    value = listName,
+                    onValueChange = { listName = it },
+                    label = { Text("List Name") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                
+                Spacer(modifier = Modifier.height(24.dp))
+                
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    TextButton(onClick = onDismiss) {
+                        Text("Cancel")
+                    }
+                    
+                    TextButton(
+                        onClick = { onAddList(listName) },
+                        enabled = listName.isNotBlank()
+                    ) {
+                        Text("Add")
+                    }
+                }
             }
         }
     }

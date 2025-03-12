@@ -1,6 +1,8 @@
 package com.ohmz.remindersapp.di
 
+import com.ohmz.remindersapp.data.repository.ReminderListRepositoryImpl
 import com.ohmz.remindersapp.data.repository.ReminderRepositoryImpl
+import com.ohmz.remindersapp.domain.repository.ReminderListRepository
 import com.ohmz.remindersapp.domain.repository.ReminderRepository
 import dagger.Binds
 import dagger.Module
@@ -17,4 +19,10 @@ abstract class RepositoryModule {
     abstract fun bindReminderRepository(
         reminderRepositoryImpl: ReminderRepositoryImpl
     ): ReminderRepository
+    
+    @Binds
+    @Singleton
+    abstract fun bindReminderListRepository(
+        reminderListRepositoryImpl: ReminderListRepositoryImpl
+    ): ReminderListRepository
 }

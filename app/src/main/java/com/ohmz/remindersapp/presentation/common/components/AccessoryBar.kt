@@ -161,14 +161,14 @@ fun AccessoryBar(
                 )
             }
 
-            // Location icon
+            // List icon (replaced location icon)
             IconButton(
-                onClick = { onActionSelected(ReminderAction.LOCATION) },
+                onClick = { onActionSelected(ReminderAction.LOCATION) }, // Keep using LOCATION action for backward compatibility
                 modifier = Modifier.size(48.dp)
             ) {
                 Icon(
-                    imageVector = Icons.Default.LocationOn,
-                    contentDescription = "Location",
+                    imageVector = Icons.Default.List,
+                    contentDescription = "List",
                     tint = if (selectedAction == ReminderAction.LOCATION)
                         Color(0xFF007AFF) else Color.Gray,
                     modifier = Modifier.size(28.dp)

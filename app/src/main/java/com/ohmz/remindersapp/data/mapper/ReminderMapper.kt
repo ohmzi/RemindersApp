@@ -19,7 +19,7 @@ fun ReminderEntity.toDomainModel(): Reminder {
             Priority.MEDIUM
         },
         tags = tags?.split(",")?.map { it.trim() } ?: emptyList(),
-        location = location,
+        listId = listId,
         imageUri = imageUri
     )
 }
@@ -34,7 +34,7 @@ fun Reminder.toEntity(): ReminderEntity {
         isFavorite = isFavorite,
         priority = priority.name,
         tags = if (tags.isEmpty()) null else tags.joinToString(","),
-        location = location,
+        listId = listId,
         imageUri = imageUri
     )
 }

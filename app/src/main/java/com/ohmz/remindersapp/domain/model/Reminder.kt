@@ -15,6 +15,6 @@ data class Reminder(
     val isFavorite: Boolean = false,
     val priority: Priority = Priority.MEDIUM,
     val tags: List<String> = emptyList(),
-    val location: String? = null,
+    val listId: Int? = null,        // Reference to the ReminderList it belongs to
     val imageUri: String? = null
 )

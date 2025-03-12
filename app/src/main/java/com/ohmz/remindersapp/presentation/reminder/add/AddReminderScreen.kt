@@ -30,6 +30,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.ohmz.remindersapp.domain.model.ReminderAction
+import com.ohmz.remindersapp.presentation.common.components.AnimatedListSelector
 import com.ohmz.remindersapp.presentation.common.components.DateTimePicker
 import com.ohmz.remindersapp.presentation.common.components.TitleNotesCard
 import java.util.Calendar
@@ -190,16 +191,19 @@ fun AddReminderScreen(
                     .padding(16.dp)
             )
 
-            // Remove the old priority selection UI since we now have the animated selector
-            if (false) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
-                ) {
-                    // This code is now unused, kept for reference
+            // Show the list selector when the list button is clicked
+            AnimatedListSelector(
+                visible = uiState.selectedAction == ReminderAction.LOCATION,
+                lists = uiState.availableLists,
+                selectedListId = uiState.listId,
+                onListSelected = { list ->
+                    viewModel.updateList(list)
+                    viewModel.toggleAction(ReminderAction.LOCATION) // Hide the selector
+                },
+                onAddNewList = { name ->
+                    viewModel.addAndSelectList(name)
                 }
-            }
+            )
 
             // Handle favorite selection
             if (uiState.selectedAction == ReminderAction.FAVORITE) {

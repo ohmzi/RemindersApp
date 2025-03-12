@@ -26,6 +26,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Warning
@@ -94,9 +95,9 @@ fun ReminderMainScreen(
 
     // Define colors for each category
     val todayColor = Color(0xFF007AFF) // iOS blue
-    val scheduledColor = Color(0xFFFF3B30) // iOS red
+    val scheduledColor = Color(0xFFFF9500) // iOS orange (changed from red)
     val allColor = Color(0xFF000000) // Black
-    val flaggedColor = Color(0xFFFF9500) // iOS orange
+    val favouriteColor = Color(0xFFFF3B30) // iOS red (changed from orange)
     val completedColor = Color(0xFF8E8E93) // iOS gray
 
     // Create reminder category data with iOS-like icons and colors
@@ -128,11 +129,11 @@ fun ReminderMainScreen(
             color = allColor,
             icon = Icons.Default.List
         ), ReminderCategoryData(
-            type = ReminderType.FLAGGED,
-            title = "Flagged",
+            type = ReminderType.FAVOURITE,
+            title = "Favourite",
             count = viewModel.getFilteredReminders().count { it.isFavorite },
-            color = flaggedColor,
-            icon = Icons.Default.Warning
+            color = favouriteColor,
+            icon = Icons.Default.Favorite
         ), ReminderCategoryData(
             type = ReminderType.COMPLETED,
             title = "Completed",

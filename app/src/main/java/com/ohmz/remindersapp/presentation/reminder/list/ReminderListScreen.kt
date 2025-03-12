@@ -110,7 +110,7 @@ fun ReminderListScreen(
             icon = Icons.Default.List
         ),
         ReminderCardData(
-            type = ReminderType.FLAGGED,
+            type = ReminderType.FAVOURITE,
             title = "Flagged",
             count = viewModel.getFilteredReminders().count { it.isFavorite },
             icon = Icons.Default.Favorite

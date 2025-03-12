@@ -24,6 +24,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Card
@@ -94,9 +95,9 @@ fun ReminderFilteredListScreen(
     // Get the title, icon and color based on the type
     val (screenTitle, screenIcon, themeColor) = when (reminderType) {
         ReminderType.TODAY -> Triple("Today", Icons.Default.DateRange, Color(0xFF007AFF))
-        ReminderType.SCHEDULED -> Triple("Scheduled", Icons.Default.DateRange, Color(0xFFFF3B30))
+        ReminderType.SCHEDULED -> Triple("Scheduled", Icons.Default.DateRange, Color(0xFFFF9500)) // Changed to orange
         ReminderType.ALL -> Triple("All", Icons.Default.List, Color(0xFF000000))
-        ReminderType.FLAGGED -> Triple("Flagged", Icons.Default.Warning, Color(0xFFFF9500))
+        ReminderType.FAVOURITE -> Triple("Favourite", Icons.Default.Favorite, Color(0xFFFF3B30)) // Changed to red with heart icon
         ReminderType.COMPLETED -> Triple("Completed", Icons.Default.CheckCircle, Color(0xFF8E8E93))
     }
 

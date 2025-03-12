@@ -20,7 +20,7 @@ class GetRemindersByTypeUseCase @Inject constructor(
         return repository.getReminders()
     }
 
-    fun getFlagged(): Flow<List<Reminder>> {
+    fun getFavourite(): Flow<List<Reminder>> {
         return repository.getFavoriteReminders()
     }
 

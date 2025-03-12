@@ -116,7 +116,7 @@ class ReminderListViewModel @Inject constructor(
             }
             ReminderType.SCHEDULED -> allReminders.filter { it.dueDate != null }
             ReminderType.ALL -> allReminders
-            ReminderType.FLAGGED -> allReminders.filter { it.isFavorite }
+            ReminderType.FAVOURITE -> allReminders.filter { it.isFavorite }
             ReminderType.COMPLETED -> allReminders.filter { it.isCompleted }
         }
     }

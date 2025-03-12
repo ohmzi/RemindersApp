@@ -8,6 +8,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.ohmz.remindersapp.domain.model.ReminderType
 import com.ohmz.remindersapp.presentation.reminder.detail.ReminderFilteredListScreen
+import com.ohmz.remindersapp.presentation.reminder.list.ReminderListByListScreen
 import com.ohmz.remindersapp.presentation.reminder.main.ReminderMainScreen
 
 /**
@@ -18,6 +19,15 @@ sealed class Screen(val route: String) {
     object ReminderFilteredList : Screen("reminder_filtered_list/{type}") {
         fun createRoute(type: ReminderType): String {
             return "reminder_filtered_list/${type.name}"
+        }
+    }
+    
+    object ReminderListByList : Screen("reminder_list_by_list/{listId}/{listName}/{listColor}") {
+        fun createRoute(listId: Int, listName: String, listColor: String = "#007AFF"): String {
+            // URL encode list name and color for safety
+            val encodedName = java.net.URLEncoder.encode(listName, "UTF-8")
+            val encodedColor = java.net.URLEncoder.encode(listColor, "UTF-8")
+            return "reminder_list_by_list/$listId/$encodedName/$encodedColor"
         }
     }
 
@@ -52,11 +62,12 @@ fun AppNavHost(
                 },
                 navigateToFilteredList = { reminderType ->
                     navController.navigate(Screen.ReminderFilteredList.createRoute(reminderType))
-                }
+                },
+                navController = navController
             )
         }
 
-        // Filtered List Screen showing specific reminders
+        // Filtered List Screen showing specific reminders by type
         composable(
             route = Screen.ReminderFilteredList.route,
             arguments = listOf(
@@ -75,6 +86,46 @@ fun AppNavHost(
                 },
                 navigateToAddReminder = {
                     // This is just a placeholder - we now use the bottom sheet directly
+                }
+            )
+        }
+        
+        // List Screen showing reminders by list
+        composable(
+            route = Screen.ReminderListByList.route,
+            arguments = listOf(
+                navArgument("listId") {
+                    type = NavType.IntType
+                },
+                navArgument("listName") {
+                    type = NavType.StringType
+                },
+                navArgument("listColor") {
+                    type = NavType.StringType
+                }
+            )
+        ) { backStackEntry ->
+            val listId = backStackEntry.arguments?.getInt("listId") ?: 0
+            val listName = backStackEntry.arguments?.getString("listName") ?: ""
+            val listColorStr = backStackEntry.arguments?.getString("listColor") ?: "#007AFF"
+            
+            // URL decode the list name and color
+            val decodedListName = java.net.URLDecoder.decode(listName, "UTF-8")
+            val decodedColor = java.net.URLDecoder.decode(listColorStr, "UTF-8")
+            
+            // Parse the color
+            val listColor = try {
+                androidx.compose.ui.graphics.Color(android.graphics.Color.parseColor(decodedColor))
+            } catch (e: Exception) {
+                androidx.compose.ui.graphics.Color(0xFF007AFF)  // Default iOS blue
+            }
+            
+            ReminderListByListScreen(
+                listId = listId,
+                listName = decodedListName,
+                listColor = listColor,
+                onNavigateBack = {
+                    navController.popBackStack()
                 }
             )
         }

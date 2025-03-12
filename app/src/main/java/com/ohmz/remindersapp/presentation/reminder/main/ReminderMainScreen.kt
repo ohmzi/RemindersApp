@@ -65,6 +65,7 @@ import com.ohmz.remindersapp.domain.model.ReminderType
 import com.ohmz.remindersapp.presentation.common.components.EnhancedListItem
 import com.ohmz.remindersapp.presentation.common.components.ReminderCategoryCardAlt
 import com.ohmz.remindersapp.presentation.common.components.ReminderCategoryData
+import com.ohmz.remindersapp.presentation.navigation.Screen
 import com.ohmz.remindersapp.presentation.reminder.add.AddReminderScreen
 import com.ohmz.remindersapp.presentation.reminder.add.AddReminderViewModel
 import com.ohmz.remindersapp.presentation.reminder.list.ReminderListViewModel
@@ -76,7 +77,8 @@ fun ReminderMainScreen(
     navigateToAddReminder: () -> Unit,
     navigateToFilteredList: (ReminderType) -> Unit,
     viewModel: ReminderListViewModel = hiltViewModel(),
-    mainViewModel: ReminderMainViewModel = hiltViewModel()
+    mainViewModel: ReminderMainViewModel = hiltViewModel(),
+    navController: androidx.navigation.NavController
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -247,7 +249,10 @@ fun ReminderMainScreen(
                                     .count { it.listId == list.id },
                                 icon = Icons.Default.List,
                                 iconBackgroundColor = listColor,
-                                onClick = { /* Navigate to this list */ })
+                                onClick = { 
+                                    // Navigate to the list view
+                                    navController.navigate(Screen.ReminderListByList.createRoute(list.id, list.name, list.color)) 
+                                })
                         }
 
                         // Add some bottom padding

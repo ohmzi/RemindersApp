@@ -30,8 +30,9 @@ import java.util.*
 @Composable
 fun EnhancedReminderItem(
     reminder: Reminder,
-    onToggleComplete: () -> Unit,
-    onDelete: () -> Unit,
+    onCheckedChange: (Boolean) -> Unit,
+    onDeleteClick: () -> Unit,
+    onFavoriteToggle: (Boolean) -> Unit = {},  // Add favorite toggle handler with default empty implementation
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -45,7 +46,7 @@ fun EnhancedReminderItem(
             modifier = Modifier
                 .size(24.dp)
                 .clip(CircleShape)
-                .clickable(onClick = onToggleComplete)
+                .clickable(onClick = { onCheckedChange(!reminder.isCompleted) })
                 .background(
                     if (reminder.isCompleted) IOSColors.Blue
                     else Color.White
@@ -146,13 +147,13 @@ fun EnhancedReminderItem(
         // Flag icon if favorited
         if (reminder.isFavorite) {
             IconButton(
-                onClick = { /* Toggle favorite */ },
+                onClick = { onFavoriteToggle(!reminder.isFavorite) },
                 modifier = Modifier.size(32.dp)
             ) {
                 Icon(
-                    imageVector = Icons.Default.Star,
+                    imageVector = Icons.Default.Favorite, 
                     contentDescription = "Favorited",
-                    tint = IOSColors.Orange,
+                    tint = IOSColors.Red,
                     modifier = Modifier.size(20.dp)
                 )
             }
@@ -160,7 +161,7 @@ fun EnhancedReminderItem(
 
         // Delete button (iOS-style)
         IconButton(
-            onClick = onDelete
+            onClick = onDeleteClick
         ) {
             Icon(
                 imageVector = Icons.Default.Delete,

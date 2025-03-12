@@ -7,6 +7,7 @@ import com.ohmz.remindersapp.domain.model.ReminderType
 import com.ohmz.remindersapp.domain.usecase.DeleteReminderUseCase
 import com.ohmz.remindersapp.domain.usecase.GetRemindersUseCase
 import com.ohmz.remindersapp.domain.usecase.ToggleReminderCompletionUseCase
+import com.ohmz.remindersapp.domain.usecase.ToggleReminderFavoriteUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -34,6 +35,7 @@ data class ReminderListUiState(
 class ReminderListViewModel @Inject constructor(
     private val getRemindersUseCase: GetRemindersUseCase,
     private val toggleReminderCompletionUseCase: ToggleReminderCompletionUseCase,
+    private val toggleReminderFavoriteUseCase: ToggleReminderFavoriteUseCase,
     private val deleteReminderUseCase: DeleteReminderUseCase
 ) : ViewModel() {
 
@@ -81,6 +83,21 @@ class ReminderListViewModel @Inject constructor(
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
                     error = e.message ?: "Error toggling reminder completion"
+                )
+            }
+        }
+    }
+    
+    /**
+     * Toggles the favorite status of a reminder
+     */
+    fun toggleReminderFavorite(reminder: Reminder, isFavorite: Boolean) {
+        viewModelScope.launch {
+            try {
+                toggleReminderFavoriteUseCase.setFavorite(reminder, isFavorite)
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    error = e.message ?: "Error toggling reminder favorite status"
                 )
             }
         }

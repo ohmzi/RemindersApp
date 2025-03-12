@@ -227,11 +227,18 @@ fun ReminderFilteredListScreen(
                                 modifier = Modifier.fillMaxSize()
                             ) {
                                 items(filteredReminders) { reminder ->
-                                    EnhancedReminderItem(reminder = reminder, onToggleComplete = {
-                                        viewModel.toggleReminderCompletion(reminder)
-                                    }, onDelete = {
-                                        viewModel.deleteReminder(reminder)
-                                    })
+                                    EnhancedReminderItem(
+                                        reminder = reminder, 
+                                        onCheckedChange = { isChecked ->
+                                            viewModel.toggleReminderCompletion(reminder)
+                                        }, 
+                                        onDeleteClick = {
+                                            viewModel.deleteReminder(reminder)
+                                        },
+                                        onFavoriteToggle = { isFavorite ->
+                                            viewModel.toggleReminderFavorite(reminder, isFavorite)
+                                        }
+                                    )
                                 }
                             }
                         }

@@ -30,7 +30,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.ohmz.remindersapp.domain.model.ReminderAction
-import com.ohmz.remindersapp.presentation.common.components.AnimatedListSelector
 import com.ohmz.remindersapp.presentation.common.components.DateTimePicker
 import com.ohmz.remindersapp.presentation.common.components.TitleNotesCard
 import java.util.Calendar
@@ -74,7 +73,9 @@ fun AddReminderScreen(
                 selectedAction = uiState.selectedAction,
                 onActionSelected = { action ->
                     viewModel.toggleAction(action)
-                }, onTodaySelected = {
+                }, 
+                // Date handling
+                onTodaySelected = {
                     // Set due date to today
                     val today = Calendar.getInstance().time
                     viewModel.updateDueDate(today)
@@ -82,7 +83,8 @@ fun AddReminderScreen(
                     if (uiState.selectedAction == ReminderAction.CALENDAR) {
                         viewModel.toggleAction(ReminderAction.CALENDAR)
                     }
-                }, onTomorrowSelected = {
+                }, 
+                onTomorrowSelected = {
                     // Set due date to tomorrow
                     val tomorrow = Calendar.getInstance().apply {
                         add(Calendar.DAY_OF_YEAR, 1)
@@ -92,7 +94,8 @@ fun AddReminderScreen(
                     if (uiState.selectedAction == ReminderAction.CALENDAR) {
                         viewModel.toggleAction(ReminderAction.CALENDAR)
                     }
-                }, onWeekendSelected = {
+                }, 
+                onWeekendSelected = {
                     // Set due date to next weekend (Saturday)
                     val calendar = Calendar.getInstance()
                     val dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK)
@@ -107,34 +110,59 @@ fun AddReminderScreen(
                     if (uiState.selectedAction == ReminderAction.CALENDAR) {
                         viewModel.toggleAction(ReminderAction.CALENDAR)
                     }
-                }, onDateTimeSelected = {
+                }, 
+                onDateTimeSelected = {
                     // Show the date time picker
                     showDateTimePicker = true
                     // Hide the date selector, date will be set in the picker callback
                     if (uiState.selectedAction == ReminderAction.CALENDAR) {
                         viewModel.toggleAction(ReminderAction.CALENDAR)
                     }
-                }, hasDate = uiState.dueDate != null, // Pass whether we have a date set
-                dueDate = uiState.dueDate, // Pass the actual due date for highlighting
+                }, 
+                // List handling
+                onListSelected = { list ->
+                    viewModel.updateList(list)
+                    // Deselect LOCATION to hide the list selector
+                    if (uiState.selectedAction == ReminderAction.LOCATION) {
+                        viewModel.toggleAction(ReminderAction.LOCATION)
+                    }
+                },
+                onAddNewList = { name ->
+                    viewModel.addAndSelectList(name)
+                    // Deselect LOCATION to hide the list selector
+                    if (uiState.selectedAction == ReminderAction.LOCATION) {
+                        viewModel.toggleAction(ReminderAction.LOCATION)
+                    }
+                },
+                availableLists = uiState.availableLists,
+                selectedListId = uiState.listId,
+                // Priority handling
                 onLowPrioritySelected = {
                     viewModel.updatePriority(com.ohmz.remindersapp.domain.model.Priority.LOW)
                     // Deselect TAG to hide the priority selector
                     if (uiState.selectedAction == ReminderAction.TAG) {
                         viewModel.toggleAction(ReminderAction.TAG)
                     }
-                }, onMediumPrioritySelected = {
+                }, 
+                onMediumPrioritySelected = {
                     viewModel.updatePriority(com.ohmz.remindersapp.domain.model.Priority.MEDIUM)
                     // Deselect TAG to hide the priority selector
                     if (uiState.selectedAction == ReminderAction.TAG) {
                         viewModel.toggleAction(ReminderAction.TAG)
                     }
-                }, onHighPrioritySelected = {
+                }, 
+                onHighPrioritySelected = {
                     viewModel.updatePriority(com.ohmz.remindersapp.domain.model.Priority.HIGH)
                     // Deselect TAG to hide the priority selector
                     if (uiState.selectedAction == ReminderAction.TAG) {
                         viewModel.toggleAction(ReminderAction.TAG)
                     }
-                }, currentPriority = uiState.priority // Pass current priority for highlighting
+                }, 
+                // Other parameters
+                hasDate = uiState.dueDate != null, 
+                dueDate = uiState.dueDate, 
+                currentPriority = uiState.priority,
+                isFavorite = uiState.isFavorite
             )
         },
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
@@ -191,19 +219,7 @@ fun AddReminderScreen(
                     .padding(16.dp)
             )
 
-            // Show the list selector when the list button is clicked
-            AnimatedListSelector(
-                visible = uiState.selectedAction == ReminderAction.LOCATION,
-                lists = uiState.availableLists,
-                selectedListId = uiState.listId,
-                onListSelected = { list ->
-                    viewModel.updateList(list)
-                    viewModel.toggleAction(ReminderAction.LOCATION) // Hide the selector
-                },
-                onAddNewList = { name ->
-                    viewModel.addAndSelectList(name)
-                }
-            )
+            // The list selector is now handled in AccessoryBar with the new style
 
             // Handle favorite selection
             if (uiState.selectedAction == ReminderAction.FAVORITE) {

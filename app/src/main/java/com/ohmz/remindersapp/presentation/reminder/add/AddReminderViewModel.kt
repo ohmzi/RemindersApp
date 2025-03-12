@@ -57,15 +57,16 @@ class AddReminderViewModel @Inject constructor(
     private fun loadReminderLists() {
         viewModelScope.launch {
             try {
-                // Get default list and set it as initial list
-                val defaultList = reminderListRepository.getOrCreateDefaultList()
-                
                 // Get all lists
                 val lists = reminderListRepository.getAllLists().first()
                 
+                // Get default list if it exists
+                val defaultList = reminderListRepository.getOrCreateDefaultList()
+                
                 _uiState.value = _uiState.value.copy(
-                    listId = defaultList.id,
-                    selectedListName = defaultList.name,
+                    // Only set listId and name if default list exists
+                    listId = defaultList?.id,
+                    selectedListName = defaultList?.name,
                     availableLists = lists
                 )
             } catch (e: Exception) {
@@ -204,6 +205,18 @@ class AddReminderViewModel @Inject constructor(
             if (state.title.isBlank()) {
                 _uiState.value = state.copy(
                     error = "Title cannot be empty"
+                )
+                return@launch
+            }
+            
+            // Validate that a list is selected
+            if (state.listId == null) {
+                _uiState.value = state.copy(
+                    error = "Please select or create a list"
+                )
+                // Show the list selector
+                _uiState.value = _uiState.value.copy(
+                    selectedAction = ReminderAction.LOCATION
                 )
                 return@launch
             }

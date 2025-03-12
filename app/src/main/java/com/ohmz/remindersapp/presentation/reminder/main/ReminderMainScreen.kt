@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -52,9 +53,8 @@ fun ReminderMainScreen(
     // State for showing the bottom sheet
     var showBottomSheet by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    
-    // Get all reminder lists from the dedicated view model
-    val mainViewModel: ReminderMainViewModel = hiltViewModel()
+
+    // Get UI state from the main view model
     val mainUiState by mainViewModel.uiState.collectAsState()
 
     // Background color that matches iOS light gray
@@ -77,35 +77,32 @@ fun ReminderMainScreen(
                 reminder.dueDate?.let { date ->
                     val today = java.util.Calendar.getInstance()
                     val reminderDate = java.util.Calendar.getInstance().apply { time = date }
-                    today.get(java.util.Calendar.YEAR) == reminderDate.get(java.util.Calendar.YEAR) &&
-                            today.get(java.util.Calendar.DAY_OF_YEAR) == reminderDate.get(java.util.Calendar.DAY_OF_YEAR)
+                    today.get(java.util.Calendar.YEAR) == reminderDate.get(java.util.Calendar.YEAR) && today.get(
+                        java.util.Calendar.DAY_OF_YEAR
+                    ) == reminderDate.get(java.util.Calendar.DAY_OF_YEAR)
                 } ?: false
             },
             color = todayColor,
             icon = Icons.Default.DateRange
-        ),
-        ReminderCategoryData(
+        ), ReminderCategoryData(
             type = ReminderType.SCHEDULED,
             title = "Scheduled",
             count = viewModel.getFilteredReminders().count { it.dueDate != null },
             color = scheduledColor,
             icon = Icons.Default.DateRange
-        ),
-        ReminderCategoryData(
+        ), ReminderCategoryData(
             type = ReminderType.ALL,
             title = "All",
             count = viewModel.getFilteredReminders().size,
             color = allColor,
             icon = Icons.Default.List
-        ),
-        ReminderCategoryData(
+        ), ReminderCategoryData(
             type = ReminderType.FLAGGED,
             title = "Flagged",
             count = viewModel.getFilteredReminders().count { it.isFavorite },
             color = flaggedColor,
             icon = Icons.Default.Warning
-        ),
-        ReminderCategoryData(
+        ), ReminderCategoryData(
             type = ReminderType.COMPLETED,
             title = "Completed",
             count = viewModel.getFilteredReminders().count { it.isCompleted },
@@ -114,10 +111,8 @@ fun ReminderMainScreen(
         )
     )
 
-    Scaffold(
-        containerColor = iosBackgroundColor,
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
-    ) { paddingValues ->
+    Scaffold(containerColor = iosBackgroundColor,
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -137,9 +132,7 @@ fun ReminderMainScreen(
                         .fillMaxWidth()
                         .height(36.dp)
                         .shadow(
-                            elevation = 1.dp,
-                            shape = RoundedCornerShape(10.dp),
-                            clip = true
+                            elevation = 1.dp, shape = RoundedCornerShape(10.dp), clip = true
                         )
                         .clip(RoundedCornerShape(10.dp))
                         .background(Color(0xFFE3E3E8)),
@@ -157,21 +150,19 @@ fun ReminderMainScreen(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "Search",
-                            color = Color(0xFF8E8E93),
-                            fontSize = 16.sp
+                            text = "Search", color = Color(0xFF8E8E93), fontSize = 16.sp
                         )
                     }
                 }
             }
 
-            // Main content
+            // Main content with fixed top categories and scrollable lists section
             Column(
                 modifier = Modifier
                     .weight(1f)
                     .padding(horizontal = 16.dp)
             ) {
-                // Grid of reminder categories with improved spacing and shadows
+                // Fixed section - Grid of reminder categories (Today, Scheduled, etc.)
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(2),
                     horizontalArrangement = Arrangement.spacedBy(16.dp),
@@ -180,15 +171,13 @@ fun ReminderMainScreen(
                 ) {
                     items(reminderCategories) { category ->
                         // Use the updated card with consistent rounded shadows
-                        ReminderCategoryCardAlt(
-                            category = category,
-                            onClick = { navigateToFilteredList(category.type) }
-                        )
+                        ReminderCategoryCardAlt(category = category,
+                            onClick = { navigateToFilteredList(category.type) })
                     }
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
-                
+
                 // Only show "My Lists" section if there are lists available
                 if (mainUiState.lists.isNotEmpty()) {
                     // "My Lists" title like iOS
@@ -198,22 +187,34 @@ fun ReminderMainScreen(
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(vertical = 8.dp)
                     )
-                
-                    // Display actual lists instead of the hardcoded "Reminders" 
-                    mainUiState.lists.forEach { list ->
-                        val listColor = try {
-                            Color(android.graphics.Color.parseColor(list.color))
-                        } catch (e: Exception) {
-                            Color(0xFF007AFF) // Default iOS blue
+                    
+                    // Scrollable section - list of user's lists
+                    androidx.compose.foundation.lazy.LazyColumn(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(12.dp) // Add spacing between list items
+                    ) {
+                        items(mainUiState.lists) { list ->
+                            val listColor = try {
+                                Color(android.graphics.Color.parseColor(list.color))
+                            } catch (e: Exception) {
+                                Color(0xFF007AFF) // Default iOS blue
+                            }
+                            
+                            EnhancedListItem(
+                                title = list.name,
+                                count = viewModel.getFilteredReminders().count { it.listId == list.id },
+                                icon = Icons.Default.List,
+                                iconBackgroundColor = listColor,
+                                onClick = { /* Navigate to this list */ }
+                            )
                         }
                         
-                        EnhancedListItem(
-                            title = list.name,
-                            count = viewModel.getFilteredReminders().count { it.listId == list.id },
-                            icon = Icons.Default.List,
-                            iconBackgroundColor = listColor,
-                            onClick = { /* Navigate to this list */ }
-                        )
+                        // Add some bottom padding
+                        item {
+                            Spacer(modifier = Modifier.height(16.dp))
+                        }
                     }
                 }
             }
@@ -234,40 +235,30 @@ fun ReminderMainScreen(
                 ) {
                     // New Reminder button with iOS-style
                     Card(
-                        shape = RoundedCornerShape(24.dp),
-                        colors = CardDefaults.cardColors(
+                        shape = RoundedCornerShape(24.dp), colors = CardDefaults.cardColors(
                             containerColor = Color.Transparent
-                        ),
-                        elevation = CardDefaults.cardElevation(
+                        ), elevation = CardDefaults.cardElevation(
                             defaultElevation = 0.dp
                         )
                     ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
+                        Row(verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier
                                 .clickable {
                                     showBottomSheet = true
                                     coroutineScope.launch { sheetState.show() }
                                 }
-                                .padding(end = 8.dp)
-                        ) {
+                                .padding(end = 8.dp)) {
                             Box(
                                 modifier = Modifier
                                     .size(30.dp)
                                     .clip(CircleShape)
-                                    .background(iosBlue)
-                                    .shadow(
-                                        elevation = 2.dp,
-                                        shape = CircleShape,
-                                        clip = false
-                                    ),
-                                contentAlignment = Alignment.Center
+                                    .background(iosBlue), contentAlignment = Alignment.Center
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Add,
                                     contentDescription = "Add",
                                     tint = Color.White,
-                                    modifier = Modifier.size(18.dp)
+                                    modifier = Modifier.size(26.dp)
                                 )
                             }
                             Spacer(modifier = Modifier.width(8.dp))
@@ -282,9 +273,8 @@ fun ReminderMainScreen(
 
                     // Add List button (iOS style)
                     var showAddListDialog by remember { mutableStateOf(false) }
-                    
-                    Text(
-                        text = "Add List",
+
+                    Text(text = "Add List",
                         color = iosBlue,
                         fontWeight = FontWeight.Medium,
                         fontSize = 16.sp,
@@ -292,16 +282,14 @@ fun ReminderMainScreen(
                             .clickable { showAddListDialog = true }
                             .padding(8.dp) // Add some padding for the touch target
                     )
-                    
+
                     // Add list dialog
                     if (showAddListDialog) {
-                        AddListDialog(
-                            onDismiss = { showAddListDialog = false },
-                            onAddList = { name -> 
+                        AddListDialog(onDismiss = { showAddListDialog = false },
+                            onAddList = { name ->
                                 mainViewModel.addList(name)
                                 showAddListDialog = false
-                            }
-                        )
+                            })
                     }
                 }
             }
@@ -310,27 +298,21 @@ fun ReminderMainScreen(
 
     // Bottom sheet for adding a new reminder
     if (showBottomSheet) {
-        ModalBottomSheet(
-            onDismissRequest = {
-                coroutineScope.launch { sheetState.hide() }
-                showBottomSheet = false
-            },
-            sheetState = sheetState,
-            dragHandle = {}
-        ) {
+        ModalBottomSheet(onDismissRequest = {
+            coroutineScope.launch { sheetState.hide() }
+            showBottomSheet = false
+        }, sheetState = sheetState, dragHandle = {}) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .fillMaxHeight(0.9f)
             ) {
-                AddReminderScreen(
-                    onNavigateBack = {
-                        coroutineScope.launch {
-                            sheetState.hide()
-                            showBottomSheet = false
-                        }
+                AddReminderScreen(onNavigateBack = {
+                    coroutineScope.launch {
+                        sheetState.hide()
+                        showBottomSheet = false
                     }
-                )
+                })
             }
         }
     }
@@ -338,15 +320,13 @@ fun ReminderMainScreen(
 
 @Composable
 private fun AddListDialog(
-    onDismiss: () -> Unit,
-    onAddList: (String) -> Unit
+    onDismiss: () -> Unit, onAddList: (String) -> Unit
 ) {
     var listName by remember { mutableStateOf("") }
-    
+
     Dialog(onDismissRequest = onDismiss) {
         Surface(
-            shape = RoundedCornerShape(16.dp),
-            color = Color.White
+            shape = RoundedCornerShape(16.dp), color = Color.White
         ) {
             Column(
                 modifier = Modifier
@@ -359,27 +339,24 @@ private fun AddListDialog(
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
-                
-                OutlinedTextField(
-                    value = listName,
+
+                OutlinedTextField(value = listName,
                     onValueChange = { listName = it },
                     label = { Text("List Name") },
                     modifier = Modifier.fillMaxWidth()
                 )
-                
+
                 Spacer(modifier = Modifier.height(24.dp))
-                
+
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End
+                    modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End
                 ) {
                     TextButton(onClick = onDismiss) {
                         Text("Cancel")
                     }
-                    
+
                     TextButton(
-                        onClick = { onAddList(listName) },
-                        enabled = listName.isNotBlank()
+                        onClick = { onAddList(listName) }, enabled = listName.isNotBlank()
                     ) {
                         Text("Add")
                     }

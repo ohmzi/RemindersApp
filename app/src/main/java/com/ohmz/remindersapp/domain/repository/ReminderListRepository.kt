@@ -30,7 +30,7 @@ interface ReminderListRepository {
     suspend fun deleteList(list: ReminderList)
     
     /**
-     * Gets the default list or creates one if none exists
+     * Gets the default list if one exists, otherwise returns null
      */
-    suspend fun getOrCreateDefaultList(): ReminderList
+    suspend fun getOrCreateDefaultList(): ReminderList?
 }

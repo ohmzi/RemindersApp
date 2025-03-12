@@ -4,6 +4,5 @@ enum class ReminderAction {
     CALENDAR,
     LOCATION,
     TAG,
-    FAVORITE,
-    CAMERA
+    FAVORITE
 }

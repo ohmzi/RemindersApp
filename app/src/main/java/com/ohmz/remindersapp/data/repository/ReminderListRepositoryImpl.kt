@@ -34,7 +34,7 @@ class ReminderListRepositoryImpl @Inject constructor(
         reminderListDao.deleteList(list.toEntity())
     }
 
-    override suspend fun getOrCreateDefaultList(): ReminderList {
+    override suspend fun getOrCreateDefaultList(): ReminderList? {
         // Look for an existing default list
         val defaultList = reminderListDao.getDefaultList()
         
@@ -42,13 +42,8 @@ class ReminderListRepositoryImpl @Inject constructor(
             return defaultList.toDomainModel()
         }
         
-        // Create a default "Reminders" list if none exists
-        val newDefaultList = ReminderList(
-            name = "Reminders",
-            isDefault = true
-        )
-        
-        val newId = reminderListDao.insertList(newDefaultList.toEntity())
-        return newDefaultList.copy(id = newId.toInt())
+        // Instead of creating a default list, return null
+        // This will force the user to create their own list
+        return null
     }
 }

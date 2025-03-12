@@ -40,7 +40,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.animation.*
 import androidx.compose.material.icons.filled.*
 import com.ohmz.remindersapp.domain.model.Priority
+import com.ohmz.remindersapp.domain.model.ReminderList
 import com.ohmz.remindersapp.presentation.common.components.PrioritySelector
+import com.ohmz.remindersapp.presentation.common.components.ListSelector
 
 /**
  * Utility function to get the current date with time set to midnight
@@ -67,9 +69,14 @@ fun AccessoryBar(
     onLowPrioritySelected: () -> Unit = {},
     onMediumPrioritySelected: () -> Unit = {},
     onHighPrioritySelected: () -> Unit = {},
+    onListSelected: (ReminderList) -> Unit = {},
+    onAddNewList: (String) -> Unit = {},
     hasDate: Boolean = false, // Parameter to indicate if a date is set
     dueDate: Date? = null, // Due date parameter to pass to DateSelector
-    currentPriority: Priority = Priority.MEDIUM // Current priority for highlighting
+    currentPriority: Priority = Priority.MEDIUM, // Current priority for highlighting
+    availableLists: List<ReminderList> = emptyList(), // Available lists for the ListSelector
+    selectedListId: Int? = null, // Currently selected list ID
+    isFavorite: Boolean = false // Whether the reminder is set as favorite
 ) {
     Column(
         modifier = modifier
@@ -106,6 +113,36 @@ fun AccessoryBar(
                 onMediumPrioritySelected = onMediumPrioritySelected,
                 onHighPrioritySelected = onHighPrioritySelected,
                 currentPriority = currentPriority
+            )
+        }
+
+        // Animated list selector with sliding effect
+        AnimatedVisibility(
+            visible = selectedAction == ReminderAction.LOCATION,
+            enter = slideInVertically(
+                initialOffsetY = { -it }, // Slide in from above
+                animationSpec = tween(durationMillis = 500)
+            ) + expandVertically(
+                expandFrom = Alignment.Top,
+                animationSpec = tween(durationMillis = 500)
+            ) + fadeIn(
+                animationSpec = tween(durationMillis = 500)
+            ),
+            exit = slideOutVertically(
+                targetOffsetY = { -it }, // Slide out to above
+                animationSpec = tween(durationMillis = 600)
+            ) + shrinkVertically(
+                shrinkTowards = Alignment.Top,
+                animationSpec = tween(durationMillis = 600)
+            ) + fadeOut(
+                animationSpec = tween(durationMillis = 600)
+            )
+        ) {
+            ListSelector(
+                lists = availableLists,
+                selectedListId = selectedListId,
+                onListSelected = onListSelected,
+                onAddNewList = onAddNewList
             )
         }
 
@@ -148,7 +185,7 @@ fun AccessoryBar(
                 .background(Color.White),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            // Calendar icon - now colored only if hasDate is true (not just when selected)
+            // Calendar icon - colored blue if date is set
             IconButton(
                 onClick = { onActionSelected(ReminderAction.CALENDAR) },
                 modifier = Modifier.size(48.dp)
@@ -161,7 +198,7 @@ fun AccessoryBar(
                 )
             }
 
-            // List icon (replaced location icon)
+            // List icon (replaced location icon) - colored blue if list is selected
             IconButton(
                 onClick = { onActionSelected(ReminderAction.LOCATION) }, // Keep using LOCATION action for backward compatibility
                 modifier = Modifier.size(48.dp)
@@ -169,52 +206,46 @@ fun AccessoryBar(
                 Icon(
                     imageVector = Icons.Default.List,
                     contentDescription = "List",
-                    tint = if (selectedAction == ReminderAction.LOCATION)
-                        Color(0xFF007AFF) else Color.Gray,
+                    tint = if (selectedListId != null) Color(0xFF007AFF) 
+                          else if (selectedAction == ReminderAction.LOCATION) Color(0xFF007AFF)
+                          else Color.Gray,
                     modifier = Modifier.size(28.dp)
                 )
             }
 
-            // Tag/Priority icon
+            // Tag/Priority icon - colored according to selected priority
             IconButton(
                 onClick = { onActionSelected(ReminderAction.TAG) },
                 modifier = Modifier.size(48.dp)
             ) {
+                val priorityColor = when (currentPriority) {
+                    Priority.LOW -> Color(0xFF34C759) // iOS green
+                    Priority.MEDIUM -> Color(0xFF007AFF) // iOS blue
+                    Priority.HIGH -> Color(0xFFFF3B30) // iOS red
+                }
+                
                 Icon(
                     imageVector = Icons.Default.Warning,
                     contentDescription = "Priority",
-                    tint = if (selectedAction == ReminderAction.TAG)
-                        Color(0xFF007AFF) else Color.Gray,
+                    tint = if (selectedAction == ReminderAction.TAG) Color(0xFF007AFF)
+                          else if (currentPriority != Priority.MEDIUM) priorityColor // Only color if not the default Medium
+                          else Color.Gray,
                     modifier = Modifier.size(28.dp)
                 )
             }
 
-            // Favorite icon
+            // Favorite icon - colored blue if favorite is set
             IconButton(
                 onClick = { onActionSelected(ReminderAction.FAVORITE) },
                 modifier = Modifier.size(48.dp)
             ) {
                 Icon(
-                    imageVector = if (selectedAction == ReminderAction.FAVORITE)
+                    imageVector = if (isFavorite)
                         Icons.Default.Favorite
                     else
                         Icons.Default.FavoriteBorder,
                     contentDescription = "Favorite",
-                    tint = if (selectedAction == ReminderAction.FAVORITE)
-                        Color(0xFF007AFF) else Color.Gray,
-                    modifier = Modifier.size(28.dp)
-                )
-            }
-
-            // Person/Photo icon
-            IconButton(
-                onClick = { onActionSelected(ReminderAction.CAMERA) },
-                modifier = Modifier.size(48.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.AccountBox,
-                    contentDescription = "Photo",
-                    tint = if (selectedAction == ReminderAction.CAMERA)
+                    tint = if (isFavorite)
                         Color(0xFF007AFF) else Color.Gray,
                     modifier = Modifier.size(28.dp)
                 )

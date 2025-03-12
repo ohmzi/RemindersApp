@@ -1,119 +1,133 @@
 package com.ohmz.remindersapp.presentation.common.components
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.List
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Divider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import com.ohmz.remindersapp.domain.model.ReminderList
 
+/**
+ * A component that displays list selection options similar to the PrioritySelector
+ */
 @Composable
 fun ListSelector(
     lists: List<ReminderList>,
     selectedListId: Int?,
     onListSelected: (ReminderList) -> Unit,
-    onAddNewList: (String) -> Unit
+    onAddNewList: (String) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     var showAddListDialog by remember { mutableStateOf(false) }
+    val iosBlue = Color(0xFF007AFF)
     
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
-            .background(Color.White)
             .padding(16.dp)
     ) {
-        Text(
-            text = "Lists",
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 8.dp)
-        )
-        
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 8.dp)
-        ) {
-            items(lists) { list ->
-                ListItem(
-                    list = list,
-                    isSelected = list.id == selectedListId,
-                    onClick = { onListSelected(list) }
-                )
-            }
-            
-            item {
-                Divider(modifier = Modifier.padding(vertical = 8.dp))
+        // First row for existing lists (scrollable horizontally if many)
+        if (lists.isNotEmpty()) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(state = rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                // Add some initial padding
+                Spacer(modifier = Modifier.width(4.dp))
                 
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { showAddListDialog = true }
-                        .padding(vertical = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = "Add New List",
-                        tint = Color(0xFF007AFF),
-                        modifier = Modifier.size(24.dp)
-                    )
+                // Show existing lists as clickable bubbles
+                lists.forEach { list ->
+                    val listColor = try {
+                        Color(android.graphics.Color.parseColor(list.color))
+                    } catch (e: Exception) {
+                        iosBlue
+                    }
                     
-                    Spacer(modifier = Modifier.width(16.dp))
-                    
-                    Text(
-                        text = "Add New List",
-                        color = Color(0xFF007AFF),
-                        fontSize = 16.sp
+                    ListButton(
+                        text = list.name,
+                        isSelected = list.id == selectedListId,
+                        activeColor = listColor,
+                        onClick = { onListSelected(list) }
                     )
                 }
+                
+                // Add some final padding
+                Spacer(modifier = Modifier.width(4.dp))
+            }
+            
+            // Add some space between rows
+            Spacer(modifier = Modifier.height(16.dp))
+        } else {
+            // Show a message when there are no lists
+            Text(
+                text = "No lists yet. Create your first list below.",
+                color = Color.Gray,
+                fontSize = 14.sp,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 16.dp)
+            )
+            
+            // Add some space between message and button
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+        
+        // Second row - Add new list button
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp),
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Button(
+                onClick = { showAddListDialog = true },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = iosBlue.copy(alpha = 0.1f),
+                    contentColor = iosBlue
+                ),
+                shape = RoundedCornerShape(20.dp),
+                border = androidx.compose.foundation.BorderStroke(1.dp, iosBlue),
+                modifier = Modifier.height(40.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = "Add new list",
+                    tint = iosBlue,
+                    modifier = Modifier.size(16.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "New List",
+                    color = iosBlue,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium
+                )
             }
         }
     }
     
+    // Dialog to add a new list
     if (showAddListDialog) {
         AddListDialog(
             onDismiss = { showAddListDialog = false },
@@ -126,54 +140,47 @@ fun ListSelector(
 }
 
 @Composable
-private fun ListItem(
-    list: ReminderList,
+private fun ListButton(
+    text: String,
     isSelected: Boolean,
-    onClick: () -> Unit
+    activeColor: Color,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    val listColor = try {
-        Color(android.graphics.Color.parseColor(list.color))
-    } catch (e: Exception) {
-        Color(0xFF007AFF) // Default to iOS blue if color parsing fails
-    }
+    val grayColor = Color(0xFFE0E0E0)
+    val grayBorder = Color(0xFFBDBDBD)
     
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
+    val backgroundColor = if (isSelected) activeColor.copy(alpha = 0.15f) else grayColor
+    val borderColor = if (isSelected) activeColor else grayBorder
+    val textColor = if (isSelected) activeColor else Color.DarkGray
+    
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = modifier
+            .clip(RoundedCornerShape(20.dp))
+            .background(backgroundColor)
+            .border(1.dp, borderColor, RoundedCornerShape(20.dp))
             .clickable(onClick = onClick)
-            .padding(vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically
+            .padding(horizontal = 16.dp, vertical = 8.dp)
     ) {
-        // Colored circle with icon
-        Box(
-            modifier = Modifier
-                .size(24.dp)
-                .clip(CircleShape)
-                .background(listColor),
-            contentAlignment = Alignment.Center
+        Row(
+            verticalAlignment = Alignment.CenterVertically
         ) {
+            // Show list icon
             Icon(
                 imageVector = Icons.Default.List,
                 contentDescription = null,
-                tint = Color.White,
+                tint = textColor,
                 modifier = Modifier.size(16.dp)
             )
-        }
-        
-        Spacer(modifier = Modifier.width(16.dp))
-        
-        Text(
-            text = list.name,
-            fontSize = 16.sp,
-            modifier = Modifier.weight(1f)
-        )
-        
-        if (isSelected) {
-            Icon(
-                imageVector = Icons.Default.Check,
-                contentDescription = "Selected",
-                tint = Color(0xFF007AFF),
-                modifier = Modifier.size(24.dp)
+            
+            Spacer(modifier = Modifier.width(8.dp))
+            
+            Text(
+                text = text,
+                color = textColor,
+                fontWeight = FontWeight.Medium,
+                fontSize = 14.sp
             )
         }
     }
@@ -186,7 +193,13 @@ private fun AddListDialog(
 ) {
     var listName by remember { mutableStateOf("") }
     
-    Dialog(onDismissRequest = onDismiss) {
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(
+            dismissOnBackPress = true,
+            dismissOnClickOutside = true
+        )
+    ) {
         Surface(
             shape = RoundedCornerShape(16.dp),
             color = Color.White
@@ -207,6 +220,7 @@ private fun AddListDialog(
                     value = listName,
                     onValueChange = { listName = it },
                     label = { Text("List Name") },
+                    singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
                 
@@ -214,7 +228,7 @@ private fun AddListDialog(
                 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = androidx.compose.foundation.layout.Arrangement.End
+                    horizontalArrangement = Arrangement.End
                 ) {
                     TextButton(onClick = onDismiss) {
                         Text("Cancel")
@@ -229,43 +243,5 @@ private fun AddListDialog(
                 }
             }
         }
-    }
-}
-
-@Composable
-fun AnimatedListSelector(
-    visible: Boolean,
-    lists: List<ReminderList>,
-    selectedListId: Int?,
-    onListSelected: (ReminderList) -> Unit,
-    onAddNewList: (String) -> Unit
-) {
-    AnimatedVisibility(
-        visible = visible,
-        enter = slideInVertically(
-            initialOffsetY = { -it },
-            animationSpec = tween(durationMillis = 300)
-        ) + expandVertically(
-            expandFrom = Alignment.Top,
-            animationSpec = tween(durationMillis = 300)
-        ) + fadeIn(
-            animationSpec = tween(durationMillis = 300)
-        ),
-        exit = slideOutVertically(
-            targetOffsetY = { -it },
-            animationSpec = tween(durationMillis = 300)
-        ) + shrinkVertically(
-            shrinkTowards = Alignment.Top,
-            animationSpec = tween(durationMillis = 300)
-        ) + fadeOut(
-            animationSpec = tween(durationMillis = 300)
-        )
-    ) {
-        ListSelector(
-            lists = lists,
-            selectedListId = selectedListId,
-            onListSelected = onListSelected,
-            onAddNewList = onAddNewList
-        )
     }
 }

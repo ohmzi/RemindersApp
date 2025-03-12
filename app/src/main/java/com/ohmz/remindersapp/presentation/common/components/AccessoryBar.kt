@@ -246,7 +246,7 @@ fun AccessoryBar(
                         Icons.Default.FavoriteBorder,
                     contentDescription = "Favorite",
                     tint = if (isFavorite)
-                        Color(0xFF007AFF) else Color.Gray,
+                        Color(0xFFFF3B30) else Color.Gray,
                     modifier = Modifier.size(28.dp)
                 )
             }

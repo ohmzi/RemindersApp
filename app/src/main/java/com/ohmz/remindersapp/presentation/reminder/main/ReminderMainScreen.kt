@@ -111,12 +111,12 @@ fun ReminderMainScreen(
                 type = ReminderType.TODAY,
                 title = "Today",
                 count = reminders.count { reminder ->
-                    reminder.dueDate?.let { date ->
+                    (reminder.dueDate?.let { date ->
                         val today = java.util.Calendar.getInstance()
                         val reminderDate = java.util.Calendar.getInstance().apply { time = date }
                         today.get(java.util.Calendar.YEAR) == reminderDate.get(java.util.Calendar.YEAR) && 
                         today.get(java.util.Calendar.DAY_OF_YEAR) == reminderDate.get(java.util.Calendar.DAY_OF_YEAR)
-                    } ?: false
+                    } ?: false) && !reminder.isCompleted
                 },
                 color = todayColor,
                 icon = Icons.Default.DateRange
@@ -124,7 +124,7 @@ fun ReminderMainScreen(
             ReminderCategoryData(
                 type = ReminderType.SCHEDULED,
                 title = "Scheduled",
-                count = reminders.count { it.dueDate != null },
+                count = reminders.count { it.dueDate != null && !it.isCompleted },
                 color = scheduledColor,
                 icon = Icons.Default.DateRange
             ),

@@ -100,48 +100,55 @@ fun ReminderMainScreen(
     val favouriteColor = Color(0xFFFF3B30) // iOS red (changed from orange)
     val completedColor = Color(0xFF8E8E93) // iOS gray
 
-    // Create reminder category data with iOS-like icons and colors
-    val reminderCategories = listOf(
-        ReminderCategoryData(
-            type = ReminderType.TODAY,
-            title = "Today",
-            count = viewModel.getFilteredReminders().count { reminder ->
-                reminder.dueDate?.let { date ->
-                    val today = java.util.Calendar.getInstance()
-                    val reminderDate = java.util.Calendar.getInstance().apply { time = date }
-                    today.get(java.util.Calendar.YEAR) == reminderDate.get(java.util.Calendar.YEAR) && today.get(
-                        java.util.Calendar.DAY_OF_YEAR
-                    ) == reminderDate.get(java.util.Calendar.DAY_OF_YEAR)
-                } ?: false
-            },
-            color = todayColor,
-            icon = Icons.Default.DateRange
-        ), ReminderCategoryData(
-            type = ReminderType.SCHEDULED,
-            title = "Scheduled",
-            count = viewModel.getFilteredReminders().count { it.dueDate != null },
-            color = scheduledColor,
-            icon = Icons.Default.DateRange
-        ), ReminderCategoryData(
-            type = ReminderType.ALL,
-            title = "All",
-            count = viewModel.getFilteredReminders().size,
-            color = allColor,
-            icon = Icons.Default.List
-        ), ReminderCategoryData(
-            type = ReminderType.FAVOURITE,
-            title = "Favourite",
-            count = viewModel.getFilteredReminders().count { it.isFavorite },
-            color = favouriteColor,
-            icon = Icons.Default.Favorite
-        ), ReminderCategoryData(
-            type = ReminderType.COMPLETED,
-            title = "Completed",
-            count = viewModel.getFilteredReminders().count { it.isCompleted },
-            color = completedColor,
-            icon = Icons.Default.CheckCircle
+    // Make reminder categories a derived state from the UI state
+    // This ensures the counts update when reminders change
+    val reminders = uiState.reminders
+    val reminderCategories = remember(reminders) {
+        listOf(
+            ReminderCategoryData(
+                type = ReminderType.TODAY,
+                title = "Today",
+                count = reminders.count { reminder ->
+                    reminder.dueDate?.let { date ->
+                        val today = java.util.Calendar.getInstance()
+                        val reminderDate = java.util.Calendar.getInstance().apply { time = date }
+                        today.get(java.util.Calendar.YEAR) == reminderDate.get(java.util.Calendar.YEAR) && 
+                        today.get(java.util.Calendar.DAY_OF_YEAR) == reminderDate.get(java.util.Calendar.DAY_OF_YEAR)
+                    } ?: false
+                },
+                color = todayColor,
+                icon = Icons.Default.DateRange
+            ),
+            ReminderCategoryData(
+                type = ReminderType.SCHEDULED,
+                title = "Scheduled",
+                count = reminders.count { it.dueDate != null },
+                color = scheduledColor,
+                icon = Icons.Default.DateRange
+            ),
+            ReminderCategoryData(
+                type = ReminderType.ALL,
+                title = "All",
+                count = reminders.size,
+                color = allColor,
+                icon = Icons.Default.List
+            ),
+            ReminderCategoryData(
+                type = ReminderType.FAVOURITE,
+                title = "Favourite",
+                count = reminders.count { it.isFavorite },
+                color = favouriteColor,
+                icon = Icons.Default.Favorite
+            ),
+            ReminderCategoryData(
+                type = ReminderType.COMPLETED,
+                title = "Completed",
+                count = reminders.count { it.isCompleted },
+                color = completedColor,
+                icon = Icons.Default.CheckCircle
+            )
         )
-    )
+    }
 
     Scaffold(containerColor = iosBackgroundColor,
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) }) { paddingValues ->

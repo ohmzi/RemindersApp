@@ -126,12 +126,12 @@ class ReminderListViewModel @Inject constructor(
         return when (uiState.value.selectedType) {
             ReminderType.TODAY -> {
                 allReminders.filter { reminder ->
-                    reminder.dueDate?.let { date ->
+                    (reminder.dueDate?.let { date ->
                         isSameDay(date, Date())
-                    } ?: false
+                    } ?: false) && !reminder.isCompleted
                 }
             }
-            ReminderType.SCHEDULED -> allReminders.filter { it.dueDate != null }
+            ReminderType.SCHEDULED -> allReminders.filter { it.dueDate != null && !it.isCompleted }
             ReminderType.ALL -> allReminders
             ReminderType.FAVOURITE -> allReminders.filter { it.isFavorite }
             ReminderType.COMPLETED -> allReminders.filter { it.isCompleted }

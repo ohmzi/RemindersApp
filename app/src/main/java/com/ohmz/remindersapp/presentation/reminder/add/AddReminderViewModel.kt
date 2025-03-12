@@ -205,17 +205,7 @@ class AddReminderViewModel @Inject constructor(
                 return@launch
             }
 
-            // Validate that a list is selected
-            if (state.listId == null) {
-                _uiState.value = state.copy(
-                    error = "Please select or create a list"
-                )
-                // Show the list selector
-                _uiState.value = _uiState.value.copy(
-                    selectedAction = ReminderAction.LOCATION
-                )
-                return@launch
-            }
+            // Removed list validation - list selection is now optional
 
             _uiState.value = state.copy(isLoading = true)
 
@@ -228,7 +218,7 @@ class AddReminderViewModel @Inject constructor(
                     isFavorite = state.isFavorite,
                     priority = state.priority,
                     tags = state.tags,
-                    listId = state.listId,
+                    listId = state.listId, // This can now be null
                     imageUri = state.imageUri
                 )
 

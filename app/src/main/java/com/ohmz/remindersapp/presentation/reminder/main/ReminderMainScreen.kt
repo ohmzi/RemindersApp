@@ -22,6 +22,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CheckCircle
@@ -55,8 +56,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -111,12 +115,12 @@ fun ReminderMainScreen(
                 type = ReminderType.TODAY,
                 title = "Today",
                 count = reminders.count { reminder ->
-                    reminder.dueDate?.let { date ->
+                    (reminder.dueDate?.let { date ->
                         val today = java.util.Calendar.getInstance()
                         val reminderDate = java.util.Calendar.getInstance().apply { time = date }
                         today.get(java.util.Calendar.YEAR) == reminderDate.get(java.util.Calendar.YEAR) && 
                         today.get(java.util.Calendar.DAY_OF_YEAR) == reminderDate.get(java.util.Calendar.DAY_OF_YEAR)
-                    } ?: false
+                    } ?: false) && !reminder.isCompleted
                 },
                 color = todayColor,
                 icon = Icons.Default.DateRange
@@ -124,7 +128,7 @@ fun ReminderMainScreen(
             ReminderCategoryData(
                 type = ReminderType.SCHEDULED,
                 title = "Scheduled",
-                count = reminders.count { it.dueDate != null },
+                count = reminders.count { it.dueDate != null && !it.isCompleted },
                 color = scheduledColor,
                 icon = Icons.Default.DateRange
             ),
@@ -208,13 +212,23 @@ fun ReminderMainScreen(
                     columns = GridCells.Fixed(2),
                     horizontalArrangement = Arrangement.spacedBy(16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 8.dp) // Add padding at the bottom of grid
                 ) {
                     items(reminderCategories) { category ->
                         // Use the updated card with consistent rounded shadows
                         ReminderCategoryCardAlt(
                             category = category,
                             onClick = { navigateToFilteredList(category.type) })
+                    }
+                    
+                    // Add empty items for extra spacing at the bottom
+                    item {
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
+                    item {
+                        Spacer(modifier = Modifier.height(8.dp))
                     }
                 }
 
@@ -383,6 +397,15 @@ private fun AddListDialog(
     onDismiss: () -> Unit, onAddList: (String) -> Unit
 ) {
     var listName by remember { mutableStateOf("") }
+    
+    // Reference to control focus and automatically show keyboard
+    val focusRequester = FocusRequester()
+    
+    // Effect to request focus when dialog is shown
+    LaunchedEffect(Unit) {
+        kotlinx.coroutines.delay(100) // Short delay to ensure the dialog is fully shown
+        focusRequester.requestFocus()
+    }
 
     Dialog(onDismissRequest = onDismiss) {
         Surface(
@@ -404,7 +427,11 @@ private fun AddListDialog(
                     value = listName,
                     onValueChange = { listName = it },
                     label = { Text("List Name") },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .focusRequester(focusRequester),
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done)
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))

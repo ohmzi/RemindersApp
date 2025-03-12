@@ -59,10 +59,10 @@ class AddReminderViewModel @Inject constructor(
             try {
                 // Get all lists
                 val lists = reminderListRepository.getAllLists().first()
-                
+
                 // Get default list if it exists
                 val defaultList = reminderListRepository.getOrCreateDefaultList()
-                
+
                 _uiState.value = _uiState.value.copy(
                     // Only set listId and name if default list exists
                     listId = defaultList?.id,
@@ -127,9 +127,7 @@ class AddReminderViewModel @Inject constructor(
      * Removes a tag from the reminder
      */
     fun removeTag(tag: String) {
-        _uiState.value = _uiState.value.copy(
-            tags = _uiState.value.tags.filter { it != tag }
-        )
+        _uiState.value = _uiState.value.copy(tags = _uiState.value.tags.filter { it != tag })
     }
 
     /**
@@ -137,9 +135,7 @@ class AddReminderViewModel @Inject constructor(
      */
     fun updateList(list: ReminderList) {
         _uiState.value = _uiState.value.copy(
-            listId = list.id,
-            selectedListName = list.name,
-            showListSelector = false
+            listId = list.id, selectedListName = list.name, showListSelector = false
         )
     }
 
@@ -160,10 +156,10 @@ class AddReminderViewModel @Inject constructor(
             try {
                 val newList = ReminderList(name = name)
                 val newId = reminderListRepository.addList(newList)
-                
+
                 // Refresh lists and select the new one
                 val lists = reminderListRepository.getAllLists().first()
-                
+
                 _uiState.value = _uiState.value.copy(
                     listId = newId.toInt(),
                     selectedListName = name,
@@ -208,7 +204,7 @@ class AddReminderViewModel @Inject constructor(
                 )
                 return@launch
             }
-            
+
             // Validate that a list is selected
             if (state.listId == null) {
                 _uiState.value = state.copy(
@@ -239,8 +235,7 @@ class AddReminderViewModel @Inject constructor(
                 addReminderUseCase(reminder)
 
                 _uiState.value = state.copy(
-                    isLoading = false,
-                    isSuccess = true
+                    isLoading = false, isSuccess = true
                 )
             } catch (e: Exception) {
                 _uiState.value = state.copy(
@@ -263,5 +258,26 @@ class AddReminderViewModel @Inject constructor(
      */
     fun resetSuccess() {
         _uiState.value = _uiState.value.copy(isSuccess = false)
+    }
+
+    /**
+     * Resets the entire UI state to its initial values
+     * Should be called when the add reminder sheet is closed/dismissed
+     */
+    fun resetState() {
+        viewModelScope.launch {
+            try {
+                // Get all lists for the dropdown, but don't select any by default
+                val lists = reminderListRepository.getAllLists().first()
+
+                // Reset to initial state but keep the loaded lists
+                _uiState.value = AddReminderUiState(
+                    availableLists = lists, isLoading = false
+                )
+            } catch (e: Exception) {
+                // Just reset to the default state
+                _uiState.value = AddReminderUiState(isLoading = false)
+            }
+        }
     }
 }

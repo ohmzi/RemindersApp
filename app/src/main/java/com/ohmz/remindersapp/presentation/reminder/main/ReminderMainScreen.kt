@@ -2,7 +2,20 @@ package com.ohmz.remindersapp.presentation.reminder.main
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -10,33 +23,51 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.ohmz.remindersapp.domain.model.ReminderType
-import com.ohmz.remindersapp.presentation.common.components.ReminderCategoryCardAlt
 import com.ohmz.remindersapp.presentation.common.components.EnhancedListItem
+import com.ohmz.remindersapp.presentation.common.components.ReminderCategoryCardAlt
+import com.ohmz.remindersapp.presentation.common.components.ReminderCategoryData
 import com.ohmz.remindersapp.presentation.reminder.add.AddReminderScreen
+import com.ohmz.remindersapp.presentation.reminder.add.AddReminderViewModel
 import com.ohmz.remindersapp.presentation.reminder.list.ReminderListViewModel
 import kotlinx.coroutines.launch
-import com.ohmz.remindersapp.presentation.common.components.ReminderCategoryData
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -171,7 +202,8 @@ fun ReminderMainScreen(
                 ) {
                     items(reminderCategories) { category ->
                         // Use the updated card with consistent rounded shadows
-                        ReminderCategoryCardAlt(category = category,
+                        ReminderCategoryCardAlt(
+                            category = category,
                             onClick = { navigateToFilteredList(category.type) })
                     }
                 }
@@ -187,7 +219,7 @@ fun ReminderMainScreen(
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(vertical = 8.dp)
                     )
-                    
+
                     // Scrollable section - list of user's lists
                     androidx.compose.foundation.lazy.LazyColumn(
                         modifier = Modifier
@@ -201,16 +233,15 @@ fun ReminderMainScreen(
                             } catch (e: Exception) {
                                 Color(0xFF007AFF) // Default iOS blue
                             }
-                            
-                            EnhancedListItem(
-                                title = list.name,
-                                count = viewModel.getFilteredReminders().count { it.listId == list.id },
+
+                            EnhancedListItem(title = list.name,
+                                count = viewModel.getFilteredReminders()
+                                    .count { it.listId == list.id },
                                 icon = Icons.Default.List,
                                 iconBackgroundColor = listColor,
-                                onClick = { /* Navigate to this list */ }
-                            )
+                                onClick = { /* Navigate to this list */ })
                         }
-                        
+
                         // Add some bottom padding
                         item {
                             Spacer(modifier = Modifier.height(16.dp))
@@ -296,23 +327,39 @@ fun ReminderMainScreen(
         }
     }
 
+    // Create a reference to the AddReminderViewModel
+    val addReminderViewModel: AddReminderViewModel = hiltViewModel()
+
     // Bottom sheet for adding a new reminder
     if (showBottomSheet) {
+        // Reset the state when showing the bottom sheet
+        LaunchedEffect(showBottomSheet) {
+            addReminderViewModel.resetState()
+        }
+
         ModalBottomSheet(onDismissRequest = {
-            coroutineScope.launch { sheetState.hide() }
-            showBottomSheet = false
+            coroutineScope.launch {
+                sheetState.hide()
+                showBottomSheet = false
+                // Also reset state when dismissing
+                addReminderViewModel.resetState()
+            }
         }, sheetState = sheetState, dragHandle = {}) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .fillMaxHeight(0.9f)
             ) {
-                AddReminderScreen(onNavigateBack = {
-                    coroutineScope.launch {
-                        sheetState.hide()
-                        showBottomSheet = false
-                    }
-                })
+                AddReminderScreen(
+                    onNavigateBack = {
+                        coroutineScope.launch {
+                            sheetState.hide()
+                            showBottomSheet = false
+                            // Also reset state when navigating back
+                            addReminderViewModel.resetState()
+                        }
+                    }, viewModel = addReminderViewModel // Pass the ViewModel instance
+                )
             }
         }
     }
@@ -340,7 +387,8 @@ private fun AddListDialog(
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
 
-                OutlinedTextField(value = listName,
+                OutlinedTextField(
+                    value = listName,
                     onValueChange = { listName = it },
                     label = { Text("List Name") },
                     modifier = Modifier.fillMaxWidth()

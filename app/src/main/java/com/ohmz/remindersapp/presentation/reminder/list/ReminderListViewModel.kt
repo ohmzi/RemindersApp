@@ -1,5 +1,6 @@
 package com.ohmz.remindersapp.presentation.reminder.list
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ohmz.remindersapp.domain.model.Reminder
@@ -9,6 +10,7 @@ import com.ohmz.remindersapp.domain.usecase.GetRemindersUseCase
 import com.ohmz.remindersapp.domain.usecase.ToggleReminderCompletionUseCase
 import com.ohmz.remindersapp.domain.usecase.ToggleReminderFavoriteUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -24,22 +26,70 @@ import javax.inject.Inject
 /**
  * UI state for the reminder list screen
  */
+data class ReminderCounts(
+    val todayCount: Int = 0,
+    val scheduledCount: Int = 0,
+    val allCount: Int = 0,
+    val favoriteCount: Int = 0,
+    val completedCount: Int = 0
+)
+
 data class ReminderListUiState(
     val reminders: List<Reminder> = emptyList(),
     val selectedType: ReminderType = ReminderType.ALL,
     val isLoading: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    val categoryCounts: ReminderCounts = ReminderCounts()
 )
+
+/**
+ * Helper class to handle caching of reminder counts
+ */
+class ReminderCountsCache(context: Context) {
+    private val sharedPreferences = context.getSharedPreferences("reminder_counts_cache", Context.MODE_PRIVATE)
+    
+    fun saveCounts(counts: ReminderCounts) {
+        sharedPreferences.edit().apply {
+            putInt("today_count", counts.todayCount)
+            putInt("scheduled_count", counts.scheduledCount)  
+            putInt("all_count", counts.allCount)
+            putInt("favorite_count", counts.favoriteCount)
+            putInt("completed_count", counts.completedCount)
+            apply()
+        }
+    }
+    
+    fun loadCounts(): ReminderCounts {
+        return ReminderCounts(
+            todayCount = sharedPreferences.getInt("today_count", 0),
+            scheduledCount = sharedPreferences.getInt("scheduled_count", 0),
+            allCount = sharedPreferences.getInt("all_count", 0),
+            favoriteCount = sharedPreferences.getInt("favorite_count", 0),
+            completedCount = sharedPreferences.getInt("completed_count", 0)
+        )
+    }
+}
 
 @HiltViewModel
 class ReminderListViewModel @Inject constructor(
     private val getRemindersUseCase: GetRemindersUseCase,
     private val toggleReminderCompletionUseCase: ToggleReminderCompletionUseCase,
     private val toggleReminderFavoriteUseCase: ToggleReminderFavoriteUseCase,
-    private val deleteReminderUseCase: DeleteReminderUseCase
+    private val deleteReminderUseCase: DeleteReminderUseCase,
+    @ApplicationContext private val context: Context
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(ReminderListUiState(isLoading = true))
+    private val countsCache = ReminderCountsCache(context)
+    
+    // Initialize with cached counts to prevent zeros at startup
+    private val cachedCounts = countsCache.loadCounts()
+    
+    private val _uiState = MutableStateFlow(
+        ReminderListUiState(
+            isLoading = true,
+            categoryCounts = cachedCounts // Use cached counts immediately
+        )
+    )
     val uiState: StateFlow<ReminderListUiState> = _uiState.asStateFlow()
 
     init {
@@ -47,15 +97,38 @@ class ReminderListViewModel @Inject constructor(
     }
 
     /**
-     * Loads all reminders
+     * Loads all reminders and updates the counts
      */
     private fun loadReminders() {
         getRemindersUseCase()
             .onEach { reminders ->
+                // Calculate counts
+                val todayCount = reminders.count { reminder ->
+                    (reminder.dueDate?.let { date -> isSameDay(date, Date()) } ?: false) && !reminder.isCompleted
+                }
+                val scheduledCount = reminders.count { it.dueDate != null && !it.isCompleted }
+                val allCount = reminders.size
+                val favoriteCount = reminders.count { it.isFavorite }
+                val completedCount = reminders.count { it.isCompleted }
+                
+                // Create new counts object
+                val newCounts = ReminderCounts(
+                    todayCount = todayCount,
+                    scheduledCount = scheduledCount,
+                    allCount = allCount,
+                    favoriteCount = favoriteCount,
+                    completedCount = completedCount
+                )
+                
+                // Update UI state with reminders and counts
                 _uiState.value = _uiState.value.copy(
                     reminders = reminders,
-                    isLoading = false
+                    isLoading = false,
+                    categoryCounts = newCounts
                 )
+                
+                // Save counts to cache
+                countsCache.saveCounts(newCounts)
             }
             .catch { e ->
                 _uiState.value = _uiState.value.copy(

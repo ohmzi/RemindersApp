@@ -122,55 +122,46 @@ fun ReminderMainScreen(
     val favouriteColor = Color(0xFFFF3B30) // iOS red (changed from orange)
     val completedColor = Color(0xFF8E8E93) // iOS gray
 
-    // Make reminder categories a derived state from the UI state
-    // This ensures the counts update when reminders change
-    val reminders = uiState.reminders
-    val reminderCategories = remember(reminders) {
-        listOf(
-            ReminderCategoryData(
-                type = ReminderType.TODAY,
-                title = "Today",
-                count = reminders.count { reminder ->
-                    (reminder.dueDate?.let { date ->
-                        val today = java.util.Calendar.getInstance()
-                        val reminderDate = java.util.Calendar.getInstance().apply { time = date }
-                        today.get(java.util.Calendar.YEAR) == reminderDate.get(java.util.Calendar.YEAR) &&
-                                today.get(java.util.Calendar.DAY_OF_YEAR) == reminderDate.get(java.util.Calendar.DAY_OF_YEAR)
-                    } ?: false) && !reminder.isCompleted
-                },
-                color = todayColor,
-                icon = Icons.Default.DateRange
-            ),
-            ReminderCategoryData(
-                type = ReminderType.SCHEDULED,
-                title = "Scheduled",
-                count = reminders.count { it.dueDate != null && !it.isCompleted },
-                color = scheduledColor,
-                icon = Icons.Default.DateRange
-            ),
-            ReminderCategoryData(
-                type = ReminderType.ALL,
-                title = "All",
-                count = reminders.size,
-                color = allColor,
-                icon = Icons.Default.List
-            ),
-            ReminderCategoryData(
-                type = ReminderType.FAVOURITE,
-                title = "Favourite",
-                count = reminders.count { it.isFavorite },
-                color = favouriteColor,
-                icon = Icons.Default.Favorite
-            ),
-            ReminderCategoryData(
-                type = ReminderType.COMPLETED,
-                title = "Completed",
-                count = reminders.count { it.isCompleted },
-                color = completedColor,
-                icon = Icons.Default.CheckCircle
-            )
+    // Use the cached counts from the UI state to prevent initial zeros
+    // This ensures we show meaningful numbers immediately upon app start
+    val counts = uiState.categoryCounts
+    val reminderCategories = listOf(
+        ReminderCategoryData(
+            type = ReminderType.TODAY,
+            title = "Today",
+            count = counts.todayCount,
+            color = todayColor,
+            icon = Icons.Default.DateRange
+        ),
+        ReminderCategoryData(
+            type = ReminderType.SCHEDULED,
+            title = "Scheduled",
+            count = counts.scheduledCount,
+            color = scheduledColor,
+            icon = Icons.Default.DateRange
+        ),
+        ReminderCategoryData(
+            type = ReminderType.ALL,
+            title = "All",
+            count = counts.allCount,
+            color = allColor,
+            icon = Icons.Default.List
+        ),
+        ReminderCategoryData(
+            type = ReminderType.FAVOURITE,
+            title = "Favourite",
+            count = counts.favoriteCount,
+            color = favouriteColor,
+            icon = Icons.Default.Favorite
+        ),
+        ReminderCategoryData(
+            type = ReminderType.COMPLETED,
+            title = "Completed",
+            count = counts.completedCount,
+            color = completedColor,
+            icon = Icons.Default.CheckCircle
         )
-    }
+    )
 
     Scaffold(
         containerColor = iosBackgroundColor,
@@ -301,6 +292,7 @@ fun ReminderMainScreen(
                             }
                         }
 
+                        // Regular spacer between categories and "My Lists"
                         Spacer(modifier = Modifier.height(24.dp))
 
                         // Only show "My Lists" section if there are lists available

@@ -68,6 +68,63 @@ class ReminderMainViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Rename an existing list
+     */
+    fun renameList(list: ReminderList, newName: String) {
+        if (newName.isBlank() || newName == list.name) return
+
+        viewModelScope.launch {
+            try {
+                val updatedList = list.copy(name = newName)
+                reminderListRepository.updateList(updatedList)
+            } catch (e: Exception) {
+                _uiState.update { currentState ->
+                    currentState.copy(
+                        error = "Failed to rename list: ${e.message}"
+                    )
+                }
+            }
+        }
+    }
+
+    /**
+     * Update the color of an existing list
+     */
+    fun updateListColor(list: ReminderList, newColor: String) {
+        if (newColor == list.color) return
+
+        viewModelScope.launch {
+            try {
+                val updatedList = list.copy(color = newColor)
+                reminderListRepository.updateList(updatedList)
+            } catch (e: Exception) {
+                _uiState.update { currentState ->
+                    currentState.copy(
+                        error = "Failed to update list color: ${e.message}"
+                    )
+                }
+            }
+        }
+    }
+
+    /**
+     * Delete an existing list
+     */
+    fun deleteList(list: ReminderList) {
+        viewModelScope.launch {
+            try {
+                reminderListRepository.deleteList(list)
+            } catch (e: Exception) {
+                _uiState.update { currentState ->
+                    currentState.copy(
+                        error = "Failed to delete list: ${e.message}"
+                    )
+                }
+            }
+        }
+    }
+
     fun clearError() {
         _uiState.update { currentState ->
             currentState.copy(error = null)

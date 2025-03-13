@@ -1,17 +1,18 @@
 package com.ohmz.remindersapp.presentation.reminder.main
 
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.FlingBehavior
+import androidx.compose.foundation.gestures.ScrollScope
+import androidx.compose.foundation.gestures.ScrollableDefaults
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -23,13 +24,6 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.gestures.FlingBehavior
-import androidx.compose.foundation.gestures.ScrollableDefaults
-import androidx.compose.foundation.gestures.ScrollScope
-import androidx.compose.ui.unit.LayoutDirection
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.calculateEndPadding
-import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -39,7 +33,6 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.List
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -65,15 +58,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -87,8 +78,6 @@ import com.ohmz.remindersapp.presentation.reminder.add.AddReminderScreen
 import com.ohmz.remindersapp.presentation.reminder.add.AddReminderViewModel
 import com.ohmz.remindersapp.presentation.reminder.list.ReminderListViewModel
 import kotlinx.coroutines.launch
-import kotlin.math.max
-import kotlin.math.min
 import kotlin.math.absoluteValue
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -169,23 +158,23 @@ fun ReminderMainScreen(
     ) { paddingValues ->
         // Use LazyListState to track scroll position
         val lazyListState = rememberLazyListState()
-        
+
         // Calculate search bar height and convert to pixels
         val searchBarHeight = 68 // Height of search bar + padding in dp
         val searchBarHeightPx = with(LocalDensity.current) { searchBarHeight.dp.toPx() }
-        
+
         // Calculate search bar visibility based on scroll
         val searchBarVisible = remember {
             derivedStateOf {
                 // Show the search bar when at or near the top
                 // Hide it when scrolling down and away from the top
-                val isNearTop = lazyListState.firstVisibleItemIndex == 0 && 
-                    lazyListState.firstVisibleItemScrollOffset < 100
-                
+                val isNearTop = lazyListState.firstVisibleItemIndex == 0 &&
+                        lazyListState.firstVisibleItemScrollOffset < 100
+
                 isNearTop // Show when near top, hide when scrolling down
             }
         }
-        
+
         // Main content with floating search bar
         Box(modifier = Modifier.fillMaxSize()) {
             // Scrollable content
@@ -197,23 +186,24 @@ fun ReminderMainScreen(
                         // This creates an extremely stretchy, rubber-band like effect
                         val stretchFactor = 2.5f
                         val superExaggeratedVelocity = initialVelocity * stretchFactor
-                        
+
                         // Apply additional scrolling before deceleration to create more "stretch"
-                        val distanceToAdd = (initialVelocity.absoluteValue * 0.05f).coerceAtMost(50f)
+                        val distanceToAdd =
+                            (initialVelocity.absoluteValue * 0.05f).coerceAtMost(50f)
                         if (initialVelocity > 0) {
                             scrollBy(distanceToAdd)
                         } else if (initialVelocity < 0) {
                             scrollBy(-distanceToAdd)
                         }
-                        
+
                         // Use the exaggerated fling behavior for bouncy deceleration
-                        return with(original) { 
+                        return with(original) {
                             performFling(superExaggeratedVelocity)
                         }
                     }
                 }
             }
-            
+
             LazyColumn(
                 state = lazyListState,
                 modifier = Modifier
@@ -228,7 +218,7 @@ fun ReminderMainScreen(
                 flingBehavior = iosOverscrollEffect
             ) {
                 // No spacer needed at the top
-                
+
                 // Main content item (categories grid)
                 item {
                     Column(
@@ -256,9 +246,9 @@ fun ReminderMainScreen(
                                     modifier = Modifier.weight(1f)
                                 )
                             }
-                            
+
                             Spacer(modifier = Modifier.height(16.dp))
-                            
+
                             // Second row
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
@@ -275,9 +265,9 @@ fun ReminderMainScreen(
                                     modifier = Modifier.weight(1f)
                                 )
                             }
-                            
+
                             Spacer(modifier = Modifier.height(16.dp))
-                            
+
                             // Third row (with the last category)
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
@@ -296,6 +286,10 @@ fun ReminderMainScreen(
                         Spacer(modifier = Modifier.height(24.dp))
 
                         // Only show "My Lists" section if there are lists available
+// Updated section for ReminderMainScreen.kt that handles list management
+// This replaces the "My Lists" section in the original code
+
+// Only show "My Lists" section if there are lists available
                         if (mainUiState.lists.isNotEmpty()) {
                             // "My Lists" title like iOS
                             Text(
@@ -318,7 +312,8 @@ fun ReminderMainScreen(
                                         Color(0xFF007AFF) // Default iOS blue
                                     }
 
-                                    EnhancedListItem(title = list.name,
+                                    EnhancedListItem(
+                                        title = list.name,
                                         count = viewModel.getFilteredReminders()
                                             .count { it.listId == list.id },
                                         icon = Icons.Default.List,
@@ -332,7 +327,21 @@ fun ReminderMainScreen(
                                                     list.color
                                                 )
                                             )
-                                        })
+                                        },
+                                        list = list, // Pass the list object
+                                        onRenameList = { reminderList, newName ->
+                                            // Call ViewModel function to rename the list
+                                            mainViewModel.renameList(reminderList, newName)
+                                        },
+                                        onChangeListColor = { reminderList, newColor ->
+                                            // Call ViewModel function to change list color
+                                            mainViewModel.updateListColor(reminderList, newColor)
+                                        },
+                                        onDeleteList = { reminderList ->
+                                            // Call ViewModel function to delete the list
+                                            mainViewModel.deleteList(reminderList)
+                                        }
+                                    )
                                 }
 
                                 // Add some bottom padding
@@ -347,7 +356,7 @@ fun ReminderMainScreen(
                     Spacer(modifier = Modifier.height(80.dp))
                 }
             }
-            
+
             // Floating buttons that stay in place regardless of scrolling
             Box(
                 modifier = Modifier

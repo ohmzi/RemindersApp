@@ -30,7 +30,6 @@ import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -118,8 +117,8 @@ fun ReminderMainScreen(
                     (reminder.dueDate?.let { date ->
                         val today = java.util.Calendar.getInstance()
                         val reminderDate = java.util.Calendar.getInstance().apply { time = date }
-                        today.get(java.util.Calendar.YEAR) == reminderDate.get(java.util.Calendar.YEAR) && 
-                        today.get(java.util.Calendar.DAY_OF_YEAR) == reminderDate.get(java.util.Calendar.DAY_OF_YEAR)
+                        today.get(java.util.Calendar.YEAR) == reminderDate.get(java.util.Calendar.YEAR) &&
+                                today.get(java.util.Calendar.DAY_OF_YEAR) == reminderDate.get(java.util.Calendar.DAY_OF_YEAR)
                     } ?: false) && !reminder.isCompleted
                 },
                 color = todayColor,
@@ -161,7 +160,6 @@ fun ReminderMainScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
                 // Add status bar padding to avoid content spilling into status bar
                 .statusBarsPadding()
         ) {
@@ -222,7 +220,7 @@ fun ReminderMainScreen(
                             category = category,
                             onClick = { navigateToFilteredList(category.type) })
                     }
-                    
+
                     // Add empty items for extra spacing at the bottom
                     item {
                         Spacer(modifier = Modifier.height(8.dp))
@@ -263,9 +261,15 @@ fun ReminderMainScreen(
                                     .count { it.listId == list.id },
                                 icon = Icons.Default.List,
                                 iconBackgroundColor = listColor,
-                                onClick = { 
+                                onClick = {
                                     // Navigate to the list view
-                                    navController.navigate(Screen.ReminderListByList.createRoute(list.id, list.name, list.color)) 
+                                    navController.navigate(
+                                        Screen.ReminderListByList.createRoute(
+                                            list.id,
+                                            list.name,
+                                            list.color
+                                        )
+                                    )
                                 })
                         }
 
@@ -397,10 +401,10 @@ private fun AddListDialog(
     onDismiss: () -> Unit, onAddList: (String) -> Unit
 ) {
     var listName by remember { mutableStateOf("") }
-    
+
     // Reference to control focus and automatically show keyboard
     val focusRequester = FocusRequester()
-    
+
     // Effect to request focus when dialog is shown
     LaunchedEffect(Unit) {
         kotlinx.coroutines.delay(100) // Short delay to ensure the dialog is fully shown

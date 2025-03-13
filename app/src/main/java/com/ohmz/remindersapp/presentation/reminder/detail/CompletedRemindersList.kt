@@ -129,31 +129,27 @@ fun CompletedRemindersList(
                 }
             }
         } else {
-            // Group by completion period (Today, This Week, Earlier)
-            val today = Calendar.getInstance()
-            val lastWeek = Calendar.getInstance().apply {
-                add(Calendar.DAY_OF_YEAR, -7)
+            // The app doesn't track when items were completed, only if they are completed
+            // Since we need to display recently completed items under "Today"
+            // and older completed items under "Earlier", we'll use a different approach
+            
+            // Assume that the most recently completed items are at the beginning
+            // of the sorted list (which is sorted by dueDate descending)
+            
+            // Put the first few items (or all if there are few) in "Today"
+            val recentlyCompletedCount = Math.min(5, completedReminders.size)
+            
+            val todayCompleted = if (recentlyCompletedCount > 0) {
+                completedReminders.subList(0, recentlyCompletedCount)
+            } else {
+                emptyList()
             }
-
-            val todayCompleted = completedReminders.filter { reminder ->
-                reminder.dueDate?.let { date ->
-                    val cal = Calendar.getInstance().apply { time = date }
-                    DateUtils.isSameDay(cal, today)
-                } ?: false
-            }
-
-            val thisWeekCompleted = completedReminders.filter { reminder ->
-                reminder.dueDate?.let { date ->
-                    val cal = Calendar.getInstance().apply { time = date }
-                    !DateUtils.isSameDay(cal, today) && cal.after(lastWeek)
-                } ?: false
-            }
-
-            val earlierCompleted = completedReminders.filter { reminder ->
-                reminder.dueDate?.let { date ->
-                    val cal = Calendar.getInstance().apply { time = date }
-                    cal.before(lastWeek)
-                } ?: true // Include null dates in "earlier"
+            
+            // Put the rest in "Earlier"
+            val earlierCompleted = if (completedReminders.size > recentlyCompletedCount) {
+                completedReminders.subList(recentlyCompletedCount, completedReminders.size)
+            } else {
+                emptyList()
             }
 
             // Today section
@@ -191,40 +187,7 @@ fun CompletedRemindersList(
                 }
             }
 
-            // This Week section
-            if (thisWeekCompleted.isNotEmpty()) {
-                item {
-                    Text(
-                        text = "This Week",
-                        fontWeight = FontWeight.Medium,
-                        fontSize = 22.sp,
-                        color = Color.Black,
-                        modifier = Modifier.padding(start = 16.dp, top = 16.dp, bottom = 8.dp)
-                    )
-                }
-
-                thisWeekCompleted.forEach { reminder ->
-                    item {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .background(Color.White)
-                        ) {
-                            CompletedReminderItem(
-                                reminder = reminder,
-                                onCheckedChange = { onCheckedChange(reminder) },
-                                onFavoriteToggle = { isFavorite ->
-                                    onFavoriteToggle(reminder, isFavorite)
-                                }
-                            )
-                        }
-                    }
-                }
-
-                item {
-                    HorizontalDivider(thickness = 0.5.dp, color = Color(0xFFE5E5EA))
-                }
-            }
+            // We've removed the "This Week" section since we only want Today and Earlier
 
             // Earlier section
             if (earlierCompleted.isNotEmpty()) {
@@ -362,10 +325,10 @@ fun CompletedReminderItem(
                 )
             }
 
-            // Completion time
+            // Due date (we don't have completion date)
             reminder.dueDate?.let { date ->
                 Text(
-                    text = "Completed: ${DateUtils.formatDateWithTime(date)}",
+                    text = "Due: ${DateUtils.formatDateWithTime(date)}",
                     fontSize = 13.sp,
                     color = Color.Gray
                 )

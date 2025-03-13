@@ -278,30 +278,18 @@ fun CompletedReminderItem(
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Priority color dot
-                if (reminder.priority != Priority.MEDIUM) {
-                    val dotColor = when(reminder.priority) {
-                        Priority.LOW -> Color(0xFF34C759)
-                        Priority.HIGH -> Color(0xFFFF3B30)
-                        else -> Color.Transparent
-                    }
-
-                    Box(
-                        modifier = Modifier
-                            .size(8.dp)
-                            .clip(CircleShape)
-                            .background(dotColor)
-                    )
-
-                    Spacer(modifier = Modifier.width(6.dp))
+                // Priority color dot - only one dot for the priority
+                val dotColor = when(reminder.priority) {
+                    Priority.LOW -> Color(0xFF34C759)
+                    Priority.MEDIUM -> Color(0xFF007AFF)
+                    Priority.HIGH -> Color(0xFFFF3B30)
                 }
 
-                // Blue dot for list color (iOS style)
                 Box(
                     modifier = Modifier
                         .size(8.dp)
                         .clip(CircleShape)
-                        .background(Color(0xFF007AFF))
+                        .background(dotColor)
                 )
 
                 Spacer(modifier = Modifier.width(6.dp))

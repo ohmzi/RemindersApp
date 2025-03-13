@@ -74,30 +74,18 @@ fun ScheduledReminderItem(
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Priority color dot
-                if (reminder.priority != com.ohmz.remindersapp.domain.model.Priority.MEDIUM) {
-                    val dotColor = when(reminder.priority) {
-                        com.ohmz.remindersapp.domain.model.Priority.LOW -> Color(0xFF34C759)
-                        com.ohmz.remindersapp.domain.model.Priority.HIGH -> Color(0xFFFF3B30)
-                        else -> Color.Transparent
-                    }
-
-                    Box(
-                        modifier = Modifier
-                            .size(8.dp)
-                            .clip(CircleShape)
-                            .background(dotColor)
-                    )
-
-                    Spacer(modifier = Modifier.width(6.dp))
+                // Priority color dot - only one dot for the priority
+                val dotColor = when(reminder.priority) {
+                    com.ohmz.remindersapp.domain.model.Priority.LOW -> Color(0xFF34C759)
+                    com.ohmz.remindersapp.domain.model.Priority.MEDIUM -> Color(0xFF007AFF)
+                    com.ohmz.remindersapp.domain.model.Priority.HIGH -> Color(0xFFFF3B30)
                 }
 
-                // Blue dot for list color (iOS style)
                 Box(
                     modifier = Modifier
                         .size(8.dp)
                         .clip(CircleShape)
-                        .background(Color(0xFF007AFF))
+                        .background(dotColor)
                 )
 
                 Spacer(modifier = Modifier.width(6.dp))

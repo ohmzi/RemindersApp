@@ -84,15 +84,14 @@ fun EnhancedReminderItem(
                     Priority.HIGH -> IOSColors.Red
                 }
 
-                if (reminder.priority != Priority.LOW) {
-                    Box(
-                        modifier = Modifier
-                            .size(8.dp)
-                            .clip(CircleShape)
-                            .background(priorityColor)
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                }
+                // Always show priority indicator regardless of priority level
+                Box(
+                    modifier = Modifier
+                        .size(8.dp)
+                        .clip(CircleShape)
+                        .background(priorityColor)
+                )
+                Spacer(modifier = Modifier.width(6.dp))
 
                 // Title with styling
                 Text(

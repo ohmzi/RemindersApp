@@ -228,8 +228,7 @@ fun AccessoryBar(
                     imageVector = Icons.Default.Warning,
                     contentDescription = "Priority",
                     tint = if (selectedAction == ReminderAction.TAG) Color(0xFF007AFF)
-                          else if (currentPriority != Priority.MEDIUM) priorityColor // Only color if not the default Medium
-                          else Color.Gray,
+                          else priorityColor, // Always show priority color
                     modifier = Modifier.size(28.dp)
                 )
             }

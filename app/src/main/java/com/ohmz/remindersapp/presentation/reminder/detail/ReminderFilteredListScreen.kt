@@ -137,18 +137,20 @@ fun ReminderFilteredListScreen(
 
                 // No centered title
 
-                // Add button
-                Icon(imageVector = Icons.Default.Add,
-                    contentDescription = "Add Reminder",
-                    tint = iosBlue,
-                    modifier = Modifier
-                        .align(Alignment.CenterEnd)
-                        .padding(end = 16.dp)
-                        .size(24.dp)
-                        .clickable {
-                            showBottomSheet = true
-                            coroutineScope.launch { sheetState.show() }
-                        })
+                // Add button - only show if not on the Completed screen
+                if (reminderType != ReminderType.COMPLETED) {
+                    Icon(imageVector = Icons.Default.Add,
+                        contentDescription = "Add Reminder",
+                        tint = iosBlue,
+                        modifier = Modifier
+                            .align(Alignment.CenterEnd)
+                            .padding(end = 16.dp)
+                            .size(24.dp)
+                            .clickable {
+                                showBottomSheet = true
+                                coroutineScope.launch { sheetState.show() }
+                            })
+                }
             }
 
             // Very subtle divider for white background

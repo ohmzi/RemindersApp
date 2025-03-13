@@ -1,5 +1,10 @@
 package com.ohmz.remindersapp.presentation.reminder.main
 
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -16,10 +21,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.gestures.FlingBehavior
+import androidx.compose.foundation.gestures.ScrollableDefaults
+import androidx.compose.foundation.gestures.ScrollScope
+import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -46,6 +56,7 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -58,8 +69,11 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -73,6 +87,9 @@ import com.ohmz.remindersapp.presentation.reminder.add.AddReminderScreen
 import com.ohmz.remindersapp.presentation.reminder.add.AddReminderViewModel
 import com.ohmz.remindersapp.presentation.reminder.list.ReminderListViewModel
 import kotlinx.coroutines.launch
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.math.absoluteValue
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -155,143 +172,202 @@ fun ReminderMainScreen(
         )
     }
 
-    Scaffold(containerColor = iosBackgroundColor,
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                // Add status bar padding to avoid content spilling into status bar
-                .statusBarsPadding()
-        ) {
-            // iOS-style Search Bar
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 16.dp)
-            ) {
-                // iOS-height search bar (36dp) with subtle shadow
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(36.dp)
-                        .shadow(
-                            elevation = 1.dp, shape = RoundedCornerShape(10.dp), clip = true
-                        )
-                        .clip(RoundedCornerShape(10.dp))
-                        .background(Color(0xFFE3E3E8)),
-                    contentAlignment = Alignment.CenterStart
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(start = 10.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Search,
-                            contentDescription = "Search",
-                            tint = Color(0xFF8E8E93),
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = "Search", color = Color(0xFF8E8E93), fontSize = 16.sp
-                        )
+    Scaffold(
+        containerColor = iosBackgroundColor,
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
+    ) { paddingValues ->
+        // Use LazyListState to track scroll position
+        val lazyListState = rememberLazyListState()
+        
+        // Calculate search bar height and convert to pixels
+        val searchBarHeight = 68 // Height of search bar + padding in dp
+        val searchBarHeightPx = with(LocalDensity.current) { searchBarHeight.dp.toPx() }
+        
+        // Calculate search bar visibility based on scroll
+        val searchBarVisible = remember {
+            derivedStateOf {
+                // Show the search bar when at or near the top
+                // Hide it when scrolling down and away from the top
+                val isNearTop = lazyListState.firstVisibleItemIndex == 0 && 
+                    lazyListState.firstVisibleItemScrollOffset < 100
+                
+                isNearTop // Show when near top, hide when scrolling down
+            }
+        }
+        
+        // Main content with floating search bar
+        Box(modifier = Modifier.fillMaxSize()) {
+            // Scrollable content
+            // Super elastic, stretchy iOS-like overscroll effect
+            val iosOverscrollEffect = ScrollableDefaults.flingBehavior().let { original ->
+                object : FlingBehavior {
+                    override suspend fun ScrollScope.performFling(initialVelocity: Float): Float {
+                        // Dramatically exaggerate the overscroll with a much higher multiplier
+                        // This creates an extremely stretchy, rubber-band like effect
+                        val stretchFactor = 2.5f
+                        val superExaggeratedVelocity = initialVelocity * stretchFactor
+                        
+                        // Apply additional scrolling before deceleration to create more "stretch"
+                        val distanceToAdd = (initialVelocity.absoluteValue * 0.05f).coerceAtMost(50f)
+                        if (initialVelocity > 0) {
+                            scrollBy(distanceToAdd)
+                        } else if (initialVelocity < 0) {
+                            scrollBy(-distanceToAdd)
+                        }
+                        
+                        // Use the exaggerated fling behavior for bouncy deceleration
+                        return with(original) { 
+                            performFling(superExaggeratedVelocity)
+                        }
                     }
                 }
             }
-
-            // Main content with fixed top categories and scrollable lists section
-            Column(
+            
+            LazyColumn(
+                state = lazyListState,
                 modifier = Modifier
-                    .weight(1f)
-                    .padding(horizontal = 16.dp)
+                    .fillMaxSize()
+                    .statusBarsPadding(),
+                contentPadding = PaddingValues(
+                    top = paddingValues.calculateTopPadding(),
+                    bottom = paddingValues.calculateBottomPadding() + 40.dp, // Much more space for extreme bounce effect
+                    start = paddingValues.calculateStartPadding(LayoutDirection.Ltr),
+                    end = paddingValues.calculateEndPadding(LayoutDirection.Ltr)
+                ),
+                flingBehavior = iosOverscrollEffect
             ) {
-                // Fixed section - Grid of reminder categories (Today, Scheduled, etc.)
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(2),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 8.dp) // Add padding at the bottom of grid
-                ) {
-                    items(reminderCategories) { category ->
-                        // Use the updated card with consistent rounded shadows
-                        ReminderCategoryCardAlt(
-                            category = category,
-                            onClick = { navigateToFilteredList(category.type) })
-                    }
-
-                    // Add empty items for extra spacing at the bottom
-                    item {
-                        Spacer(modifier = Modifier.height(8.dp))
-                    }
-                    item {
-                        Spacer(modifier = Modifier.height(8.dp))
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                // Only show "My Lists" section if there are lists available
-                if (mainUiState.lists.isNotEmpty()) {
-                    // "My Lists" title like iOS
-                    Text(
-                        text = "My Lists",
-                        fontSize = 22.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(vertical = 8.dp)
-                    )
-
-                    // Scrollable section - list of user's lists
-                    androidx.compose.foundation.lazy.LazyColumn(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(12.dp) // Add spacing between list items
+                // No spacer needed at the top
+                
+                // Main content item (categories grid)
+                item {
+                    Column(
+                        modifier = Modifier.padding(horizontal = 16.dp)
                     ) {
-                        items(mainUiState.lists) { list ->
-                            val listColor = try {
-                                Color(android.graphics.Color.parseColor(list.color))
-                            } catch (e: Exception) {
-                                Color(0xFF007AFF) // Default iOS blue
+                        // Grid of reminder categories (Today, Scheduled, etc.) using non-lazy Grid
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(bottom = 8.dp)
+                        ) {
+                            // First row
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                            ) {
+                                ReminderCategoryCardAlt(
+                                    category = reminderCategories[0],
+                                    onClick = { navigateToFilteredList(reminderCategories[0].type) },
+                                    modifier = Modifier.weight(1f)
+                                )
+                                ReminderCategoryCardAlt(
+                                    category = reminderCategories[1],
+                                    onClick = { navigateToFilteredList(reminderCategories[1].type) },
+                                    modifier = Modifier.weight(1f)
+                                )
                             }
-
-                            EnhancedListItem(title = list.name,
-                                count = viewModel.getFilteredReminders()
-                                    .count { it.listId == list.id },
-                                icon = Icons.Default.List,
-                                iconBackgroundColor = listColor,
-                                onClick = {
-                                    // Navigate to the list view
-                                    navController.navigate(
-                                        Screen.ReminderListByList.createRoute(
-                                            list.id,
-                                            list.name,
-                                            list.color
-                                        )
-                                    )
-                                })
+                            
+                            Spacer(modifier = Modifier.height(16.dp))
+                            
+                            // Second row
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                            ) {
+                                ReminderCategoryCardAlt(
+                                    category = reminderCategories[2],
+                                    onClick = { navigateToFilteredList(reminderCategories[2].type) },
+                                    modifier = Modifier.weight(1f)
+                                )
+                                ReminderCategoryCardAlt(
+                                    category = reminderCategories[3],
+                                    onClick = { navigateToFilteredList(reminderCategories[3].type) },
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
+                            
+                            Spacer(modifier = Modifier.height(16.dp))
+                            
+                            // Third row (with the last category)
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                            ) {
+                                ReminderCategoryCardAlt(
+                                    category = reminderCategories[4],
+                                    onClick = { navigateToFilteredList(reminderCategories[4].type) },
+                                    modifier = Modifier.weight(1f)
+                                )
+                                Spacer(modifier = Modifier.weight(1f)) // Empty space for balance
+                            }
                         }
 
-                        // Add some bottom padding
-                        item {
-                            Spacer(modifier = Modifier.height(16.dp))
+                        Spacer(modifier = Modifier.height(24.dp))
+
+                        // Only show "My Lists" section if there are lists available
+                        if (mainUiState.lists.isNotEmpty()) {
+                            // "My Lists" title like iOS
+                            Text(
+                                text = "My Lists",
+                                fontSize = 22.sp,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(vertical = 8.dp)
+                            )
+
+                            // Non-scrollable section - list of user's lists
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth(),
+                                verticalArrangement = Arrangement.spacedBy(12.dp) // Add spacing between list items
+                            ) {
+                                mainUiState.lists.forEach { list ->
+                                    val listColor = try {
+                                        Color(android.graphics.Color.parseColor(list.color))
+                                    } catch (e: Exception) {
+                                        Color(0xFF007AFF) // Default iOS blue
+                                    }
+
+                                    EnhancedListItem(title = list.name,
+                                        count = viewModel.getFilteredReminders()
+                                            .count { it.listId == list.id },
+                                        icon = Icons.Default.List,
+                                        iconBackgroundColor = listColor,
+                                        onClick = {
+                                            // Navigate to the list view
+                                            navController.navigate(
+                                                Screen.ReminderListByList.createRoute(
+                                                    list.id,
+                                                    list.name,
+                                                    list.color
+                                                )
+                                            )
+                                        })
+                                }
+
+                                // Add some bottom padding
+                                Spacer(modifier = Modifier.height(16.dp))
+                            }
                         }
                     }
                 }
-            }
 
-            // Bottom bar with buttons
+                // Add spacer at bottom to ensure scrolling content doesn't hide behind floating buttons
+                item {
+                    Spacer(modifier = Modifier.height(80.dp))
+                }
+            }
+            
+            // Floating buttons that stay in place regardless of scrolling
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .align(Alignment.BottomCenter)
                     .background(iosBackgroundColor)
                     .padding(horizontal = 16.dp, vertical = 16.dp)
-                    // Add navigation bar padding to avoid content hiding behind system navigation
                     .navigationBarsPadding()
             ) {
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {

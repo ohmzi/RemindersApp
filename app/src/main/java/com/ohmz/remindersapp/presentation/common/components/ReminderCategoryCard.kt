@@ -43,13 +43,14 @@ data class ReminderCategoryData(
 @Composable
 fun ReminderCategoryCardAlt(
     category: ReminderCategoryData,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     // Define the corner shape once to keep it consistent
     val cornerShape = RoundedCornerShape(12.dp)
 
     Card(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .height(110.dp),
         shape = cornerShape,

@@ -16,6 +16,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.List
+import com.ohmz.remindersapp.domain.model.ReminderList
+import com.ohmz.remindersapp.presentation.reminder.add.AddReminderViewModel
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -29,6 +31,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.ohmz.remindersapp.presentation.reminder.add.AddReminderScreen
 import com.ohmz.remindersapp.presentation.reminder.detail.ScheduledReminderItem
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
 
 /**
  * Screen that displays reminders from a specific list with a consistent iOS-style appearance
@@ -45,6 +48,9 @@ fun ReminderListByListScreen(
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
+    
+    // Create add reminder viewModel
+    val addReminderViewModel: AddReminderViewModel = hiltViewModel()
 
     // Filter reminders by the listId
     val remindersInList = uiState.reminders.filter { it.listId == listId }
@@ -116,6 +122,21 @@ fun ReminderListByListScreen(
                         .padding(end = 16.dp)
                         .size(24.dp)
                         .clickable {
+                            // Pre-select the current list when adding a new reminder
+                            addReminderViewModel.resetState()
+                            
+                            // Small delay to ensure resetState has completed
+                            coroutineScope.launch {
+                                kotlinx.coroutines.delay(100)
+                                
+                                // Create a minimal ReminderList object with the current ID and name
+                                val currentList = com.ohmz.remindersapp.domain.model.ReminderList(
+                                    id = listId,
+                                    name = listName
+                                )
+                                addReminderViewModel.updateList(currentList)
+                            }
+                            
                             showBottomSheet = true
                             coroutineScope.launch { sheetState.show() }
                         }
@@ -212,7 +233,8 @@ fun ReminderListByListScreen(
                             sheetState.hide()
                             showBottomSheet = false
                         }
-                    }
+                    },
+                    viewModel = addReminderViewModel
                 )
             }
         }

@@ -52,11 +52,14 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.ohmz.remindersapp.domain.model.Priority
 import com.ohmz.remindersapp.domain.model.Reminder
+import com.ohmz.remindersapp.domain.model.ReminderAction
 import com.ohmz.remindersapp.domain.model.ReminderType
 import com.ohmz.remindersapp.presentation.common.utils.DateUtils
 import com.ohmz.remindersapp.presentation.reminder.add.AddReminderScreen
+import com.ohmz.remindersapp.presentation.reminder.add.AddReminderViewModel
 import com.ohmz.remindersapp.presentation.reminder.list.ReminderListViewModel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -81,6 +84,9 @@ fun ReminderFilteredListScreen(
     LaunchedEffect(reminderType) {
         viewModel.selectReminderType(reminderType)
     }
+
+    // Create add reminder viewModel
+    val addReminderViewModel: AddReminderViewModel = hiltViewModel()
 
     // Show error in a snackbar if one exists
     LaunchedEffect(uiState.error) {
@@ -124,8 +130,7 @@ fun ReminderFilteredListScreen(
                         .align(Alignment.CenterStart)
                         .padding(start = 16.dp)
                         .size(44.dp) // Large tappable area
-                        .clickable(onClick = onNavigateBack),
-                    contentAlignment = Alignment.Center
+                        .clickable(onClick = onNavigateBack), contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -147,6 +152,30 @@ fun ReminderFilteredListScreen(
                             .padding(end = 16.dp)
                             .size(24.dp)
                             .clickable {
+                                // Pre-select options based on current list type
+                                addReminderViewModel.resetState()
+                                
+                                // Small delay to ensure resetState has completed
+                                coroutineScope.launch {
+                                    kotlinx.coroutines.delay(100)
+                                    
+                                    when (reminderType) {
+                                        ReminderType.FAVOURITE -> {
+                                            // Pre-select favorite
+                                            addReminderViewModel.toggleFavorite()
+                                        }
+                                        
+                                        ReminderType.SCHEDULED -> {
+                                            // Open calendar selector when showing the screen
+                                            addReminderViewModel.toggleAction(ReminderAction.CALENDAR)
+                                        }
+                                        
+                                        else -> {
+                                            // No special pre-selection needed
+                                        }
+                                    }
+                                }
+
                                 showBottomSheet = true
                                 coroutineScope.launch { sheetState.show() }
                             })
@@ -208,21 +237,15 @@ fun ReminderFilteredListScreen(
                         viewModel.toggleReminderFavorite(reminder, isFavorite)
                     })
                 } else if (reminderType == ReminderType.COMPLETED) {
-                    CompletedRemindersList(
-                        reminders = reminders,
-                        onCheckedChange = { reminder ->
-                            viewModel.toggleReminderCompletion(reminder)
-                        },
-                        onDeleteClick = { reminder ->
-                            viewModel.deleteReminder(reminder)
-                        },
-                        onFavoriteToggle = { reminder, isFavorite ->
-                            viewModel.toggleReminderFavorite(reminder, isFavorite)
-                        },
-                        onClearAllCompleted = {
-                            viewModel.clearCompletedReminders()
-                        }
-                    )
+                    CompletedRemindersList(reminders = reminders, onCheckedChange = { reminder ->
+                        viewModel.toggleReminderCompletion(reminder)
+                    }, onDeleteClick = { reminder ->
+                        viewModel.deleteReminder(reminder)
+                    }, onFavoriteToggle = { reminder, isFavorite ->
+                        viewModel.toggleReminderFavorite(reminder, isFavorite)
+                    }, onClearAllCompleted = {
+                        viewModel.clearCompletedReminders()
+                    })
                 }
             }
         }
@@ -244,7 +267,7 @@ fun ReminderFilteredListScreen(
                         sheetState.hide()
                         showBottomSheet = false
                     }
-                })
+                }, viewModel = addReminderViewModel)
             }
         }
     }
@@ -317,8 +340,7 @@ fun ScheduledRemindersList(
                 dayReminders.forEach { reminder ->
                     item {
                         Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
+                            modifier = Modifier.fillMaxWidth()
                             // No need to specify background here as entire screen is white
                         ) {
                             ScheduledReminderItem(reminder = reminder,
@@ -576,7 +598,7 @@ fun TodayRemindersList(
     ) {
         // Filter for just today's reminders and show them
         val todayReminders = DateUtils.findTodayReminders(reminders)
-        
+
         if (todayReminders.isNotEmpty()) {
             todayReminders.forEach { reminder ->
                 item {
@@ -585,14 +607,12 @@ fun TodayRemindersList(
                             .fillMaxWidth()
                             .background(Color.White)
                     ) {
-                        ScheduledReminderItem(
-                            reminder = reminder,
+                        ScheduledReminderItem(reminder = reminder,
                             onCheckedChange = { onCheckedChange(reminder) },
                             onDeleteClick = { onDeleteClick(reminder) },
                             onFavoriteToggle = { isFavorite ->
                                 onFavoriteToggle(reminder, isFavorite)
-                            }
-                        )
+                            })
                     }
                 }
             }
@@ -606,9 +626,7 @@ fun TodayRemindersList(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "No reminders due today",
-                        color = Color.Gray,
-                        fontSize = 16.sp
+                        text = "No reminders due today", color = Color.Gray, fontSize = 16.sp
                     )
                 }
             }
@@ -629,12 +647,12 @@ fun AllRemindersList(
     onFavoriteToggle: (Reminder, Boolean) -> Unit
 ) {
     // Sort reminders by date first, then by priority (HIGH to LOW)
-    val sortedReminders = reminders.sortedWith(
-        compareBy<Reminder> { it.dueDate == null }  // null dates last
-        .thenBy { it.dueDate }  // then by date ascending
-        .thenByDescending { it.priority }  // then by priority (HIGH first)
-    )
-    
+    val sortedReminders =
+        reminders.sortedWith(compareBy<Reminder> { it.dueDate == null }  // null dates last
+            .thenBy { it.dueDate }  // then by date ascending
+            .thenByDescending { it.priority }  // then by priority (HIGH first)
+        )
+
     LazyColumn(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -648,9 +666,7 @@ fun AllRemindersList(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "No reminders found",
-                        color = Color.Gray,
-                        fontSize = 16.sp
+                        text = "No reminders found", color = Color.Gray, fontSize = 16.sp
                     )
                 }
             }
@@ -663,24 +679,22 @@ fun AllRemindersList(
                             .fillMaxWidth()
                             .background(Color.White)
                     ) {
-                        AllReminderItem(
-                            reminder = reminder,
+                        AllReminderItem(reminder = reminder,
                             onCheckedChange = { onCheckedChange(reminder) },
                             onDeleteClick = { onDeleteClick(reminder) },
                             onFavoriteToggle = { isFavorite ->
                                 onFavoriteToggle(reminder, isFavorite)
-                            }
-                        )
+                            })
                     }
                 }
-                
+
                 // Add divider after each reminder
                 item {
                     HorizontalDivider(thickness = 0.5.dp, color = Color(0xFFE5E5EA))
                 }
             }
         }
-        
+
         item {
             Spacer(modifier = Modifier.height(80.dp))
         }
@@ -714,8 +728,7 @@ fun AllReminderItem(
                     width = 1.5.dp,
                     color = if (reminder.isCompleted) Color(0xFF007AFF) else Color(0xFFD1D1D6),
                     shape = CircleShape
-                ),
-            contentAlignment = Alignment.Center
+                ), contentAlignment = Alignment.Center
         ) {
             if (reminder.isCompleted) {
                 Icon(
@@ -737,7 +750,7 @@ fun AllReminderItem(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 // Priority color dot - only one dot for the priority
-                val dotColor = when(reminder.priority) {
+                val dotColor = when (reminder.priority) {
                     Priority.LOW -> Color(0xFF34C759)
                     Priority.MEDIUM -> Color(0xFF007AFF)
                     Priority.HIGH -> Color(0xFFFF3B30)
@@ -771,7 +784,7 @@ fun AllReminderItem(
                     overflow = TextOverflow.Ellipsis
                 )
             }
-            
+
             // Date display inside the reminder card
             reminder.dueDate?.let { date ->
                 val dateText = when {
@@ -781,7 +794,7 @@ fun AllReminderItem(
                         SimpleDateFormat("EEE, MMM d, yyyy", Locale.getDefault()).format(date)
                     }
                 }
-                
+
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = dateText,
@@ -795,8 +808,7 @@ fun AllReminderItem(
         // Favorite icon
         if (reminder.isFavorite) {
             IconButton(
-                onClick = { onFavoriteToggle(false) },
-                modifier = Modifier.size(32.dp)
+                onClick = { onFavoriteToggle(false) }, modifier = Modifier.size(32.dp)
             ) {
                 Icon(
                     imageVector = Icons.Default.Favorite,
@@ -826,13 +838,11 @@ fun FavoriteRemindersList(
     onFavoriteToggle: (Reminder, Boolean) -> Unit
 ) {
     // Filter only favorite reminders and sort by due date
-    val favoriteReminders = reminders.filter { it.isFavorite }.sortedWith(
-        compareBy(
-            { it.dueDate == null }, // null dates last
+    val favoriteReminders = reminders.filter { it.isFavorite }
+        .sortedWith(compareBy({ it.dueDate == null }, // null dates last
             { it.dueDate } // then by date
-        )
-    )
-    
+        ))
+
     LazyColumn(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -845,16 +855,13 @@ fun FavoriteRemindersList(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "No favorites yet",
-                        color = Color.Gray,
-                        fontSize = 16.sp
+                        text = "No favorites yet", color = Color.Gray, fontSize = 16.sp
                     )
                 }
             }
         } else {
-            item {
-            }
-            
+            item {}
+
             favoriteReminders.forEach { reminder ->
                 item {
                     Box(
@@ -862,23 +869,21 @@ fun FavoriteRemindersList(
                             .fillMaxWidth()
                             .background(Color.White)
                     ) {
-                        ScheduledReminderItem(
-                            reminder = reminder,
+                        ScheduledReminderItem(reminder = reminder,
                             onCheckedChange = { onCheckedChange(reminder) },
                             onDeleteClick = { onDeleteClick(reminder) },
                             onFavoriteToggle = { isFavorite ->
                                 onFavoriteToggle(reminder, isFavorite)
-                            }
-                        )
+                            })
                     }
                 }
-                
+
                 item {
                     HorizontalDivider(thickness = 0.5.dp, color = Color(0xFFE5E5EA))
                 }
             }
         }
-        
+
         item {
             Spacer(modifier = Modifier.height(80.dp))
         }

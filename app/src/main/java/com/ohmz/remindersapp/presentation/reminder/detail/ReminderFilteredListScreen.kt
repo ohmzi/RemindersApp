@@ -208,13 +208,21 @@ fun ReminderFilteredListScreen(
                         viewModel.toggleReminderFavorite(reminder, isFavorite)
                     })
                 } else if (reminderType == ReminderType.COMPLETED) {
-                    CompletedRemindersList(reminders = reminders, onCheckedChange = { reminder ->
-                        viewModel.toggleReminderCompletion(reminder)
-                    }, onDeleteClick = { reminder ->
-                        viewModel.deleteReminder(reminder)
-                    }, onFavoriteToggle = { reminder, isFavorite ->
-                        viewModel.toggleReminderFavorite(reminder, isFavorite)
-                    })
+                    CompletedRemindersList(
+                        reminders = reminders,
+                        onCheckedChange = { reminder ->
+                            viewModel.toggleReminderCompletion(reminder)
+                        },
+                        onDeleteClick = { reminder ->
+                            viewModel.deleteReminder(reminder)
+                        },
+                        onFavoriteToggle = { reminder, isFavorite ->
+                            viewModel.toggleReminderFavorite(reminder, isFavorite)
+                        },
+                        onClearAllCompleted = {
+                            viewModel.clearCompletedReminders()
+                        }
+                    )
                 }
             }
         }

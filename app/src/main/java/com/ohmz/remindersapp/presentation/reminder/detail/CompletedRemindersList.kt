@@ -18,16 +18,23 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ohmz.remindersapp.domain.model.Priority
@@ -40,15 +47,72 @@ fun CompletedRemindersList(
     reminders: List<Reminder>,
     onCheckedChange: (Reminder) -> Unit,
     onDeleteClick: (Reminder) -> Unit,
-    onFavoriteToggle: (Reminder, Boolean) -> Unit
+    onFavoriteToggle: (Reminder, Boolean) -> Unit,
+    onClearAllCompleted: () -> Unit = {} // New callback for clearing all completed reminders
 ) {
     // The reminders should already be filtered for completed items by the viewModel
     // Sort completed reminders by completion date (most recent first) - using dueDate as proxy
     val completedReminders = reminders.sortedByDescending { it.dueDate }
-    
+
+    // Show confirmation dialog state
+    var showClearConfirmation by remember { mutableStateOf(false) }
+
+    // Show the confirmation dialog if requested
+    if (showClearConfirmation) {
+        AlertDialog(
+            onDismissRequest = { showClearConfirmation = false },
+            title = { Text("Clear Completed Reminders") },
+            text = { Text("Are you sure you want to clear all completed reminders?") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onClearAllCompleted()
+                        showClearConfirmation = false
+                    }
+                ) {
+                    Text("Clear All Completed", color = Color(0xFFFF3B30)) // iOS red color
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { showClearConfirmation = false }
+                ) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
     LazyColumn(
         modifier = Modifier.fillMaxSize()
     ) {
+        // Section with count and clear button - styled to match iOS screenshot
+        item {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Count text (e.g., "1 Completed") with dot separator
+                Text(
+                    text = "${completedReminders.size} Completed • ",
+                    fontSize = 14.sp,
+                    color = Color.Gray,
+                    fontWeight = FontWeight.Normal
+                )
+
+                // Clear button - no TextButton, just plain text to match iOS style
+                Text(
+                    text = "Clear",
+                    fontSize = 16.sp,
+                    color = Color(0xFF007AFF), // iOS blue
+                    fontWeight = FontWeight.Normal,
+                    modifier = Modifier.clickable { showClearConfirmation = true }
+                )
+            }
+        }
+
         if (completedReminders.isEmpty()) {
             item {
                 Box(
@@ -65,49 +129,45 @@ fun CompletedRemindersList(
                 }
             }
         } else {
-            // Section header for completed items
-            item {
-            }
-            
             // Group by completion period (Today, This Week, Earlier)
             val today = Calendar.getInstance()
-            val lastWeek = Calendar.getInstance().apply { 
-                add(Calendar.DAY_OF_YEAR, -7) 
+            val lastWeek = Calendar.getInstance().apply {
+                add(Calendar.DAY_OF_YEAR, -7)
             }
-            
+
             val todayCompleted = completedReminders.filter { reminder ->
                 reminder.dueDate?.let { date ->
                     val cal = Calendar.getInstance().apply { time = date }
                     DateUtils.isSameDay(cal, today)
                 } ?: false
             }
-            
+
             val thisWeekCompleted = completedReminders.filter { reminder ->
                 reminder.dueDate?.let { date ->
                     val cal = Calendar.getInstance().apply { time = date }
                     !DateUtils.isSameDay(cal, today) && cal.after(lastWeek)
                 } ?: false
             }
-            
+
             val earlierCompleted = completedReminders.filter { reminder ->
                 reminder.dueDate?.let { date ->
                     val cal = Calendar.getInstance().apply { time = date }
                     cal.before(lastWeek)
                 } ?: true // Include null dates in "earlier"
             }
-            
+
             // Today section
             if (todayCompleted.isNotEmpty()) {
                 item {
                     Text(
                         text = "Today",
                         fontWeight = FontWeight.Medium,
-                        fontSize = 17.sp,
-                        color = Color.Gray,
-                        modifier = Modifier.padding(start = 16.dp, top = 8.dp, bottom = 4.dp)
+                        fontSize = 22.sp,
+                        color = Color.Black,
+                        modifier = Modifier.padding(start = 16.dp, top = 16.dp, bottom = 8.dp)
                     )
                 }
-                
+
                 todayCompleted.forEach { reminder ->
                     item {
                         Box(
@@ -125,24 +185,24 @@ fun CompletedRemindersList(
                         }
                     }
                 }
-                
+
                 item {
                     HorizontalDivider(thickness = 0.5.dp, color = Color(0xFFE5E5EA))
                 }
             }
-            
+
             // This Week section
             if (thisWeekCompleted.isNotEmpty()) {
                 item {
                     Text(
                         text = "This Week",
                         fontWeight = FontWeight.Medium,
-                        fontSize = 17.sp,
-                        color = Color.Gray,
-                        modifier = Modifier.padding(start = 16.dp, top = 8.dp, bottom = 4.dp)
+                        fontSize = 22.sp,
+                        color = Color.Black,
+                        modifier = Modifier.padding(start = 16.dp, top = 16.dp, bottom = 8.dp)
                     )
                 }
-                
+
                 thisWeekCompleted.forEach { reminder ->
                     item {
                         Box(
@@ -160,14 +220,23 @@ fun CompletedRemindersList(
                         }
                     }
                 }
-                
+
                 item {
                     HorizontalDivider(thickness = 0.5.dp, color = Color(0xFFE5E5EA))
                 }
             }
-            
+
             // Earlier section
             if (earlierCompleted.isNotEmpty()) {
+                item {
+                    Text(
+                        text = "Earlier",
+                        fontWeight = FontWeight.Medium,
+                        fontSize = 22.sp,
+                        color = Color.Black,
+                        modifier = Modifier.padding(start = 16.dp, top = 16.dp, bottom = 8.dp)
+                    )
+                }
 
                 earlierCompleted.forEach { reminder ->
                     item {
@@ -188,7 +257,7 @@ fun CompletedRemindersList(
                 }
             }
         }
-        
+
         item {
             Spacer(modifier = Modifier.height(80.dp))
         }
@@ -292,6 +361,15 @@ fun CompletedReminderItem(
                     maxLines = 1
                 )
             }
+
+            // Completion time
+            reminder.dueDate?.let { date ->
+                Text(
+                    text = "Completed: ${DateUtils.formatDateWithTime(date)}",
+                    fontSize = 13.sp,
+                    color = Color.Gray
+                )
+            }
         }
 
         // Favorite icon
@@ -308,7 +386,14 @@ fun CompletedReminderItem(
                 )
             }
         }
-        
+
         // No Delete icon for completed reminders
     }
+
+    // Add a divider after each reminder
+    HorizontalDivider(
+        modifier = Modifier.padding(start = 56.dp),
+        thickness = 0.5.dp,
+        color = Color(0xFFE5E5EA)
+    )
 }

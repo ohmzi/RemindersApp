@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ohmz.remindersapp.domain.model.Reminder
 import com.ohmz.remindersapp.domain.model.ReminderType
+import com.ohmz.remindersapp.domain.usecase.ClearCompletedRemindersUseCase
 import com.ohmz.remindersapp.domain.usecase.DeleteReminderUseCase
 import com.ohmz.remindersapp.domain.usecase.GetRemindersUseCase
 import com.ohmz.remindersapp.domain.usecase.ToggleReminderCompletionUseCase
@@ -47,18 +48,18 @@ data class ReminderListUiState(
  */
 class ReminderCountsCache(context: Context) {
     private val sharedPreferences = context.getSharedPreferences("reminder_counts_cache", Context.MODE_PRIVATE)
-    
+
     fun saveCounts(counts: ReminderCounts) {
         sharedPreferences.edit().apply {
             putInt("today_count", counts.todayCount)
-            putInt("scheduled_count", counts.scheduledCount)  
+            putInt("scheduled_count", counts.scheduledCount)
             putInt("all_count", counts.allCount)
             putInt("favorite_count", counts.favoriteCount)
             putInt("completed_count", counts.completedCount)
             apply()
         }
     }
-    
+
     fun loadCounts(): ReminderCounts {
         return ReminderCounts(
             todayCount = sharedPreferences.getInt("today_count", 0),
@@ -76,14 +77,15 @@ class ReminderListViewModel @Inject constructor(
     private val toggleReminderCompletionUseCase: ToggleReminderCompletionUseCase,
     private val toggleReminderFavoriteUseCase: ToggleReminderFavoriteUseCase,
     private val deleteReminderUseCase: DeleteReminderUseCase,
+    private val clearCompletedRemindersUseCase: ClearCompletedRemindersUseCase,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val countsCache = ReminderCountsCache(context)
-    
+
     // Initialize with cached counts to prevent zeros at startup
     private val cachedCounts = countsCache.loadCounts()
-    
+
     private val _uiState = MutableStateFlow(
         ReminderListUiState(
             isLoading = true,
@@ -110,7 +112,7 @@ class ReminderListViewModel @Inject constructor(
                 val allCount = reminders.size
                 val favoriteCount = reminders.count { it.isFavorite }
                 val completedCount = reminders.count { it.isCompleted }
-                
+
                 // Create new counts object
                 val newCounts = ReminderCounts(
                     todayCount = todayCount,
@@ -119,14 +121,14 @@ class ReminderListViewModel @Inject constructor(
                     favoriteCount = favoriteCount,
                     completedCount = completedCount
                 )
-                
+
                 // Update UI state with reminders and counts
                 _uiState.value = _uiState.value.copy(
                     reminders = reminders,
                     isLoading = false,
                     categoryCounts = newCounts
                 )
-                
+
                 // Save counts to cache
                 countsCache.saveCounts(newCounts)
             }
@@ -160,7 +162,7 @@ class ReminderListViewModel @Inject constructor(
             }
         }
     }
-    
+
     /**
      * Toggles the favorite status of a reminder
      */
@@ -226,5 +228,20 @@ class ReminderListViewModel @Inject constructor(
      */
     fun clearError() {
         _uiState.value = _uiState.value.copy(error = null)
+    }
+
+    /**
+     * Clears all completed reminders
+     */
+    fun clearCompletedReminders() {
+        viewModelScope.launch {
+            try {
+                clearCompletedRemindersUseCase()
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    error = e.message ?: "Error clearing completed reminders"
+                )
+            }
+        }
     }
 }

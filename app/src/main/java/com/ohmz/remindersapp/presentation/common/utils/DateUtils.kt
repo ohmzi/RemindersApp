@@ -1,12 +1,30 @@
 package com.ohmz.remindersapp.presentation.common.utils
 
 import com.ohmz.remindersapp.domain.model.Reminder
+import java.text.SimpleDateFormat
 import java.util.*
 
 /**
  * Utility class for date-related operations in the Reminders app
  */
 object DateUtils {
+    private val dateTimeFormat = SimpleDateFormat("EEEE, h:mm a", Locale.getDefault())
+    private val dateWithTimeFormat = SimpleDateFormat("EEEE, MMM d, h:mm a", Locale.getDefault())
+
+    /**
+     * Format a date with time in iOS style (e.g., "Today, 1:28 PM" or "Mar 15, 2:45 PM")
+     */
+    fun formatDateWithTime(date: Date): String {
+        val today = Calendar.getInstance()
+        val inputDate = Calendar.getInstance().apply { time = date }
+
+        return if (isSameDay(inputDate, today)) {
+            "Today, ${SimpleDateFormat("h:mm a", Locale.getDefault()).format(date)}"
+        } else {
+            dateWithTimeFormat.format(date)
+        }
+    }
+
     /**
      * Find past due reminders
      */

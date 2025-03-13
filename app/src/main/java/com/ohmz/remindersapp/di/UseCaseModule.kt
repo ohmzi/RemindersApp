@@ -7,7 +7,6 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
-
 @Module
 @InstallIn(SingletonComponent::class)
 object UseCaseModule {
@@ -46,5 +45,17 @@ object UseCaseModule {
     @Singleton
     fun provideGetRemindersByTypeUseCase(repository: ReminderRepository): GetRemindersByTypeUseCase {
         return GetRemindersByTypeUseCase(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideClearCompletedRemindersUseCase(repository: ReminderRepository): ClearCompletedRemindersUseCase {
+        return ClearCompletedRemindersUseCase(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideToggleReminderFavoriteUseCase(repository: ReminderRepository): ToggleReminderFavoriteUseCase {
+        return ToggleReminderFavoriteUseCase(repository)
     }
 }

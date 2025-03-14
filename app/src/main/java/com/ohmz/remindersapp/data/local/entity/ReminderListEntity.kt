@@ -1,9 +1,8 @@
 package com.ohmz.remindersapp.data.local.entity
 
-import androidx.compose.ui.graphics.Color
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.ohmz.remindersapp.presentation.common.theme.IOSColors
+import androidx.room.ColumnInfo
 
 /**
  * Database entity for the reminder_lists table
@@ -15,6 +14,10 @@ data class ReminderListEntity(
     val id: Int = 0,
     
     val name: String,
-    val color: Color = IOSColors.Blue, // Default iOS blue color from IOSColors
+    
+    // Store color as a hex string like "#007AFF" for iOS blue
+    @ColumnInfo(name = "color")
+    val colorHex: String = "#007AFF", // Default iOS blue color hex
+    
     val isDefault: Boolean = false  // Flag to indicate if this is a default list
 )

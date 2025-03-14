@@ -24,13 +24,12 @@ sealed class Screen(val route: String) {
         }
     }
 
-    object ReminderListByList : Screen("reminder_list_by_list/{listId}/{listName}/{listColorHex}") {
+    object ReminderListByList : Screen("reminder_list_by_list/{listId}/{listName}/{listColorInt}") {
         fun createRoute(listId: Int, listName: String, listColor: Color): String {
-            // URL encode list name and convert color to hex string
+            // URL encode list name and convert color to integer for the route
             val encodedName = java.net.URLEncoder.encode(listName, "UTF-8")
-            val colorHex = String.format("#%06X", (0xFFFFFF and listColor.toArgb()))
-            val encodedColor = java.net.URLEncoder.encode(colorHex, "UTF-8")
-            return "reminder_list_by_list/$listId/$encodedName/$encodedColor"
+            val colorInt = listColor.toArgb()
+            return "reminder_list_by_list/$listId/$encodedName/$colorInt"
         }
     }
 
@@ -87,24 +86,19 @@ fun AppNavHost(
                 type = NavType.IntType
             }, navArgument("listName") {
                 type = NavType.StringType
-            }, navArgument("listColor") {
-                type = NavType.StringType
+            }, navArgument("listColorInt") {
+                type = NavType.IntType
             })
         ) { backStackEntry ->
             val listId = backStackEntry.arguments?.getInt("listId") ?: 0
             val listName = backStackEntry.arguments?.getString("listName") ?: ""
-            val listColorStr = backStackEntry.arguments?.getString("listColor") ?: "#007AFF"
+            val colorInt = backStackEntry.arguments?.getInt("listColorInt") ?: com.ohmz.remindersapp.presentation.common.theme.IOSColors.Blue.toArgb()
 
-            // URL decode the list name and color
+            // URL decode the list name
             val decodedListName = java.net.URLDecoder.decode(listName, "UTF-8")
-            val decodedColor = java.net.URLDecoder.decode(listColorStr, "UTF-8")
 
-            // Parse the color from hex string
-            val listColor = try {
-                Color(android.graphics.Color.parseColor(decodedColor))
-            } catch (e: Exception) {
-                com.ohmz.remindersapp.presentation.common.theme.IOSColors.Blue // Default to iOS Blue
-            }
+            // Convert the integer back to a Color
+            val listColor = Color(colorInt)
 
             ReminderListByListScreen(listId = listId,
                 listName = decodedListName,

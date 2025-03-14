@@ -9,7 +9,7 @@ import com.ohmz.remindersapp.data.local.entity.ReminderListEntity
 
 @Database(
     entities = [ReminderEntity::class, ReminderListEntity::class],
-    version = 2,
+    version = 3, // Increment version because we're changing schema
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

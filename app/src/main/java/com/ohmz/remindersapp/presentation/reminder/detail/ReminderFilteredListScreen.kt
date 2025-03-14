@@ -107,7 +107,7 @@ fun ReminderFilteredListScreen(
     // Get the title, icon and color based on the type
     val (screenTitle, themeColor) = when (reminderType) {
         ReminderType.TODAY -> Pair("Today", Color(0xFF007AFF))
-        ReminderType.SCHEDULED -> Pair("Scheduled", Color(0xFFFF3B30)) // Red color for scheduled
+        ReminderType.SCHEDULED -> Pair("Scheduled", Color(0xFFFF9500)) // Red color for scheduled
         ReminderType.ALL -> Pair("All", Color(0xFF000000))
         ReminderType.FAVOURITE -> Pair("Favourite", Color(0xFFFF3B30))
         ReminderType.COMPLETED -> Pair("Completed", Color(0xFF8E8E93))
@@ -289,8 +289,25 @@ fun ScheduledRemindersList(
     // Format for day headers
     val dayFormat = SimpleDateFormat("EEE MMM d", Locale.getDefault())
 
-    // Prepare date sections
-    val pastDueReminders = DateUtils.findPastDueReminders(reminders)
+    // Custom function to find past due reminders INCLUDING completed ones (for stable positioning)
+    fun findPastDueRemindersIncludingCompleted(reminders: List<Reminder>): List<Reminder> {
+        val today = Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+
+        return reminders.filter { reminder ->
+            reminder.dueDate?.let { date ->
+                val reminderCal = Calendar.getInstance().apply { time = date }
+                reminderCal.before(today) // Only check date, not completion status
+            } ?: false
+        }
+    }
+    
+    // Prepare date sections - use our custom function for past due
+    val pastDueReminders = findPastDueRemindersIncludingCompleted(reminders)
     val todayReminders = DateUtils.findTodayReminders(reminders)
     val tomorrowReminders = DateUtils.findTomorrowReminders(reminders)
 
@@ -337,8 +354,8 @@ fun ScheduledRemindersList(
                     )
                 }
 
-                // Show reminders for this date
-                dayReminders.forEach { reminder ->
+                // Show reminders for this date, sorted by priority (HIGH to LOW)
+                dayReminders.sortedByDescending { it.priority }.forEach { reminder ->
                     item {
                         Box(
                             modifier = Modifier.fillMaxWidth()
@@ -683,12 +700,26 @@ fun AllRemindersList(
     onDeleteClick: (Reminder) -> Unit,
     onFavoriteToggle: (Reminder, Boolean) -> Unit
 ) {
-    // Sort reminders by date first, then by priority (HIGH to LOW)
-    val sortedReminders =
-        reminders.sortedWith(compareBy<Reminder> { it.dueDate == null }  // null dates last
-            .thenBy { it.dueDate }  // then by date ascending
-            .thenByDescending { it.priority }  // then by priority (HIGH first)
-        )
+    // Custom sorting that keeps past due items in consistent positions regardless of completion status
+    val sortedReminders = reminders.sortedWith(
+        compareBy<Reminder> { 
+            // First sort criteria: is the reminder past due by date (ignoring completion status)
+            val isPastDue = it.dueDate?.let { date ->
+                val today = Calendar.getInstance().apply {
+                    set(Calendar.HOUR_OF_DAY, 0)
+                    set(Calendar.MINUTE, 0)
+                    set(Calendar.SECOND, 0)
+                    set(Calendar.MILLISECOND, 0)
+                }
+                val reminderCal = Calendar.getInstance().apply { time = date }
+                reminderCal.before(today) // Check if it's past due by date only
+            } ?: false
+            !isPastDue // Invert so past due comes first
+        }
+        .thenByDescending { it.priority } // Then by priority (HIGH first)
+        .thenBy { it.dueDate } // Then by date ascending for non-past due
+        .thenBy { it.isCompleted } // Uncompleted items first within same date & priority
+    )
 
     LazyColumn(
         modifier = Modifier.fillMaxSize()

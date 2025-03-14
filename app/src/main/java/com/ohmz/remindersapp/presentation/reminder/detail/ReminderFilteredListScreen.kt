@@ -17,8 +17,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Favorite
@@ -54,12 +52,12 @@ import com.ohmz.remindersapp.domain.model.Priority
 import com.ohmz.remindersapp.domain.model.Reminder
 import com.ohmz.remindersapp.domain.model.ReminderAction
 import com.ohmz.remindersapp.domain.model.ReminderType
+import com.ohmz.remindersapp.presentation.common.components.AndroidStyleTopBar
 import com.ohmz.remindersapp.presentation.common.utils.DateUtils
 import com.ohmz.remindersapp.presentation.reminder.add.AddReminderScreen
 import com.ohmz.remindersapp.presentation.reminder.add.AddReminderViewModel
 import com.ohmz.remindersapp.presentation.reminder.list.ReminderListViewModel
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -111,6 +109,8 @@ fun ReminderFilteredListScreen(
     val iosWhiteBackground = Color.White // Pure white background like in iOS
     val iosBlue = Color(0xFF007AFF)
 
+    // Inside ReminderFilteredListScreen.kt, replace the current top bar implementation with:
+
     Scaffold(containerColor = iosWhiteBackground,
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) }) { paddingValues ->
         Column(
@@ -118,69 +118,43 @@ fun ReminderFilteredListScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            // Minimalist iOS-style top bar with significantly reduced padding
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 0.dp, bottom = 0.dp) // Removed nearly all padding
-            ) {
-                // Back button with ONLY arrow (no text)
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.CenterStart)
-                        .padding(start = 16.dp)
-                        .size(44.dp) // Large tappable area
-                        .clickable(onClick = onNavigateBack), contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back",
-                        tint = iosBlue,
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
+            // Android style top bar instead of iOS-style
+            // Inside ReminderFilteredListScreen.kt, replace the current top bar Box with:
 
-                // No centered title
+// Add import at the top of the file
 
-                // Add button - only show if not on the Completed screen
-                if (reminderType != ReminderType.COMPLETED) {
-                    Icon(imageVector = Icons.Default.Add,
-                        contentDescription = "Add Reminder",
-                        tint = iosBlue,
-                        modifier = Modifier
-                            .align(Alignment.CenterEnd)
-                            .padding(end = 16.dp)
-                            .size(24.dp)
-                            .clickable {
-                                // Pre-select options based on current list type
-                                addReminderViewModel.resetState()
-                                
-                                // Small delay to ensure resetState has completed
-                                coroutineScope.launch {
-                                    kotlinx.coroutines.delay(100)
-                                    
-                                    when (reminderType) {
-                                        ReminderType.FAVOURITE -> {
-                                            // Pre-select favorite
-                                            addReminderViewModel.toggleFavorite()
-                                        }
-                                        
-                                        ReminderType.SCHEDULED -> {
-                                            // Open calendar selector when showing the screen
-                                            addReminderViewModel.toggleAction(ReminderAction.CALENDAR)
-                                        }
-                                        
-                                        else -> {
-                                            // No special pre-selection needed
-                                        }
-                                    }
-                                }
+// Then replace the top bar Box with:
+            AndroidStyleTopBar(onBackClick = onNavigateBack,
+                showAddButton = reminderType != ReminderType.COMPLETED,
+                iconTint = iosBlue,
+                onAddClick = {
+                    // Pre-select options based on current list type
+                    addReminderViewModel.resetState()
 
-                                showBottomSheet = true
-                                coroutineScope.launch { sheetState.show() }
-                            })
-                }
-            }
+                    // Small delay to ensure resetState has completed
+                    coroutineScope.launch {
+                        kotlinx.coroutines.delay(100)
+
+                        when (reminderType) {
+                            ReminderType.FAVOURITE -> {
+                                // Pre-select favorite
+                                addReminderViewModel.toggleFavorite()
+                            }
+
+                            ReminderType.SCHEDULED -> {
+                                // Open calendar selector when showing the screen
+                                addReminderViewModel.toggleAction(ReminderAction.CALENDAR)
+                            }
+
+                            else -> {
+                                // No special pre-selection needed
+                            }
+                        }
+                    }
+
+                    showBottomSheet = true
+                    coroutineScope.launch { sheetState.show() }
+                })
 
             // Very subtle divider for white background
             HorizontalDivider(thickness = 0.5.dp, color = Color(0xFFE5E5EA))
@@ -254,8 +228,8 @@ fun ReminderFilteredListScreen(
     // Bottom sheet for adding a new reminder
     if (showBottomSheet) {
         ModalBottomSheet(onDismissRequest = {
-            coroutineScope.launch { 
-                sheetState.hide() 
+            coroutineScope.launch {
+                sheetState.hide()
                 // Reset state when closing the sheet to ensure a fresh start next time
                 addReminderViewModel.resetState()
             }

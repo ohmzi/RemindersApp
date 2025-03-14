@@ -1,37 +1,45 @@
 package com.ohmz.remindersapp.presentation.reminder.list
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.List
-import com.ohmz.remindersapp.domain.model.ReminderList
-import com.ohmz.remindersapp.presentation.reminder.add.AddReminderViewModel
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.ohmz.remindersapp.presentation.common.components.AndroidStyleTopBar
 import com.ohmz.remindersapp.presentation.reminder.add.AddReminderScreen
+import com.ohmz.remindersapp.presentation.reminder.add.AddReminderViewModel
 import com.ohmz.remindersapp.presentation.reminder.detail.ScheduledReminderItem
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.delay
 
 /**
  * Screen that displays reminders from a specific list with a consistent iOS-style appearance
@@ -48,7 +56,7 @@ fun ReminderListByListScreen(
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
-    
+
     // Create add reminder viewModel
     val addReminderViewModel: AddReminderViewModel = hiltViewModel()
 
@@ -80,68 +88,37 @@ fun ReminderListByListScreen(
         }
     }
 
-    Scaffold(
-        containerColor = listBackgroundColor,
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
-    ) { paddingValues ->
+    // Inside ReminderListByListScreen.kt, replace the current top bar implementation with:
+
+    Scaffold(containerColor = listBackgroundColor,
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            // Minimalist iOS-style top bar with significantly reduced padding
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 0.dp, bottom = 0.dp) // Reduced padding to match iOS style
-            ) {
-                // Back button with ONLY arrow (no text)
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.CenterStart)
-                        .padding(start = 16.dp)
-                        .size(44.dp) // Large tappable area
-                        .clickable(onClick = onNavigateBack),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back",
-                        tint = iosBlue,
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
+            // Use the Android-style top bar
+            AndroidStyleTopBar(onBackClick = onNavigateBack,
+                showAddButton = true,
+                iconTint = iosBlue,
+                onAddClick = {
+                    // Pre-select the current list when adding a new reminder
+                    addReminderViewModel.resetState()
 
-                // Add button
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "Add Reminder",
-                    tint = iosBlue,
-                    modifier = Modifier
-                        .align(Alignment.CenterEnd)
-                        .padding(end = 16.dp)
-                        .size(24.dp)
-                        .clickable {
-                            // Pre-select the current list when adding a new reminder
-                            addReminderViewModel.resetState()
-                            
-                            // Small delay to ensure resetState has completed
-                            coroutineScope.launch {
-                                kotlinx.coroutines.delay(100)
-                                
-                                // Create a minimal ReminderList object with the current ID and name
-                                val currentList = com.ohmz.remindersapp.domain.model.ReminderList(
-                                    id = listId,
-                                    name = listName
-                                )
-                                addReminderViewModel.updateList(currentList)
-                            }
-                            
-                            showBottomSheet = true
-                            coroutineScope.launch { sheetState.show() }
-                        }
-                )
-            }
+                    // Small delay to ensure resetState has completed
+                    coroutineScope.launch {
+                        kotlinx.coroutines.delay(100)
+
+                        // Create a minimal ReminderList object with the current ID and name
+                        val currentList = com.ohmz.remindersapp.domain.model.ReminderList(
+                            id = listId, name = listName
+                        )
+                        addReminderViewModel.updateList(currentList)
+                    }
+
+                    showBottomSheet = true
+                    coroutineScope.launch { sheetState.show() }
+                })
 
             // Very subtle divider
             HorizontalDivider(thickness = 0.5.dp, color = Color(0xFFE5E5EA))
@@ -158,8 +135,7 @@ fun ReminderListByListScreen(
             // Content area
             if (uiState.isLoading) {
                 Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
+                    modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center
                 ) {
                     CircularProgressIndicator(color = listColor.copy(alpha = 0.8f))
                 }
@@ -172,9 +148,7 @@ fun ReminderListByListScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "No reminders in this list",
-                        color = Color.Gray,
-                        fontSize = 16.sp
+                        text = "No reminders in this list", color = Color.Gray, fontSize = 16.sp
                     )
                 }
             } else {
@@ -188,8 +162,7 @@ fun ReminderListByListScreen(
                                 .fillMaxWidth()
                                 .background(listBackgroundColor)
                         ) {
-                            ScheduledReminderItem(
-                                reminder = reminder,
+                            ScheduledReminderItem(reminder = reminder,
                                 onCheckedChange = { isChecked ->
                                     viewModel.toggleReminderCompletion(reminder)
                                 },
@@ -198,8 +171,7 @@ fun ReminderListByListScreen(
                                 },
                                 onFavoriteToggle = { isFavorite ->
                                     viewModel.toggleReminderFavorite(reminder, isFavorite)
-                                }
-                            )
+                                })
                         }
                     }
 
@@ -214,18 +186,14 @@ fun ReminderListByListScreen(
 
     // Bottom sheet for adding a new reminder
     if (showBottomSheet) {
-        ModalBottomSheet(
-            onDismissRequest = {
-                coroutineScope.launch { 
-                    sheetState.hide() 
-                    // Reset state when dismissing to ensure a fresh start next time
-                    addReminderViewModel.resetState()
-                }
-                showBottomSheet = false
-            },
-            sheetState = sheetState,
-            dragHandle = {}
-        ) {
+        ModalBottomSheet(onDismissRequest = {
+            coroutineScope.launch {
+                sheetState.hide()
+                // Reset state when dismissing to ensure a fresh start next time
+                addReminderViewModel.resetState()
+            }
+            showBottomSheet = false
+        }, sheetState = sheetState, dragHandle = {}) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -239,8 +207,7 @@ fun ReminderListByListScreen(
                             // Reset state when canceling to ensure a fresh start next time
                             addReminderViewModel.resetState()
                         }
-                    },
-                    viewModel = addReminderViewModel
+                    }, viewModel = addReminderViewModel
                 )
             }
         }

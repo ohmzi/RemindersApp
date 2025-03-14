@@ -6,11 +6,13 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -28,6 +30,8 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.ohmz.remindersapp.domain.model.ReminderAction
 import com.ohmz.remindersapp.presentation.common.components.DateTimePicker
@@ -45,6 +49,18 @@ fun AddReminderScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val keyboardController = LocalSoftwareKeyboardController.current
     var showDateTimePicker by remember { mutableStateOf(false) }
+    var showDiscardDialog by remember { mutableStateOf(false) }
+    
+    // Function to handle navigation back with unsaved changes check
+    val handleNavigateBack = {
+        if (uiState.isModified) {
+            // Show confirmation dialog if there are unsaved changes
+            showDiscardDialog = true
+        } else {
+            // No unsaved changes, go back directly
+            onNavigateBack()
+        }
+    }
 
     // Show the keyboard automatically when the screen is shown
     LaunchedEffect(Unit) {
@@ -64,6 +80,21 @@ fun AddReminderScreen(
             viewModel.resetSuccess()
             onNavigateBack()
         }
+    }
+    
+    // Show discard changes dialog if needed
+    if (showDiscardDialog) {
+        DiscardChangesDialog(
+            onDiscardChanges = {
+                showDiscardDialog = false
+                viewModel.resetState()
+                onNavigateBack()
+            },
+            onCancelDialog = {
+                showDiscardDialog = false
+                // User chose to continue editing
+            }
+        )
     }
 
     Scaffold(
@@ -190,7 +221,7 @@ fun AddReminderScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 // Left: "Cancel" button
-                TextButton(onClick = onNavigateBack) {
+                TextButton(onClick = handleNavigateBack) {
                     Text(
                         text = "Cancel", color = MaterialTheme.colorScheme.primary
                     )
@@ -267,5 +298,67 @@ private fun PriorityButton(
             color = if (isSelected) MaterialTheme.colorScheme.primary else Color.Gray,
             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
         )
+    }
+}
+
+@Composable
+fun DiscardChangesDialog(
+    onDiscardChanges: () -> Unit,
+    onCancelDialog: () -> Unit
+) {
+    Dialog(onDismissRequest = onCancelDialog) {
+        Surface(
+            shape = RoundedCornerShape(16.dp),
+            color = Color.White
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(24.dp)
+            ) {
+                Text(
+                    text = "Discard Changes?",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+                
+                Text(
+                    text = "You have unsaved changes that will be lost if you discard this reminder.",
+                    fontSize = 16.sp,
+                    modifier = Modifier.padding(bottom = 24.dp)
+                )
+                
+                // Discard Changes Button (Red)
+                TextButton(
+                    onClick = onDiscardChanges,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp)
+                ) {
+                    Text(
+                        text = "Discard Changes",
+                        color = Color.Red,
+                        fontWeight = FontWeight.Medium,
+                        fontSize = 18.sp
+                    )
+                }
+                
+                // Cancel Button (Blue)
+                TextButton(
+                    onClick = onCancelDialog,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp)
+                ) {
+                    Text(
+                        text = "Cancel",
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Medium,
+                        fontSize = 18.sp
+                    )
+                }
+            }
+        }
     }
 }

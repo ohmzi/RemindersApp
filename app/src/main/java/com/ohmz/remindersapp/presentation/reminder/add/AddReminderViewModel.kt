@@ -35,7 +35,8 @@ data class AddReminderUiState(
     val selectedAction: ReminderAction? = null,
     val isLoading: Boolean = false,
     val isSuccess: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    val isModified: Boolean = false
 )
 
 @HiltViewModel
@@ -81,42 +82,73 @@ class AddReminderViewModel @Inject constructor(
      * Updates the title of the reminder
      */
     fun updateTitle(title: String) {
-        _uiState.value = _uiState.value.copy(title = title)
+        _uiState.value = _uiState.value.copy(
+            title = title,
+            isModified = title.isNotEmpty() || _uiState.value.notes.isNotEmpty() || 
+                        _uiState.value.dueDate != null || _uiState.value.isFavorite || 
+                        _uiState.value.listId != null || _uiState.value.priority != Priority.MEDIUM
+        )
     }
 
     /**
      * Updates the notes of the reminder
      */
     fun updateNotes(notes: String) {
-        _uiState.value = _uiState.value.copy(notes = notes)
+        _uiState.value = _uiState.value.copy(
+            notes = notes,
+            isModified = _uiState.value.title.isNotEmpty() || notes.isNotEmpty() || 
+                        _uiState.value.dueDate != null || _uiState.value.isFavorite || 
+                        _uiState.value.listId != null || _uiState.value.priority != Priority.MEDIUM
+        )
     }
 
     /**
      * Updates the due date of the reminder
      */
     fun updateDueDate(dueDate: Date?) {
-        _uiState.value = _uiState.value.copy(dueDate = dueDate)
+        _uiState.value = _uiState.value.copy(
+            dueDate = dueDate,
+            isModified = _uiState.value.title.isNotEmpty() || _uiState.value.notes.isNotEmpty() || 
+                        dueDate != null || _uiState.value.isFavorite || 
+                        _uiState.value.listId != null || _uiState.value.priority != Priority.MEDIUM
+        )
     }
 
     /**
      * Updates the priority of the reminder
      */
     fun updatePriority(priority: Priority) {
-        _uiState.value = _uiState.value.copy(priority = priority)
+        _uiState.value = _uiState.value.copy(
+            priority = priority,
+            isModified = _uiState.value.title.isNotEmpty() || _uiState.value.notes.isNotEmpty() || 
+                        _uiState.value.dueDate != null || _uiState.value.isFavorite || 
+                        _uiState.value.listId != null || priority != Priority.MEDIUM
+        )
     }
 
     /**
      * Toggles the favorite status of the reminder
      */
     fun toggleFavorite() {
-        _uiState.value = _uiState.value.copy(isFavorite = !_uiState.value.isFavorite)
+        val newFavoriteStatus = !_uiState.value.isFavorite
+        _uiState.value = _uiState.value.copy(
+            isFavorite = newFavoriteStatus,
+            isModified = _uiState.value.title.isNotEmpty() || _uiState.value.notes.isNotEmpty() || 
+                        _uiState.value.dueDate != null || newFavoriteStatus || 
+                        _uiState.value.listId != null || _uiState.value.priority != Priority.MEDIUM
+        )
     }
     
     /**
      * Directly sets the favorite status to a specific value
      */
     fun setFavorite(isFavorite: Boolean) {
-        _uiState.value = _uiState.value.copy(isFavorite = isFavorite)
+        _uiState.value = _uiState.value.copy(
+            isFavorite = isFavorite,
+            isModified = _uiState.value.title.isNotEmpty() || _uiState.value.notes.isNotEmpty() || 
+                        _uiState.value.dueDate != null || isFavorite || 
+                        _uiState.value.listId != null || _uiState.value.priority != Priority.MEDIUM
+        )
     }
 
     /**
@@ -142,7 +174,12 @@ class AddReminderViewModel @Inject constructor(
      */
     fun updateList(list: ReminderList) {
         _uiState.value = _uiState.value.copy(
-            listId = list.id, selectedListName = list.name, showListSelector = false
+            listId = list.id, 
+            selectedListName = list.name, 
+            showListSelector = false,
+            isModified = _uiState.value.title.isNotEmpty() || _uiState.value.notes.isNotEmpty() || 
+                        _uiState.value.dueDate != null || _uiState.value.isFavorite || 
+                        list.id != null || _uiState.value.priority != Priority.MEDIUM
         )
     }
 
@@ -269,12 +306,24 @@ class AddReminderViewModel @Inject constructor(
 
                 // Reset to initial state but keep the loaded lists
                 _uiState.value = AddReminderUiState(
-                    availableLists = lists, isLoading = false
+                    availableLists = lists, 
+                    isLoading = false,
+                    isModified = false
                 )
             } catch (e: Exception) {
                 // Just reset to the default state
-                _uiState.value = AddReminderUiState(isLoading = false)
+                _uiState.value = AddReminderUiState(
+                    isLoading = false,
+                    isModified = false
+                )
             }
         }
+    }
+    
+    /**
+     * Checks if there are unsaved changes
+     */
+    fun hasUnsavedChanges(): Boolean {
+        return _uiState.value.isModified
     }
 }

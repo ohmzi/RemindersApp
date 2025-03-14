@@ -94,15 +94,21 @@ fun ReminderMainScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
 
-    // State for showing the bottom sheet
-    var showBottomSheet by remember { mutableStateOf(false) }
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-
     // Get UI state from the main view model
     val mainUiState by mainViewModel.uiState.collectAsState()
     
-    // Create a reference to the AddReminderViewModel
+    // Create a reference to the AddReminderViewModel first, before it's used
     val addReminderViewModel: AddReminderViewModel = hiltViewModel()
+
+    // State for showing the bottom sheet
+    var showBottomSheet by remember { mutableStateOf(false) }
+    // State for tracking if we should show the discard dialog
+    var showDiscardBottomSheetDialog by remember { mutableStateOf(false) }
+    
+    // Now we can use addReminderViewModel safely
+    val sheetState = rememberModalBottomSheetState(
+        skipPartiallyExpanded = true
+    )
 
     // Background color that matches iOS light gray
     val iosBackgroundColor = Color(0xFFF2F2F7)
@@ -420,19 +426,107 @@ fun ReminderMainScreen(
 
     // Bottom sheet for adding a new reminder
     if (showBottomSheet) {
-        // Reset the state when showing the bottom sheet
+        // Dialog for discarding changes when dismissing the bottom sheet
+        if (showDiscardBottomSheetDialog) {
+            Dialog(onDismissRequest = { showDiscardBottomSheetDialog = false }) {
+                Surface(
+                    shape = RoundedCornerShape(16.dp),
+                    color = Color.White
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(24.dp)
+                    ) {
+                        Text(
+                            text = "Discard Changes?",
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(bottom = 16.dp)
+                        )
+                        
+                        Text(
+                            text = "You have unsaved changes that will be lost if you discard this reminder.",
+                            fontSize = 16.sp,
+                            modifier = Modifier.padding(bottom = 24.dp)
+                        )
+                        
+                        // Discard Changes Button (Red)
+                        TextButton(
+                            onClick = {
+                                showDiscardBottomSheetDialog = false
+                                coroutineScope.launch {
+                                    addReminderViewModel.resetState()
+                                    sheetState.hide()
+                                    showBottomSheet = false
+                                }
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 8.dp)
+                        ) {
+                            Text(
+                                text = "Discard Changes",
+                                color = Color.Red,
+                                fontWeight = FontWeight.Medium,
+                                fontSize = 18.sp
+                            )
+                        }
+                        
+                        // Cancel Button (Blue)
+                        TextButton(
+                            onClick = { 
+                                showDiscardBottomSheetDialog = false 
+                                // Important: Force the sheet to be shown again
+                                coroutineScope.launch {
+                                    try {
+                                        // Make sure the sheet is shown again
+                                        sheetState.show()
+                                    } catch (e: Exception) {
+                                        // Handle any potential exceptions
+                                    }
+                                }
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 8.dp)
+                        ) {
+                            Text(
+                                text = "Cancel",
+                                color = iosBlue,
+                                fontWeight = FontWeight.Medium,
+                                fontSize = 18.sp
+                            )
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Reset the state when showing the bottom sheet initially
         LaunchedEffect(showBottomSheet) {
             addReminderViewModel.resetState()
         }
 
-        ModalBottomSheet(onDismissRequest = {
-            coroutineScope.launch {
-                sheetState.hide()
-                showBottomSheet = false
-                // Also reset state when dismissing
-                addReminderViewModel.resetState()
-            }
-        }, sheetState = sheetState, dragHandle = {}) {
+        ModalBottomSheet(
+            onDismissRequest = {
+                // This is called when user taps outside or presses back
+                // We'll always check for changes here
+                handleBottomSheetDismiss(
+                    hasChanges = addReminderViewModel.hasUnsavedChanges(),
+                    showDialog = { showDiscardBottomSheetDialog = true },
+                    dismiss = {
+                        coroutineScope.launch {
+                            sheetState.hide()
+                            showBottomSheet = false
+                            addReminderViewModel.resetState()
+                        }
+                    }
+                )
+            }, 
+            sheetState = sheetState,
+            dragHandle = { } // Hide the drag handle to make it less obvious it can be dragged
+        ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -440,16 +534,34 @@ fun ReminderMainScreen(
             ) {
                 AddReminderScreen(
                     onNavigateBack = {
+                        // This is called from the "Cancel" button in AddReminderScreen
+                        // AddReminderScreen already handles showing confirmation dialog if needed
+                        // We just need to dismiss the sheet here
                         coroutineScope.launch {
                             sheetState.hide()
                             showBottomSheet = false
-                            // Also reset state when navigating back
-                            addReminderViewModel.resetState()
                         }
                     }, viewModel = addReminderViewModel // Pass the ViewModel instance
                 )
             }
         }
+    }
+}
+
+/**
+ * Helper function to handle bottom sheet dismissal with confirmation when needed
+ */
+private fun handleBottomSheetDismiss(
+    hasChanges: Boolean,
+    showDialog: () -> Unit,
+    dismiss: () -> Unit
+) {
+    if (hasChanges) {
+        // Show confirmation dialog
+        showDialog()
+    } else {
+        // No changes, just dismiss
+        dismiss()
     }
 }
 

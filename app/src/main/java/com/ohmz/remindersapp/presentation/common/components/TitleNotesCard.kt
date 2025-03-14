@@ -90,7 +90,7 @@ fun TitleNotesCard(
                 ),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(200.dp)
+                    .height(150.dp)
                     .padding(horizontal = 16.dp, vertical = 8.dp),
                 maxLines = 10
             )

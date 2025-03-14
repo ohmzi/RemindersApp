@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -50,7 +51,7 @@ fun AddReminderScreen(
     val keyboardController = LocalSoftwareKeyboardController.current
     var showDateTimePicker by remember { mutableStateOf(false) }
     var showDiscardDialog by remember { mutableStateOf(false) }
-    
+
     // Function to handle navigation back with unsaved changes check
     val handleNavigateBack = {
         if (uiState.isModified) {
@@ -81,20 +82,17 @@ fun AddReminderScreen(
             onNavigateBack()
         }
     }
-    
+
     // Show discard changes dialog if needed
     if (showDiscardDialog) {
-        DiscardChangesDialog(
-            onDiscardChanges = {
-                showDiscardDialog = false
-                viewModel.resetState()
-                onNavigateBack()
-            },
-            onCancelDialog = {
-                showDiscardDialog = false
-                // User chose to continue editing
-            }
-        )
+        DiscardChangesDialog(onDiscardChanges = {
+            showDiscardDialog = false
+            viewModel.resetState()
+            onNavigateBack()
+        }, onCancelDialog = {
+            showDiscardDialog = false
+            // User chose to continue editing
+        })
     }
 
     Scaffold(
@@ -104,7 +102,7 @@ fun AddReminderScreen(
                 selectedAction = uiState.selectedAction,
                 onActionSelected = { action ->
                     viewModel.toggleAction(action)
-                }, 
+                },
                 // Date handling
                 onTodaySelected = {
                     // Set due date to today at 11:59 PM
@@ -118,7 +116,7 @@ fun AddReminderScreen(
                     if (uiState.selectedAction == ReminderAction.CALENDAR) {
                         viewModel.toggleAction(ReminderAction.CALENDAR)
                     }
-                }, 
+                },
                 onTomorrowSelected = {
                     // Set due date to tomorrow at 11:59 PM
                     val tomorrow = Calendar.getInstance().apply {
@@ -132,7 +130,7 @@ fun AddReminderScreen(
                     if (uiState.selectedAction == ReminderAction.CALENDAR) {
                         viewModel.toggleAction(ReminderAction.CALENDAR)
                     }
-                }, 
+                },
                 onWeekendSelected = {
                     // Set due date to next weekend (Saturday) at 11:59 PM
                     val calendar = Calendar.getInstance()
@@ -151,7 +149,7 @@ fun AddReminderScreen(
                     if (uiState.selectedAction == ReminderAction.CALENDAR) {
                         viewModel.toggleAction(ReminderAction.CALENDAR)
                     }
-                }, 
+                },
                 onDateTimeSelected = {
                     // Show the date time picker
                     showDateTimePicker = true
@@ -159,7 +157,7 @@ fun AddReminderScreen(
                     if (uiState.selectedAction == ReminderAction.CALENDAR) {
                         viewModel.toggleAction(ReminderAction.CALENDAR)
                     }
-                }, 
+                },
                 // List handling
                 onListSelected = { list ->
                     viewModel.updateList(list)
@@ -184,24 +182,24 @@ fun AddReminderScreen(
                     if (uiState.selectedAction == ReminderAction.TAG) {
                         viewModel.toggleAction(ReminderAction.TAG)
                     }
-                }, 
+                },
                 onMediumPrioritySelected = {
                     viewModel.updatePriority(com.ohmz.remindersapp.domain.model.Priority.MEDIUM)
                     // Deselect TAG to hide the priority selector
                     if (uiState.selectedAction == ReminderAction.TAG) {
                         viewModel.toggleAction(ReminderAction.TAG)
                     }
-                }, 
+                },
                 onHighPrioritySelected = {
                     viewModel.updatePriority(com.ohmz.remindersapp.domain.model.Priority.HIGH)
                     // Deselect TAG to hide the priority selector
                     if (uiState.selectedAction == ReminderAction.TAG) {
                         viewModel.toggleAction(ReminderAction.TAG)
                     }
-                }, 
+                },
                 // Other parameters
-                hasDate = uiState.dueDate != null, 
-                dueDate = uiState.dueDate, 
+                hasDate = uiState.dueDate != null,
+                dueDate = uiState.dueDate,
                 currentPriority = uiState.priority,
                 isFavorite = uiState.isFavorite
             )
@@ -217,13 +215,15 @@ fun AddReminderScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 0.dp),
-                verticalAlignment = Alignment.CenterVertically
+                    .height(64.dp) // Increased height
+                    .padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically
             ) {
-                // Left: "Cancel" button
+                // Left: "Cancel" button with larger text
                 TextButton(onClick = handleNavigateBack) {
                     Text(
-                        text = "Cancel", color = MaterialTheme.colorScheme.primary
+                        text = "Cancel",
+                        color = MaterialTheme.colorScheme.primary,
+                        fontSize = 18.sp // Increased by ~2dp
                     )
                 }
 
@@ -231,11 +231,14 @@ fun AddReminderScreen(
                 Text(
                     text = "New Reminder",
                     modifier = Modifier.weight(1f),
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 20.sp // Ensure title is appropriately sized
+                    ),
                     textAlign = TextAlign.Center
                 )
 
-                // Right: "Add" button
+                // Right: "Add" button with larger text
                 TextButton(
                     onClick = { viewModel.saveReminder() }, enabled = uiState.title.isNotBlank()
                 ) {
@@ -244,7 +247,10 @@ fun AddReminderScreen(
                         else Color.Gray
 
                     Text(
-                        text = "Add", fontWeight = FontWeight.ExtraBold, color = textColor
+                        text = "Add",
+                        fontWeight = FontWeight.ExtraBold,
+                        color = textColor,
+                        fontSize = 18.sp // Increased by ~2dp
                     )
                 }
             }
@@ -271,7 +277,7 @@ fun AddReminderScreen(
         }
     }
 
-    // Show DateTimePicker if needed
+// Show DateTimePicker if needed
     if (showDateTimePicker) {
         DateTimePicker(initialDate = uiState.dueDate ?: Date(),
             onDateTimeSelected = { selectedDateTime ->
@@ -303,13 +309,11 @@ private fun PriorityButton(
 
 @Composable
 fun DiscardChangesDialog(
-    onDiscardChanges: () -> Unit,
-    onCancelDialog: () -> Unit
+    onDiscardChanges: () -> Unit, onCancelDialog: () -> Unit
 ) {
     Dialog(onDismissRequest = onCancelDialog) {
         Surface(
-            shape = RoundedCornerShape(16.dp),
-            color = Color.White
+            shape = RoundedCornerShape(16.dp), color = Color.White
         ) {
             Column(
                 modifier = Modifier
@@ -322,13 +326,13 @@ fun DiscardChangesDialog(
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
-                
+
                 Text(
                     text = "You have unsaved changes that will be lost if you discard this reminder.",
                     fontSize = 16.sp,
                     modifier = Modifier.padding(bottom = 24.dp)
                 )
-                
+
                 // Discard Changes Button (Red)
                 TextButton(
                     onClick = onDiscardChanges,
@@ -343,7 +347,7 @@ fun DiscardChangesDialog(
                         fontSize = 18.sp
                     )
                 }
-                
+
                 // Cancel Button (Blue)
                 TextButton(
                     onClick = onCancelDialog,

@@ -11,19 +11,18 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.rememberModalBottomSheetState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -35,7 +34,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -43,8 +41,8 @@ import com.ohmz.remindersapp.presentation.common.components.AndroidStyleTopBar
 import com.ohmz.remindersapp.presentation.reminder.add.AddReminderScreen
 import com.ohmz.remindersapp.presentation.reminder.add.AddReminderViewModel
 import com.ohmz.remindersapp.presentation.reminder.detail.ScheduledReminderItem
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 /**
  * Screen that displays reminders from a specific list with a consistent iOS-style appearance
@@ -95,8 +93,7 @@ fun ReminderListByListScreen(
 
     // Inside ReminderListByListScreen.kt, replace the current top bar implementation with:
 
-    Scaffold(
-        containerColor = listBackgroundColor,
+    Scaffold(containerColor = listBackgroundColor,
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         floatingActionButton = {
             FloatingActionButton(
@@ -104,20 +101,16 @@ fun ReminderListByListScreen(
                     // No pre-selection here, it's now handled in LaunchedEffect
                     // Just show the bottom sheet
                     addReminderViewModel.resetState() // This will be overridden by LaunchedEffect
-                    
+
                     showBottomSheet = true
                     coroutineScope.launch { sheetState.show() }
-                },
-                containerColor = listColor,
-                contentColor = Color.White
+                }, containerColor = listColor, contentColor = Color.White
             ) {
                 Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "Add Reminder"
+                    imageVector = Icons.Default.Add, contentDescription = "Add Reminder"
                 )
             }
-        }
-    ) { paddingValues ->
+        }) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -125,23 +118,26 @@ fun ReminderListByListScreen(
         ) {
             // Use the Android-style top bar without add button (using FAB instead)
             AndroidStyleTopBar(
-                title = listName, 
-                titleColor = listColor, 
+                title = listName,
+                titleColor = listColor,
                 onBackClick = onNavigateBack,
                 showAddButton = false, // No add button, using FAB instead
                 iconTint = iosBlue
             )
 
             // Very subtle divider
-         //   HorizontalDivider(thickness = 0.5.dp, color = Color(0xFFE5E5EA))
+            //   HorizontalDivider(thickness = 0.5.dp, color = Color(0xFFE5E5EA))
 
-         //   HorizontalDivider(thickness = 0.5.dp, color = Color(0xFFE5E5EA))
+            //   HorizontalDivider(thickness = 0.5.dp, color = Color(0xFFE5E5EA))
 
 
             // Content area
             if (uiState.isLoading) {
                 Box(
-                    modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center
+                    modifier = Modifier
+                        .padding(start = 10.dp)
+                        .fillMaxSize(),
+                    contentAlignment = Alignment.Center
                 ) {
                     CircularProgressIndicator(color = listColor.copy(alpha = 0.8f))
                 }
@@ -150,7 +146,7 @@ fun ReminderListByListScreen(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 32.dp, bottom = 32.dp),
+                        .padding(start = 10.dp, top = 32.dp, bottom = 32.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
@@ -166,6 +162,7 @@ fun ReminderListByListScreen(
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
+                                .padding(start = 10.dp)
                                 .background(listBackgroundColor)
                         ) {
                             ScheduledReminderItem(reminder = reminder,
@@ -198,11 +195,10 @@ fun ReminderListByListScreen(
             addReminderViewModel.resetState()
             // Then apply specific pre-selections
             delay(100) // Short delay to ensure resetState completes
-            
+
             // Create a minimal ReminderList object with the current ID and name
             val currentList = com.ohmz.remindersapp.domain.model.ReminderList(
-                id = listId,
-                name = listName
+                id = listId, name = listName
             )
             addReminderViewModel.updateList(currentList)
         }

@@ -34,13 +34,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ohmz.remindersapp.domain.model.Priority
 import com.ohmz.remindersapp.domain.model.Reminder
 import com.ohmz.remindersapp.presentation.common.utils.DateUtils
-import java.util.Calendar
 
 @Composable
 fun CompletedRemindersList(
@@ -59,32 +57,28 @@ fun CompletedRemindersList(
 
     // Show the confirmation dialog if requested
     if (showClearConfirmation) {
-        AlertDialog(
-            onDismissRequest = { showClearConfirmation = false },
+        AlertDialog(onDismissRequest = { showClearConfirmation = false },
             title = { Text("Clear Completed Reminders") },
             text = { Text("Are you sure you want to clear all completed reminders?") },
             confirmButton = {
-                TextButton(
-                    onClick = {
-                        onClearAllCompleted()
-                        showClearConfirmation = false
-                    }
-                ) {
+                TextButton(onClick = {
+                    onClearAllCompleted()
+                    showClearConfirmation = false
+                }) {
                     Text("Clear All Completed", color = Color(0xFFFF3B30)) // iOS red color
                 }
             },
             dismissButton = {
-                TextButton(
-                    onClick = { showClearConfirmation = false }
-                ) {
+                TextButton(onClick = { showClearConfirmation = false }) {
                     Text("Cancel")
                 }
-            }
-        )
+            })
     }
 
     LazyColumn(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(start = 10.dp)
     ) {
         // Section with count and clear button - styled to match iOS screenshot
         item {
@@ -103,13 +97,11 @@ fun CompletedRemindersList(
                 )
 
                 // Clear button - no TextButton, just plain text to match iOS style
-                Text(
-                    text = "Clear",
+                Text(text = "Clear",
                     fontSize = 16.sp,
                     color = Color(0xFF007AFF), // iOS blue
                     fontWeight = FontWeight.Normal,
-                    modifier = Modifier.clickable { showClearConfirmation = true }
-                )
+                    modifier = Modifier.clickable { showClearConfirmation = true })
             }
         }
 
@@ -122,9 +114,7 @@ fun CompletedRemindersList(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "No completed tasks",
-                        color = Color.Gray,
-                        fontSize = 16.sp
+                        text = "No completed tasks", color = Color.Gray, fontSize = 16.sp
                     )
                 }
             }
@@ -132,19 +122,19 @@ fun CompletedRemindersList(
             // The app doesn't track when items were completed, only if they are completed
             // Since we need to display recently completed items under "Today"
             // and older completed items under "Earlier", we'll use a different approach
-            
+
             // Assume that the most recently completed items are at the beginning
             // of the sorted list (which is sorted by dueDate descending)
-            
+
             // Put the first few items (or all if there are few) in "Today"
             val recentlyCompletedCount = Math.min(5, completedReminders.size)
-            
+
             val todayCompleted = if (recentlyCompletedCount > 0) {
                 completedReminders.subList(0, recentlyCompletedCount)
             } else {
                 emptyList()
             }
-            
+
             // Put the rest in "Earlier"
             val earlierCompleted = if (completedReminders.size > recentlyCompletedCount) {
                 completedReminders.subList(recentlyCompletedCount, completedReminders.size)
@@ -171,13 +161,11 @@ fun CompletedRemindersList(
                                 .fillMaxWidth()
                                 .background(Color.White)
                         ) {
-                            CompletedReminderItem(
-                                reminder = reminder,
+                            CompletedReminderItem(reminder = reminder,
                                 onCheckedChange = { onCheckedChange(reminder) },
                                 onFavoriteToggle = { isFavorite ->
                                     onFavoriteToggle(reminder, isFavorite)
-                                }
-                            )
+                                })
                         }
                     }
                 }
@@ -208,13 +196,11 @@ fun CompletedRemindersList(
                                 .fillMaxWidth()
                                 .background(Color.White)
                         ) {
-                            CompletedReminderItem(
-                                reminder = reminder,
+                            CompletedReminderItem(reminder = reminder,
                                 onCheckedChange = { onCheckedChange(reminder) },
                                 onFavoriteToggle = { isFavorite ->
                                     onFavoriteToggle(reminder, isFavorite)
-                                }
-                            )
+                                })
                         }
                     }
                 }
@@ -255,8 +241,7 @@ fun CompletedReminderItem(
                     width = 1.5.dp,
                     color = if (reminder.isCompleted) Color(0xFF007AFF) else Color(0xFFD1D1D6),
                     shape = CircleShape
-                ),
-            contentAlignment = Alignment.Center
+                ), contentAlignment = Alignment.Center
         ) {
             if (reminder.isCompleted) {
                 Icon(
@@ -279,7 +264,7 @@ fun CompletedReminderItem(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 // Priority color dot - only one dot for the priority
-                val dotColor = when(reminder.priority) {
+                val dotColor = when (reminder.priority) {
                     Priority.LOW -> Color(0xFF34C759)
                     Priority.MEDIUM -> Color(0xFF007AFF)
                     Priority.HIGH -> Color(0xFFFF3B30)
@@ -306,10 +291,7 @@ fun CompletedReminderItem(
             // Notes
             if (!reminder.notes.isNullOrBlank()) {
                 Text(
-                    text = reminder.notes,
-                    fontSize = 14.sp,
-                    color = Color.Gray,
-                    maxLines = 1
+                    text = reminder.notes, fontSize = 14.sp, color = Color.Gray, maxLines = 1
                 )
             }
 
@@ -326,8 +308,7 @@ fun CompletedReminderItem(
         // Favorite icon
         if (reminder.isFavorite) {
             IconButton(
-                onClick = { onFavoriteToggle(false) },
-                modifier = Modifier.size(32.dp)
+                onClick = { onFavoriteToggle(false) }, modifier = Modifier.size(32.dp)
             ) {
                 Icon(
                     imageVector = Icons.Default.Favorite,
@@ -343,8 +324,6 @@ fun CompletedReminderItem(
 
     // Add a divider after each reminder
     HorizontalDivider(
-        modifier = Modifier.padding(start = 56.dp),
-        thickness = 0.5.dp,
-        color = Color(0xFFE5E5EA)
+        modifier = Modifier.padding(start = 56.dp), thickness = 0.5.dp, color = Color(0xFFE5E5EA)
     )
 }

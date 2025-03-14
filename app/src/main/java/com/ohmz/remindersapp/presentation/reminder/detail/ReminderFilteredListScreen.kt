@@ -145,6 +145,7 @@ fun ReminderFilteredListScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
+                .padding(start = 10.dp)
         ) {
             // Android style top bar with no add button (now using FAB)
             AndroidStyleTopBar(
@@ -592,7 +593,9 @@ fun TodayRemindersList(
     onFavoriteToggle: (Reminder, Boolean) -> Unit
 ) {
     LazyColumn(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(start = 10.dp)
     ) {
         // Filter for just today's reminders and show them
         val todayReminders = DateUtils.findTodayReminders(reminders)
@@ -843,6 +846,7 @@ fun FavoriteRemindersList(
 
     LazyColumn(
         modifier = Modifier.fillMaxSize()
+            .padding(start = 10.dp)
     ) {
         if (favoriteReminders.isEmpty()) {
             item {

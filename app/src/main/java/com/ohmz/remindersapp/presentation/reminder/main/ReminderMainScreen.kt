@@ -36,6 +36,7 @@ import androidx.compose.material.icons.filled.List
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FabPosition
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
@@ -162,6 +163,9 @@ fun ReminderMainScreen(
         )
     )
 
+    // State for showing the add list dialog
+    var showAddListDialog by remember { mutableStateOf(false) }
+
     Scaffold(
         containerColor = iosBackgroundColor,
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
@@ -181,7 +185,9 @@ fun ReminderMainScreen(
                     contentDescription = "Add Reminder"
                 )
             }
-        }
+        },
+        // Custom content to add an additional FAB on the left side
+        floatingActionButtonPosition = FabPosition.End
     ) { paddingValues ->
         // Use LazyListState to track scroll position
         val lazyListState = rememberLazyListState()
@@ -384,41 +390,35 @@ fun ReminderMainScreen(
                 }
             }
 
-            // Floating button for Add List only (Add Reminder is now a FAB)
+            // Add list dialog - shown when the Add List FAB is clicked
+            if (showAddListDialog) {
+                AddListDialog(
+                    onDismiss = { showAddListDialog = false },
+                    onAddList = { name ->
+                        mainViewModel.addList(name)
+                        showAddListDialog = false
+                    }
+                )
+            }
+            
+            // Add List FAB positioned on the left side
             Box(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .align(Alignment.BottomCenter)
-                    .background(iosBackgroundColor)
-                    .padding(horizontal = 16.dp, vertical = 16.dp)
+                    .align(Alignment.BottomStart)
+                    .padding(start = 16.dp, bottom = 16.dp)
                     .navigationBarsPadding()
             ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End, // Aligned to the right
-                    verticalAlignment = Alignment.CenterVertically
+                FloatingActionButton(
+                    onClick = { 
+                        showAddListDialog = true 
+                    },
+                    containerColor = Color.Red, // Red color for contrast with the blue Add Reminder FAB
+                    contentColor = Color.White
                 ) {
-                    // Add List button (iOS style)
-                    var showAddListDialog by remember { mutableStateOf(false) }
-
-                    Text(text = "Add List",
-                        color = iosBlue,
-                        fontWeight = FontWeight.Medium,
-                        fontSize = 16.sp,
-                        modifier = Modifier
-                            .clickable { showAddListDialog = true }
-                            .padding(8.dp) // Add some padding for the touch target
+                    Icon(
+                        imageVector = Icons.Default.List,
+                        contentDescription = "Add List"
                     )
-
-                    // Add list dialog
-                    if (showAddListDialog) {
-                        AddListDialog(onDismiss = { showAddListDialog = false },
-                            onAddList = { name ->
-                                mainViewModel.addList(name)
-                                showAddListDialog = false
-                            })
-                    }
                 }
             }
         }

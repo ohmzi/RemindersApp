@@ -3,6 +3,7 @@ package com.ohmz.remindersapp.presentation.reminder.detail
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -20,14 +21,17 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.List
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -618,17 +622,51 @@ fun TodayRemindersList(
                 }
             }
         } else {
-            // No reminders for today
+            // Enhanced empty state for Today screen
             item {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 48.dp, bottom = 48.dp),
+                        .fillParentMaxHeight(0.85f), // Take most of the available height
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = "No reminders due today", color = Color.Gray, fontSize = 16.sp
-                    )
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        // Icon with background circle like iOS
+                        Box(
+                            modifier = Modifier
+                                .size(70.dp)
+                                .clip(CircleShape)
+                                .background(Color(0xFF007AFF).copy(alpha = 0.1f)), // Today blue color
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.DateRange,
+                                contentDescription = null,
+                                tint = Color(0xFF007AFF),
+                                modifier = Modifier.size(34.dp)
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        Text(
+                            text = "No Today Reminders",
+                            color = Color.Gray,
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.Medium
+                        )
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Text(
+                            text = "Tap + to add a new reminder",
+                            color = Color.Gray,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
                 }
             }
         }
@@ -657,18 +695,52 @@ fun AllRemindersList(
     LazyColumn(
         modifier = Modifier.fillMaxSize()
     ) {
-        // If no reminders, show message
+        // If no reminders, show enhanced empty state
         if (sortedReminders.isEmpty()) {
             item {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 32.dp, bottom = 32.dp),
+                        .fillParentMaxHeight(0.85f), // Take most of the available height
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = "No reminders found", color = Color.Gray, fontSize = 16.sp
-                    )
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        // Icon with background circle like iOS
+                        Box(
+                            modifier = Modifier
+                                .size(70.dp)
+                                .clip(CircleShape)
+                                .background(Color.Black.copy(alpha = 0.1f)), // All reminders: black
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.List,
+                                contentDescription = null,
+                                tint = Color.Black,
+                                modifier = Modifier.size(34.dp)
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        Text(
+                            text = "No Reminders",
+                            color = Color.Gray,
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.Medium
+                        )
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Text(
+                            text = "Tap + to add a new reminder",
+                            color = Color.Gray,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
                 }
             }
         } else {
@@ -853,12 +925,46 @@ fun FavoriteRemindersList(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 32.dp, bottom = 32.dp),
+                        .fillParentMaxHeight(0.85f), // Take most of the available height
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = "No favorites yet", color = Color.Gray, fontSize = 16.sp
-                    )
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        // Icon with background circle like iOS
+                        Box(
+                            modifier = Modifier
+                                .size(70.dp)
+                                .clip(CircleShape)
+                                .background(Color(0xFFFF3B30).copy(alpha = 0.1f)), // Favorite red color
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Favorite,
+                                contentDescription = null,
+                                tint = Color(0xFFFF3B30),
+                                modifier = Modifier.size(34.dp)
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        Text(
+                            text = "No Favorite Reminders",
+                            color = Color.Gray,
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.Medium
+                        )
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Text(
+                            text = "Tap + to add a new reminder",
+                            color = Color.Gray,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
                 }
             }
         } else {

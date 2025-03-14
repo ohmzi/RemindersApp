@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ohmz.remindersapp.domain.model.Priority
 import com.ohmz.remindersapp.domain.model.Reminder
+import com.ohmz.remindersapp.presentation.common.theme.IOSColors
 import com.ohmz.remindersapp.presentation.common.utils.DateUtils
 
 @Composable
@@ -92,7 +93,7 @@ fun CompletedRemindersList(
                 Text(
                     text = "${completedReminders.size} Completed • ",
                     fontSize = 14.sp,
-                    color = Color.Gray,
+                    color = IOSColors.Gray,
                     fontWeight = FontWeight.Normal
                 )
 
@@ -114,7 +115,7 @@ fun CompletedRemindersList(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "No completed tasks", color = Color.Gray, fontSize = 16.sp
+                        text = "No completed tasks", color = IOSColors.Gray, fontSize = 16.sp
                     )
                 }
             }
@@ -149,7 +150,7 @@ fun CompletedRemindersList(
                         text = "Today",
                         fontWeight = FontWeight.Medium,
                         fontSize = 22.sp,
-                        color = Color.Black,
+                        color = IOSColors.Black,
                         modifier = Modifier.padding(start = 16.dp, top = 16.dp, bottom = 8.dp)
                     )
                 }
@@ -159,7 +160,7 @@ fun CompletedRemindersList(
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .background(Color.White)
+                                .background(IOSColors.White)
                         ) {
                             CompletedReminderItem(reminder = reminder,
                                 onCheckedChange = { onCheckedChange(reminder) },
@@ -184,7 +185,7 @@ fun CompletedRemindersList(
                         text = "Earlier",
                         fontWeight = FontWeight.Medium,
                         fontSize = 22.sp,
-                        color = Color.Black,
+                        color = IOSColors.Black,
                         modifier = Modifier.padding(start = 16.dp, top = 16.dp, bottom = 8.dp)
                     )
                 }
@@ -194,7 +195,7 @@ fun CompletedRemindersList(
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .background(Color.White)
+                                .background(IOSColors.White)
                         ) {
                             CompletedReminderItem(reminder = reminder,
                                 onCheckedChange = { onCheckedChange(reminder) },
@@ -236,7 +237,7 @@ fun CompletedReminderItem(
                 .size(24.dp)
                 .clip(CircleShape)
                 .clickable(onClick = { onCheckedChange(!reminder.isCompleted) })
-                .background(if (reminder.isCompleted) Color(0xFF007AFF) else Color.White)
+                .background(if (reminder.isCompleted) Color(0xFF007AFF) else IOSColors.White)
                 .border(
                     width = 1.5.dp,
                     color = if (reminder.isCompleted) Color(0xFF007AFF) else Color(0xFFD1D1D6),
@@ -247,7 +248,7 @@ fun CompletedReminderItem(
                 Icon(
                     imageVector = Icons.Default.Check,
                     contentDescription = "Completed",
-                    tint = Color.White,
+                    tint = IOSColors.White,
                     modifier = Modifier.size(16.dp)
                 )
             }
@@ -284,14 +285,14 @@ fun CompletedReminderItem(
                     text = reminder.title,
                     fontWeight = FontWeight.Normal,
                     fontSize = 17.sp,
-                    color = if (reminder.isCompleted) Color.Gray else Color.Black
+                    color = if (reminder.isCompleted) IOSColors.Gray else IOSColors.Black
                 )
             }
 
             // Notes
             if (!reminder.notes.isNullOrBlank()) {
                 Text(
-                    text = reminder.notes, fontSize = 14.sp, color = Color.Gray, maxLines = 1
+                    text = reminder.notes, fontSize = 14.sp, color = IOSColors.Gray, maxLines = 1
                 )
             }
 
@@ -300,7 +301,7 @@ fun CompletedReminderItem(
                 Text(
                     text = "Due: ${DateUtils.formatDateWithTime(date)}",
                     fontSize = 13.sp,
-                    color = Color.Gray
+                    color = IOSColors.Gray
                 )
             }
         }

@@ -1,9 +1,11 @@
 package com.ohmz.remindersapp.presentation.reminder.main
 
+import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ohmz.remindersapp.domain.model.ReminderList
 import com.ohmz.remindersapp.domain.repository.ReminderListRepository
+import com.ohmz.remindersapp.presentation.common.theme.IOSColors
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -53,7 +55,7 @@ class ReminderMainViewModel @Inject constructor(
         }
     }
 
-    fun addList(name: String, color: String = "#007AFF") {
+    fun addList(name: String, color: Color = IOSColors.Blue) {
         viewModelScope.launch {
             try {
                 val newList = ReminderList(name = name, color = color)
@@ -91,7 +93,7 @@ class ReminderMainViewModel @Inject constructor(
     /**
      * Update the color of an existing list
      */
-    fun updateListColor(list: ReminderList, newColor: String) {
+    fun updateListColor(list: ReminderList, newColor: Color) {
         if (newColor == list.color) return
 
         viewModelScope.launch {

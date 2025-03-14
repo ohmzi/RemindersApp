@@ -46,7 +46,7 @@ fun ScheduledReminderItem(
                 .size(24.dp)
                 .clip(CircleShape)
                 .clickable(onClick = { onCheckedChange(!reminder.isCompleted) })
-                .background(if (reminder.isCompleted) Color(0xFF007AFF) else Color.White)
+                .background(if (reminder.isCompleted) Color(0xFF007AFF) else IOSColors.White)
                 .border(
                     width = 1.5.dp,
                     color = if (reminder.isCompleted) Color(0xFF007AFF) else Color(0xFFD1D1D6),
@@ -58,7 +58,7 @@ fun ScheduledReminderItem(
                 Icon(
                     imageVector = Icons.Default.Check,
                     contentDescription = "Completed",
-                    tint = Color.White,
+                    tint = IOSColors.White,
                     modifier = Modifier.size(16.dp)
                 )
             }
@@ -95,7 +95,7 @@ fun ScheduledReminderItem(
                     text = reminder.title,
                     fontWeight = FontWeight.Normal,
                     fontSize = 17.sp,
-                    color = if (reminder.isCompleted) Color.Gray else Color.Black
+                    color = if (reminder.isCompleted) IOSColors.Gray else IOSColors.Black
                 )
             }
 
@@ -104,7 +104,7 @@ fun ScheduledReminderItem(
                 Text(
                     text = reminder.notes,
                     fontSize = 14.sp,
-                    color = Color.Gray,
+                    color = IOSColors.Gray,
                     maxLines = 1
                 )
             }

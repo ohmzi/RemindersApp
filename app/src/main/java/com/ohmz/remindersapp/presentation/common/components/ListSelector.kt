@@ -17,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import com.ohmz.remindersapp.presentation.common.theme.IOSColors
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -37,7 +38,7 @@ fun ListSelector(
     modifier: Modifier = Modifier
 ) {
     var showAddListDialog by remember { mutableStateOf(false) }
-    val iosBlue = Color(0xFF007AFF)
+    val iosBlue = IOSColors.Blue
     
     Column(
         modifier = modifier
@@ -57,16 +58,10 @@ fun ListSelector(
                 
                 // Show existing lists as clickable bubbles
                 lists.forEach { list ->
-                    val listColor = try {
-                        Color(android.graphics.Color.parseColor(list.color))
-                    } catch (e: Exception) {
-                        iosBlue
-                    }
-                    
                     ListButton(
                         text = list.name,
                         isSelected = list.id == selectedListId,
-                        activeColor = listColor,
+                        activeColor = list.color,
                         onClick = { onListSelected(list) }
                     )
                 }
@@ -81,7 +76,7 @@ fun ListSelector(
             // Show a message when there are no lists
             Text(
                 text = "No lists yet. Create your first list below.",
-                color = Color.Gray,
+                color = IOSColors.Gray,
                 fontSize = 14.sp,
                 textAlign = TextAlign.Center,
                 modifier = Modifier
@@ -147,12 +142,12 @@ private fun ListButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val grayColor = Color(0xFFE0E0E0)
-    val grayBorder = Color(0xFFBDBDBD)
+    val grayColor = IOSColors.ButtonGray
+    val grayBorder = IOSColors.ButtonGrayBorder
     
     val backgroundColor = if (isSelected) activeColor.copy(alpha = 0.15f) else grayColor
     val borderColor = if (isSelected) activeColor else grayBorder
-    val textColor = if (isSelected) activeColor else Color.DarkGray
+    val textColor = if (isSelected) activeColor else IOSColors.DarkGrayText
     
     Box(
         contentAlignment = Alignment.Center,
@@ -202,7 +197,7 @@ private fun AddListDialog(
     ) {
         Surface(
             shape = RoundedCornerShape(16.dp),
-            color = Color.White
+            color = IOSColors.White
         ) {
             Column(
                 modifier = Modifier

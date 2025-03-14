@@ -1,6 +1,8 @@
 package com.ohmz.remindersapp.presentation.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -22,11 +24,12 @@ sealed class Screen(val route: String) {
         }
     }
 
-    object ReminderListByList : Screen("reminder_list_by_list/{listId}/{listName}/{listColor}") {
-        fun createRoute(listId: Int, listName: String, listColor: String = "#007AFF"): String {
-            // URL encode list name and color for safety
+    object ReminderListByList : Screen("reminder_list_by_list/{listId}/{listName}/{listColorHex}") {
+        fun createRoute(listId: Int, listName: String, listColor: Color): String {
+            // URL encode list name and convert color to hex string
             val encodedName = java.net.URLEncoder.encode(listName, "UTF-8")
-            val encodedColor = java.net.URLEncoder.encode(listColor, "UTF-8")
+            val colorHex = String.format("#%06X", (0xFFFFFF and listColor.toArgb()))
+            val encodedColor = java.net.URLEncoder.encode(colorHex, "UTF-8")
             return "reminder_list_by_list/$listId/$encodedName/$encodedColor"
         }
     }
@@ -96,11 +99,11 @@ fun AppNavHost(
             val decodedListName = java.net.URLDecoder.decode(listName, "UTF-8")
             val decodedColor = java.net.URLDecoder.decode(listColorStr, "UTF-8")
 
-            // Parse the color
+            // Parse the color from hex string
             val listColor = try {
-                androidx.compose.ui.graphics.Color(android.graphics.Color.parseColor(decodedColor))
+                Color(android.graphics.Color.parseColor(decodedColor))
             } catch (e: Exception) {
-                androidx.compose.ui.graphics.Color(0xFF007AFF)  // Default iOS blue
+                com.ohmz.remindersapp.presentation.common.theme.IOSColors.Blue // Default to iOS Blue
             }
 
             ReminderListByListScreen(listId = listId,

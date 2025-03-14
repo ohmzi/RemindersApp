@@ -343,18 +343,13 @@ fun ReminderMainScreen(
                                 verticalArrangement = Arrangement.spacedBy(12.dp) // Add spacing between list items
                             ) {
                                 mainUiState.lists.forEach { list ->
-                                    val listColor = try {
-                                        Color(android.graphics.Color.parseColor(list.color))
-                                    } catch (e: Exception) {
-                                        Color(0xFF007AFF) // Default iOS blue
-                                    }
 
                                     EnhancedListItem(
                                         title = list.name,
                                         count = viewModel.getFilteredReminders()
                                             .count { it.listId == list.id },
                                         icon = Icons.Default.List,
-                                        iconBackgroundColor = listColor,
+                                        iconBackgroundColor = list.color,
                                         onClick = {
                                             // Navigate to the list view
                                             navController.navigate(

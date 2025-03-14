@@ -42,9 +42,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.ohmz.remindersapp.presentation.common.components.AndroidStyleTopBar
+import com.ohmz.remindersapp.presentation.common.theme.IOSColors
 import com.ohmz.remindersapp.presentation.reminder.add.AddReminderScreen
 import com.ohmz.remindersapp.presentation.reminder.add.AddReminderViewModel
 import com.ohmz.remindersapp.presentation.reminder.detail.ScheduledReminderItem
@@ -61,7 +61,7 @@ fun ReminderListByListScreen(
     listName: String,
     onNavigateBack: () -> Unit,
     viewModel: ReminderListViewModel = hiltViewModel(),
-    listColor: Color = Color(0xFF007AFF) // Default iOS blue
+    listColor: Color = com.ohmz.remindersapp.presentation.common.theme.IOSColors.Blue // Default iOS blue
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -75,7 +75,7 @@ fun ReminderListByListScreen(
 
     // Get theme colors
     val appColors = com.ohmz.remindersapp.presentation.common.theme.AppTheme
-    
+
     // Create a background color based on the list color
     // In dark mode, use a darker version, in light mode use a lighter version
     val listBackgroundColor = if (appColors.isDark) {
@@ -122,7 +122,7 @@ fun ReminderListByListScreen(
 
                     showBottomSheet = true
                     coroutineScope.launch { sheetState.show() }
-                }, containerColor = listColor, contentColor = Color.White
+                }, containerColor = listColor, contentColor = IOSColors.White
             ) {
                 Icon(
                     imageVector = Icons.Default.Add, contentDescription = "Add Reminder"
@@ -188,7 +188,7 @@ fun ReminderListByListScreen(
 
                         Text(
                             text = "No Reminders in $listName",
-                            color = Color.Gray,
+                            color = IOSColors.Gray,
                             style = MaterialTheme.typography.headlineSmall,
                             fontWeight = FontWeight.Medium
                         )
@@ -197,7 +197,7 @@ fun ReminderListByListScreen(
 
                         Text(
                             text = "Tap + to add a new reminder",
-                            color = Color.Gray,
+                            color = IOSColors.Gray,
                             style = MaterialTheme.typography.bodyMedium
                         )
                     }

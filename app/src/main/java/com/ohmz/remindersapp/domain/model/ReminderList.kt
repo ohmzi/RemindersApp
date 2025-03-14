@@ -10,6 +10,6 @@ import com.ohmz.remindersapp.presentation.common.theme.IOSColors
 data class ReminderList(
     val id: Int = 0,
     val name: String,
-    val color: String = "#007AFF", // Default iOS blue color
+    val color: Color = IOSColors.Blue, // Default iOS blue color
     val isDefault: Boolean = false
 )

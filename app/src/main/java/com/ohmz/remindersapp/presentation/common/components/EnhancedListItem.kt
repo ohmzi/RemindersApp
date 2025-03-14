@@ -18,6 +18,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ohmz.remindersapp.domain.model.ReminderList
+import com.ohmz.remindersapp.presentation.common.theme.IOSColors
 
 /**
  * Enhanced iOS-style list item with consistent rounded corners and shadow
@@ -32,7 +33,7 @@ fun EnhancedListItem(
     onClick: () -> Unit,
     list: ReminderList? = null,  // Optional ReminderList object
     onRenameList: ((ReminderList, String) -> Unit)? = null, // Callback for renaming
-    onChangeListColor: ((ReminderList, String) -> Unit)? = null, // Callback for changing color
+    onChangeListColor: ((ReminderList, Color) -> Unit)? = null, // Callback for changing color
     onDeleteList: ((ReminderList) -> Unit)? = null // Callback for deleting
 ) {
     var showOptionsDialog by remember { mutableStateOf(false) }
@@ -42,7 +43,7 @@ fun EnhancedListItem(
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = cornerShape,
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = IOSColors.White),
         // Subtle iOS-style shadow that respects the corner shape
         elevation = CardDefaults.cardElevation(
             defaultElevation = 1.dp,
@@ -76,7 +77,7 @@ fun EnhancedListItem(
                 Icon(
                     imageVector = icon,
                     contentDescription = title,
-                    tint = Color.White,
+                    tint = IOSColors.White,
                     modifier = Modifier.size(20.dp)
                 )
             }
@@ -96,7 +97,7 @@ fun EnhancedListItem(
             Text(
                 text = count.toString(),
                 fontSize = 18.sp,
-                color = Color.Gray
+                color = IOSColors.Gray
             )
         }
     }

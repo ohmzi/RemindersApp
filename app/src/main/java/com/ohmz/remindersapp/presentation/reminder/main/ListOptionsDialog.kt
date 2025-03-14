@@ -58,7 +58,7 @@ fun ListOptionsDialog(
     list: ReminderList,
     onDismiss: () -> Unit,
     onRename: (String) -> Unit,
-    onColorChange: (String) -> Unit,
+    onColorChange: (Color) -> Unit,
     onDelete: () -> Unit
 ) {
     var showConfirmDeleteDialog by remember { mutableStateOf(false) }
@@ -138,13 +138,15 @@ fun ListOptionsDialog(
 
     // Color picker dialog
     if (showColorPickerDialog) {
-        ColorPickerDialog(currentColor = list.color,
+        ColorPickerDialog(
+            currentColor = list.color,
             onDismiss = { showColorPickerDialog = false },
-            onColorSelected = { color ->
-                onColorChange(color)
+            onColorSelected = { selectedColor ->
+                onColorChange(selectedColor)
                 showColorPickerDialog = false
                 onDismiss()
-            })
+            }
+        )
     }
 
     // Confirm delete dialog
@@ -262,19 +264,19 @@ private fun RenameListDialog(
 
 @Composable
 private fun ColorPickerDialog(
-    currentColor: String, onDismiss: () -> Unit, onColorSelected: (String) -> Unit
+    currentColor: Color, onDismiss: () -> Unit, onColorSelected: (Color) -> Unit
 ) {
     // Use colors directly from the IOSColors object
     val colorOptions = listOf(
-        Pair("#007AFF", IOSColors.Blue),      // iOS Blue
-        Pair("#FF3B30", IOSColors.Red),       // iOS Red
-        Pair("#FF9500", IOSColors.Orange),    // iOS Orange
-        Pair("#FFCC00", IOSColors.Yellow),    // iOS Yellow
-        Pair("#34C759", IOSColors.Green),     // iOS Green
-        Pair("#8E8E93", IOSColors.Gray)       // iOS Gray
+        IOSColors.Blue,       // iOS Blue
+        IOSColors.Red,        // iOS Red
+        IOSColors.Orange,     // iOS Orange
+        IOSColors.Yellow,     // iOS Yellow
+        IOSColors.Green,      // iOS Green
+        IOSColors.Gray        // iOS Gray
     )
 
-    var selectedColorHex by remember { mutableStateOf(currentColor) }
+    var selectedColor by remember { mutableStateOf(currentColor) }
 
     Dialog(onDismissRequest = onDismiss) {
         Surface(
@@ -297,10 +299,12 @@ private fun ColorPickerDialog(
                     horizontalArrangement = Arrangement.spacedBy(16.dp),
                     contentPadding = PaddingValues(vertical = 16.dp)
                 ) {
-                    items(colorOptions) { (colorHex, colorValue) ->
-                        ColorOption(color = colorValue,
-                            isSelected = colorHex == selectedColorHex,
-                            onClick = { selectedColorHex = colorHex })
+                    items(colorOptions) { colorValue ->
+                        ColorOption(
+                            color = colorValue,
+                            isSelected = colorValue == selectedColor,
+                            onClick = { selectedColor = colorValue }
+                        )
                     }
                 }
 
@@ -315,8 +319,8 @@ private fun ColorPickerDialog(
                     }
 
                     TextButton(
-                        onClick = { onColorSelected(selectedColorHex) },
-                        enabled = selectedColorHex != currentColor
+                        onClick = { onColorSelected(selectedColor) },
+                        enabled = selectedColor != currentColor
                     ) {
                         Text("Apply", color = IOSColors.Blue)
                     }

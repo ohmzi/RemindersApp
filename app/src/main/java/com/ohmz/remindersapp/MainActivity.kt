@@ -10,6 +10,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.core.view.WindowCompat
 import androidx.navigation.compose.rememberNavController
+import com.ohmz.remindersapp.presentation.common.theme.IOSColors
 import com.ohmz.remindersapp.presentation.common.theme.RemindersAppTheme
 import com.ohmz.remindersapp.presentation.navigation.AppNavHost
 import dagger.hilt.android.AndroidEntryPoint
@@ -29,14 +30,12 @@ class MainActivity : ComponentActivity() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
         // Optional: Set status bar color to transparent
-        window.statusBarColor = android.graphics.Color.TRANSPARENT
-
+        window.statusBarColor = IOSColors.Transparent.value.toInt()
         setContent {
             RemindersAppTheme {
                 // A surface container using the 'background' color from the theme
                 Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
+                    modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background
                 ) {
                     val navController = rememberNavController()
                     AppNavHost(navController = navController)

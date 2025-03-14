@@ -43,6 +43,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -99,6 +100,9 @@ fun ReminderMainScreen(
 
     // Get UI state from the main view model
     val mainUiState by mainViewModel.uiState.collectAsState()
+    
+    // Create a reference to the AddReminderViewModel
+    val addReminderViewModel: AddReminderViewModel = hiltViewModel()
 
     // Background color that matches iOS light gray
     val iosBackgroundColor = Color(0xFFF2F2F7)
@@ -154,7 +158,24 @@ fun ReminderMainScreen(
 
     Scaffold(
         containerColor = iosBackgroundColor,
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = {
+                    // Reset state for new reminder
+                    addReminderViewModel.resetState()
+                    showBottomSheet = true
+                    coroutineScope.launch { sheetState.show() }
+                },
+                containerColor = iosBlue,
+                contentColor = Color.White
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = "Add Reminder"
+                )
+            }
+        }
     ) { paddingValues ->
         // Use LazyListState to track scroll position
         val lazyListState = rememberLazyListState()
@@ -357,7 +378,7 @@ fun ReminderMainScreen(
                 }
             }
 
-            // Floating buttons that stay in place regardless of scrolling
+            // Floating button for Add List only (Add Reminder is now a FAB)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -369,47 +390,9 @@ fun ReminderMainScreen(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
+                    horizontalArrangement = Arrangement.End, // Aligned to the right
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // New Reminder button with iOS-style
-                    Card(
-                        shape = RoundedCornerShape(24.dp), colors = CardDefaults.cardColors(
-                            containerColor = Color.Transparent
-                        ), elevation = CardDefaults.cardElevation(
-                            defaultElevation = 0.dp
-                        )
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier
-                                .clickable {
-                                    showBottomSheet = true
-                                    coroutineScope.launch { sheetState.show() }
-                                }
-                                .padding(end = 8.dp)) {
-                            Box(
-                                modifier = Modifier
-                                    .size(30.dp)
-                                    .clip(CircleShape)
-                                    .background(iosBlue), contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Add,
-                                    contentDescription = "Add",
-                                    tint = Color.White,
-                                    modifier = Modifier.size(26.dp)
-                                )
-                            }
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = "New Reminder",
-                                color = iosBlue,
-                                fontWeight = FontWeight.Medium,
-                                fontSize = 16.sp
-                            )
-                        }
-                    }
-
                     // Add List button (iOS style)
                     var showAddListDialog by remember { mutableStateOf(false) }
 
@@ -434,9 +417,6 @@ fun ReminderMainScreen(
             }
         }
     }
-
-    // Create a reference to the AddReminderViewModel
-    val addReminderViewModel: AddReminderViewModel = hiltViewModel()
 
     // Bottom sheet for adding a new reminder
     if (showBottomSheet) {

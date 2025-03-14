@@ -19,7 +19,11 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -40,6 +44,7 @@ import com.ohmz.remindersapp.presentation.reminder.add.AddReminderScreen
 import com.ohmz.remindersapp.presentation.reminder.add.AddReminderViewModel
 import com.ohmz.remindersapp.presentation.reminder.detail.ScheduledReminderItem
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
 
 /**
  * Screen that displays reminders from a specific list with a consistent iOS-style appearance
@@ -90,35 +95,42 @@ fun ReminderListByListScreen(
 
     // Inside ReminderListByListScreen.kt, replace the current top bar implementation with:
 
-    Scaffold(containerColor = listBackgroundColor,
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }) { paddingValues ->
+    Scaffold(
+        containerColor = listBackgroundColor,
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = {
+                    // No pre-selection here, it's now handled in LaunchedEffect
+                    // Just show the bottom sheet
+                    addReminderViewModel.resetState() // This will be overridden by LaunchedEffect
+                    
+                    showBottomSheet = true
+                    coroutineScope.launch { sheetState.show() }
+                },
+                containerColor = listColor,
+                contentColor = Color.White
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = "Add Reminder"
+                )
+            }
+        }
+    ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            // Use the Android-style top bar
-            AndroidStyleTopBar(title = listName, titleColor = listColor, onBackClick = onNavigateBack,
-                showAddButton = true,
-                iconTint = iosBlue,
-                onAddClick = {
-                    // Pre-select the current list when adding a new reminder
-                    addReminderViewModel.resetState()
-
-                    // Small delay to ensure resetState has completed
-                    coroutineScope.launch {
-                        kotlinx.coroutines.delay(100)
-
-                        // Create a minimal ReminderList object with the current ID and name
-                        val currentList = com.ohmz.remindersapp.domain.model.ReminderList(
-                            id = listId, name = listName
-                        )
-                        addReminderViewModel.updateList(currentList)
-                    }
-
-                    showBottomSheet = true
-                    coroutineScope.launch { sheetState.show() }
-                })
+            // Use the Android-style top bar without add button (using FAB instead)
+            AndroidStyleTopBar(
+                title = listName, 
+                titleColor = listColor, 
+                onBackClick = onNavigateBack,
+                showAddButton = false, // No add button, using FAB instead
+                iconTint = iosBlue
+            )
 
             // Very subtle divider
          //   HorizontalDivider(thickness = 0.5.dp, color = Color(0xFFE5E5EA))
@@ -180,6 +192,20 @@ fun ReminderListByListScreen(
 
     // Bottom sheet for adding a new reminder
     if (showBottomSheet) {
+        // Use LaunchedEffect to apply the pre-selections when the sheet appears
+        LaunchedEffect(showBottomSheet) {
+            // First reset the state
+            addReminderViewModel.resetState()
+            // Then apply specific pre-selections
+            delay(100) // Short delay to ensure resetState completes
+            
+            // Create a minimal ReminderList object with the current ID and name
+            val currentList = com.ohmz.remindersapp.domain.model.ReminderList(
+                id = listId,
+                name = listName
+            )
+            addReminderViewModel.updateList(currentList)
+        }
         ModalBottomSheet(onDismissRequest = {
             coroutineScope.launch {
                 sheetState.hide()

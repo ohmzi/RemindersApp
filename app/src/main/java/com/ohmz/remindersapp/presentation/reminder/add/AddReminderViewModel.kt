@@ -111,6 +111,13 @@ class AddReminderViewModel @Inject constructor(
     fun toggleFavorite() {
         _uiState.value = _uiState.value.copy(isFavorite = !_uiState.value.isFavorite)
     }
+    
+    /**
+     * Directly sets the favorite status to a specific value
+     */
+    fun setFavorite(isFavorite: Boolean) {
+        _uiState.value = _uiState.value.copy(isFavorite = isFavorite)
+    }
 
     /**
      * Adds a tag to the reminder

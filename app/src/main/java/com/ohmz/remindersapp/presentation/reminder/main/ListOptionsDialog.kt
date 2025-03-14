@@ -68,7 +68,8 @@ fun ListOptionsDialog(
     // Main options dialog
     Dialog(onDismissRequest = onDismiss) {
         Surface(
-            shape = RoundedCornerShape(16.dp), color = Color.White
+            shape = RoundedCornerShape(16.dp), 
+            color = IOSColors.White
         ) {
             Column(
                 modifier = Modifier
@@ -86,20 +87,26 @@ fun ListOptionsDialog(
                 // Options
 
                 // Rename option
-                ListOptionItem(icon = Icons.Default.Edit,
+                ListOptionItem(
+                    icon = Icons.Default.Edit,
                     text = "Rename list",
-                    onClick = { showRenameDialog = true })
+                    onClick = { showRenameDialog = true }
+                )
 
                 // Change color option
-                ListOptionItem(icon = Icons.Default.Build,
+                ListOptionItem(
+                    icon = Icons.Default.Build,
                     text = "Change color",
-                    onClick = { showColorPickerDialog = true })
+                    onClick = { showColorPickerDialog = true }
+                )
 
                 // Delete option
-                ListOptionItem(icon = Icons.Default.Delete,
+                ListOptionItem(
+                    icon = Icons.Default.Delete,
                     text = "Delete list",
-                    textColor = Color(0xFFFF3B30), // iOS red
-                    onClick = { showConfirmDeleteDialog = true })
+                    textColor = IOSColors.Red,
+                    onClick = { showConfirmDeleteDialog = true }
+                )
 
                 Spacer(modifier = Modifier.height(16.dp))
 
@@ -108,8 +115,8 @@ fun ListOptionsDialog(
                     onClick = onDismiss,
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFFE5E5EA), // iOS light gray
-                        contentColor = Color.Black
+                        containerColor = IOSColors.Gray5,
+                        contentColor = IOSColors.Black
                     )
                 ) {
                     Text("Cancel")
@@ -142,7 +149,8 @@ fun ListOptionsDialog(
 
     // Confirm delete dialog
     if (showConfirmDeleteDialog) {
-        AlertDialog(onDismissRequest = { showConfirmDeleteDialog = false },
+        AlertDialog(
+            onDismissRequest = { showConfirmDeleteDialog = false },
             title = { Text("Delete List") },
             text = { Text("Are you sure you want to delete the \"${list.name}\" list? This action cannot be undone.") },
             confirmButton = {
@@ -151,14 +159,15 @@ fun ListOptionsDialog(
                     showConfirmDeleteDialog = false
                     onDismiss()
                 }) {
-                    Text("Delete", color = Color(0xFFFF3B30)) // iOS red color
+                    Text("Delete", color = IOSColors.Red)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showConfirmDeleteDialog = false }) {
                     Text("Cancel")
                 }
-            })
+            }
+        )
     }
 }
 
@@ -166,7 +175,7 @@ fun ListOptionsDialog(
 private fun ListOptionItem(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     text: String,
-    textColor: Color = Color.Black,
+    textColor: Color = IOSColors.Black,
     onClick: () -> Unit
 ) {
     Row(
@@ -177,11 +186,15 @@ private fun ListOptionItem(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
-            imageVector = icon, contentDescription = text, tint = textColor
+            imageVector = icon, 
+            contentDescription = text, 
+            tint = textColor
         )
         Spacer(modifier = Modifier.width(16.dp))
         Text(
-            text = text, color = textColor, fontSize = 16.sp
+            text = text, 
+            color = textColor, 
+            fontSize = 16.sp
         )
     }
 }
@@ -200,7 +213,8 @@ private fun RenameListDialog(
 
     Dialog(onDismissRequest = onDismiss) {
         Surface(
-            shape = RoundedCornerShape(16.dp), color = Color.White
+            shape = RoundedCornerShape(16.dp), 
+            color = IOSColors.White
         ) {
             Column(
                 modifier = Modifier
@@ -227,7 +241,8 @@ private fun RenameListDialog(
                 Spacer(modifier = Modifier.height(24.dp))
 
                 Row(
-                    modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End
+                    modifier = Modifier.fillMaxWidth(), 
+                    horizontalArrangement = Arrangement.End
                 ) {
                     TextButton(onClick = onDismiss) {
                         Text("Cancel")
@@ -237,7 +252,7 @@ private fun RenameListDialog(
                         onClick = { onRename(newName) },
                         enabled = newName.isNotBlank() && newName != currentName
                     ) {
-                        Text("Save")
+                        Text("Save", color = IOSColors.Blue)
                     }
                 }
             }
@@ -249,14 +264,13 @@ private fun RenameListDialog(
 private fun ColorPickerDialog(
     currentColor: String, onDismiss: () -> Unit, onColorSelected: (String) -> Unit
 ) {
+    // Use colors directly from the IOSColors object
     val colorOptions = listOf(
         Pair("#007AFF", IOSColors.Blue),      // iOS Blue
         Pair("#FF3B30", IOSColors.Red),       // iOS Red
         Pair("#FF9500", IOSColors.Orange),    // iOS Orange
         Pair("#FFCC00", IOSColors.Yellow),    // iOS Yellow
         Pair("#34C759", IOSColors.Green),     // iOS Green
-        Pair("#5856D6", IOSColors.Purple),    // iOS Purple
-        Pair("#FF2D55", IOSColors.Pink),      // iOS Pink
         Pair("#8E8E93", IOSColors.Gray)       // iOS Gray
     )
 
@@ -264,7 +278,8 @@ private fun ColorPickerDialog(
 
     Dialog(onDismissRequest = onDismiss) {
         Surface(
-            shape = RoundedCornerShape(16.dp), color = Color.White
+            shape = RoundedCornerShape(16.dp), 
+            color = IOSColors.White
         ) {
             Column(
                 modifier = Modifier
@@ -292,7 +307,8 @@ private fun ColorPickerDialog(
                 Spacer(modifier = Modifier.height(24.dp))
 
                 Row(
-                    modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End
+                    modifier = Modifier.fillMaxWidth(), 
+                    horizontalArrangement = Arrangement.End
                 ) {
                     TextButton(onClick = onDismiss) {
                         Text("Cancel")
@@ -302,7 +318,7 @@ private fun ColorPickerDialog(
                         onClick = { onColorSelected(selectedColorHex) },
                         enabled = selectedColorHex != currentColor
                     ) {
-                        Text("Apply")
+                        Text("Apply", color = IOSColors.Blue)
                     }
                 }
             }
@@ -320,16 +336,19 @@ private fun ColorOption(
             .clip(CircleShape)
             .background(color)
             .border(
-                width = if (isSelected) 3.dp else 0.dp, color = Color.Black, shape = CircleShape
+                width = if (isSelected) 3.dp else 0.dp, 
+                color = IOSColors.Black, 
+                shape = CircleShape
             )
-            .clickable(onClick = onClick), contentAlignment = Alignment.Center
+            .clickable(onClick = onClick), 
+        contentAlignment = Alignment.Center
     ) {
         if (isSelected) {
             Box(
                 modifier = Modifier
                     .size(16.dp)
                     .clip(CircleShape)
-                    .background(Color.White)
+                    .background(IOSColors.White)
             )
         }
     }

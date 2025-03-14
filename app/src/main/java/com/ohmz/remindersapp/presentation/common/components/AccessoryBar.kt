@@ -30,7 +30,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import com.ohmz.remindersapp.presentation.common.theme.IOSColors
 import androidx.compose.ui.unit.dp
 import com.ohmz.remindersapp.domain.model.ReminderAction
 import com.ohmz.remindersapp.presentation.common.components.DateSelector
@@ -81,7 +81,7 @@ fun AccessoryBar(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .background(Color.White)
+            .background(com.ohmz.remindersapp.presentation.common.theme.IOSColors.White)
             .imePadding() // This ensures the bar stays above the keyboard
             .windowInsetsPadding(WindowInsets.navigationBars) // For navigation bar
             .wrapContentHeight() // Force the bar to wrap its content
@@ -182,7 +182,7 @@ fun AccessoryBar(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 16.dp)
-                .background(Color.White),
+                .background(com.ohmz.remindersapp.presentation.common.theme.IOSColors.White),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
             // Calendar icon - colored blue if date is set
@@ -193,7 +193,7 @@ fun AccessoryBar(
                 Icon(
                     imageVector = Icons.Default.DateRange,
                     contentDescription = "Calendar",
-                    tint = if (hasDate) Color(0xFF007AFF) else Color.Gray,
+                    tint = if (hasDate) com.ohmz.remindersapp.presentation.common.theme.IOSColors.Blue else com.ohmz.remindersapp.presentation.common.theme.IOSColors.Gray,
                     modifier = Modifier.size(28.dp)
                 )
             }
@@ -206,9 +206,9 @@ fun AccessoryBar(
                 Icon(
                     imageVector = Icons.Default.List,
                     contentDescription = "List",
-                    tint = if (selectedListId != null) Color(0xFF007AFF) 
-                          else if (selectedAction == ReminderAction.LOCATION) Color(0xFF007AFF)
-                          else Color.Gray,
+                    tint = if (selectedListId != null) com.ohmz.remindersapp.presentation.common.theme.IOSColors.Blue 
+                          else if (selectedAction == ReminderAction.LOCATION) com.ohmz.remindersapp.presentation.common.theme.IOSColors.Blue
+                          else com.ohmz.remindersapp.presentation.common.theme.IOSColors.Gray,
                     modifier = Modifier.size(28.dp)
                 )
             }
@@ -219,15 +219,15 @@ fun AccessoryBar(
                 modifier = Modifier.size(48.dp)
             ) {
                 val priorityColor = when (currentPriority) {
-                    Priority.LOW -> Color(0xFF34C759) // iOS green
-                    Priority.MEDIUM -> Color(0xFF007AFF) // iOS blue
-                    Priority.HIGH -> Color(0xFFFF3B30) // iOS red
+                    Priority.LOW -> com.ohmz.remindersapp.presentation.common.theme.IOSColors.Green
+                    Priority.MEDIUM -> com.ohmz.remindersapp.presentation.common.theme.IOSColors.Blue
+                    Priority.HIGH -> com.ohmz.remindersapp.presentation.common.theme.IOSColors.Red
                 }
                 
                 Icon(
                     imageVector = Icons.Default.Warning,
                     contentDescription = "Priority",
-                    tint = if (selectedAction == ReminderAction.TAG) Color(0xFF007AFF)
+                    tint = if (selectedAction == ReminderAction.TAG) com.ohmz.remindersapp.presentation.common.theme.IOSColors.Blue
                           else priorityColor, // Always show priority color
                     modifier = Modifier.size(28.dp)
                 )
@@ -245,7 +245,9 @@ fun AccessoryBar(
                         Icons.Default.FavoriteBorder,
                     contentDescription = "Favorite",
                     tint = if (isFavorite)
-                        Color(0xFFFF3B30) else Color.Gray,
+                        com.ohmz.remindersapp.presentation.common.theme.IOSColors.Red 
+                    else 
+                        com.ohmz.remindersapp.presentation.common.theme.IOSColors.Gray,
                     modifier = Modifier.size(28.dp)
                 )
             }

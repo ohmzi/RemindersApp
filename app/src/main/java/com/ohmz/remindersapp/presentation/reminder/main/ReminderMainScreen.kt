@@ -75,6 +75,8 @@ import com.ohmz.remindersapp.domain.model.ReminderType
 import com.ohmz.remindersapp.presentation.common.components.EnhancedListItem
 import com.ohmz.remindersapp.presentation.common.components.ReminderCategoryCardAlt
 import com.ohmz.remindersapp.presentation.common.components.ReminderCategoryData
+import com.ohmz.remindersapp.presentation.common.theme.AppTheme
+import com.ohmz.remindersapp.presentation.common.theme.IOSColors
 import com.ohmz.remindersapp.presentation.navigation.Screen
 import com.ohmz.remindersapp.presentation.reminder.add.AddReminderScreen
 import com.ohmz.remindersapp.presentation.reminder.add.AddReminderViewModel
@@ -97,7 +99,7 @@ fun ReminderMainScreen(
 
     // Get UI state from the main view model
     val mainUiState by mainViewModel.uiState.collectAsState()
-    
+
     // Create a reference to the AddReminderViewModel first, before it's used
     val addReminderViewModel: AddReminderViewModel = hiltViewModel()
 
@@ -105,22 +107,24 @@ fun ReminderMainScreen(
     var showBottomSheet by remember { mutableStateOf(false) }
     // State for tracking if we should show the discard dialog
     var showDiscardBottomSheetDialog by remember { mutableStateOf(false) }
-    
+
     // Now we can use addReminderViewModel safely
     val sheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = true
     )
 
-    // Background color that matches iOS light gray
-    val iosBackgroundColor = Color(0xFFF2F2F7)
-    val iosBlue = Color(0xFF007AFF)
+    // Use theme colors from AppTheme
+    val appColors = AppTheme
 
-    // Define colors for each category
-    val todayColor = Color(0xFF007AFF) // iOS blue
-    val scheduledColor = Color(0xFFFF9500) // iOS orange (changed from red)
-    val allColor = Color(0xFF000000) // Black
-    val favouriteColor = Color(0xFFFF3B30) // iOS red (changed from orange)
-    val completedColor = Color(0xFF8E8E93) // iOS gray
+    // Background color from theme
+    val backgroundColors = appColors.mainBackground
+
+    // Category colors from theme
+    val todayColor = appColors.todayColor
+    val scheduledColor = appColors.scheduledColor
+    val allColor = appColors.allColor
+    val favouriteColor = appColors.favoriteColor
+    val completedColor = appColors.completedColor
 
     // Use the cached counts from the UI state to prevent initial zeros
     // This ensures we show meaningful numbers immediately upon app start
@@ -167,7 +171,7 @@ fun ReminderMainScreen(
     var showAddListDialog by remember { mutableStateOf(false) }
 
     Scaffold(
-        containerColor = iosBackgroundColor,
+        containerColor = backgroundColors,
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         floatingActionButton = {
             FloatingActionButton(
@@ -177,8 +181,8 @@ fun ReminderMainScreen(
                     showBottomSheet = true
                     coroutineScope.launch { sheetState.show() }
                 },
-                containerColor = iosBlue,
-                contentColor = Color.White
+                containerColor = appColors.todayColor,
+                contentColor = IOSColors.White
             ) {
                 Icon(
                     imageVector = Icons.Default.Add,
@@ -400,7 +404,7 @@ fun ReminderMainScreen(
                     }
                 )
             }
-            
+
             // Add List FAB positioned on the left side
             Box(
                 modifier = Modifier
@@ -409,11 +413,11 @@ fun ReminderMainScreen(
                     .navigationBarsPadding()
             ) {
                 FloatingActionButton(
-                    onClick = { 
-                        showAddListDialog = true 
+                    onClick = {
+                        showAddListDialog = true
                     },
-                    containerColor = Color.Red, // Red color for contrast with the blue Add Reminder FAB
-                    contentColor = Color.White
+                    containerColor = IOSColors.Red, // Red color for contrast with the blue Add Reminder FAB
+                    contentColor = IOSColors.White
                 ) {
                     Icon(
                         imageVector = Icons.Default.List,
@@ -431,7 +435,7 @@ fun ReminderMainScreen(
             Dialog(onDismissRequest = { showDiscardBottomSheetDialog = false }) {
                 Surface(
                     shape = RoundedCornerShape(16.dp),
-                    color = Color.White
+                    color = IOSColors.White
                 ) {
                     Column(
                         modifier = Modifier
@@ -444,13 +448,13 @@ fun ReminderMainScreen(
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.padding(bottom = 16.dp)
                         )
-                        
+
                         Text(
                             text = "You have unsaved changes that will be lost if you discard this reminder.",
                             fontSize = 16.sp,
                             modifier = Modifier.padding(bottom = 24.dp)
                         )
-                        
+
                         // Discard Changes Button (Red)
                         TextButton(
                             onClick = {
@@ -467,16 +471,16 @@ fun ReminderMainScreen(
                         ) {
                             Text(
                                 text = "Discard Changes",
-                                color = Color.Red,
+                                color = IOSColors.Red,
                                 fontWeight = FontWeight.Medium,
                                 fontSize = 18.sp
                             )
                         }
-                        
+
                         // Cancel Button (Blue)
                         TextButton(
-                            onClick = { 
-                                showDiscardBottomSheetDialog = false 
+                            onClick = {
+                                showDiscardBottomSheetDialog = false
                                 // Important: Force the sheet to be shown again
                                 coroutineScope.launch {
                                     try {
@@ -493,7 +497,7 @@ fun ReminderMainScreen(
                         ) {
                             Text(
                                 text = "Cancel",
-                                color = iosBlue,
+                                color = appColors.todayColor,
                                 fontWeight = FontWeight.Medium,
                                 fontSize = 18.sp
                             )
@@ -502,7 +506,7 @@ fun ReminderMainScreen(
                 }
             }
         }
-        
+
         // Reset the state when showing the bottom sheet initially
         LaunchedEffect(showBottomSheet) {
             addReminderViewModel.resetState()
@@ -523,7 +527,7 @@ fun ReminderMainScreen(
                         }
                     }
                 )
-            }, 
+            },
             sheetState = sheetState,
             dragHandle = { } // Hide the drag handle to make it less obvious it can be dragged
         ) {
@@ -582,7 +586,7 @@ private fun AddListDialog(
 
     Dialog(onDismissRequest = onDismiss) {
         Surface(
-            shape = RoundedCornerShape(16.dp), color = Color.White
+            shape = RoundedCornerShape(16.dp), color = IOSColors.White
         ) {
             Column(
                 modifier = Modifier

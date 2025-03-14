@@ -20,6 +20,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.ohmz.remindersapp.presentation.common.theme.IOSColors
 
 @Composable
 fun TitleNotesCard(
@@ -29,12 +30,22 @@ fun TitleNotesCard(
     onNotesChange: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // iOS-like light background color for card
-    val iosBackgroundColor = Color(0xFFFFFFFF)
-    // iOS-like divider color
-    val iosDividerColor = Color(0xFFE5E5EA)
-    // iOS-like placeholder color
-    val iosPlaceholderColor = Color(0xFFC7C7CC)
+    // Get colors from the theme
+    val appColors = com.ohmz.remindersapp.presentation.common.theme.AppTheme
+    
+    // Card background color
+    val cardBackgroundColor = appColors.cardBackground
+    val textColour = appColors.primaryText
+    // Divider color
+    val dividerColor = if (appColors.isDark) 
+        com.ohmz.remindersapp.presentation.common.theme.AppColors.Gray.GrayDark4 
+    else 
+        com.ohmz.remindersapp.presentation.common.theme.AppColors.Gray.Gray5
+    // Placeholder color
+    val placeholderColor = if (appColors.isDark) 
+        com.ohmz.remindersapp.presentation.common.theme.AppColors.Gray.GrayDark3 
+    else 
+        com.ohmz.remindersapp.presentation.common.theme.AppColors.Gray.Gray3
 
     // Create a focus requester
     val focusRequester = remember { FocusRequester() }
@@ -46,7 +57,7 @@ fun TitleNotesCard(
 
     Card(
         shape = RoundedCornerShape(10.dp),
-        colors = CardDefaults.cardColors(containerColor = iosBackgroundColor),
+        colors = CardDefaults.cardColors(containerColor = cardBackgroundColor),
         modifier = modifier,
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
@@ -55,12 +66,12 @@ fun TitleNotesCard(
             TextField(
                 value = title,
                 onValueChange = onTitleChange,
-                placeholder = { Text("Title", color = iosPlaceholderColor) },
+                placeholder = { Text("Title", color = textColour) },
                 colors = TextFieldDefaults.colors(
-                    focusedContainerColor = iosBackgroundColor,
-                    unfocusedContainerColor = iosBackgroundColor,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent
+                    focusedContainerColor = cardBackgroundColor,
+                    unfocusedContainerColor = cardBackgroundColor,
+                    focusedIndicatorColor = IOSColors.Transparent,
+                    unfocusedIndicatorColor = IOSColors.Transparent
                 ),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -73,7 +84,7 @@ fun TitleNotesCard(
             // Thin divider
             Divider(
                 modifier = Modifier.fillMaxWidth(),
-                color = iosDividerColor,
+                color = dividerColor,
                 thickness = 0.5.dp
             )
 
@@ -81,12 +92,12 @@ fun TitleNotesCard(
             TextField(
                 value = notes,
                 onValueChange = onNotesChange,
-                placeholder = { Text("Notes", color = iosPlaceholderColor) },
+                placeholder = { Text("Notes", color = textColour) },
                 colors = TextFieldDefaults.colors(
-                    focusedContainerColor = iosBackgroundColor,
-                    unfocusedContainerColor = iosBackgroundColor,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent
+                    focusedContainerColor = cardBackgroundColor,
+                    unfocusedContainerColor = cardBackgroundColor,
+                    focusedIndicatorColor = IOSColors.Transparent,
+                    unfocusedIndicatorColor = IOSColors.Transparent
                 ),
                 modifier = Modifier
                     .fillMaxWidth()

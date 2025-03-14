@@ -59,6 +59,7 @@ import com.ohmz.remindersapp.domain.model.Reminder
 import com.ohmz.remindersapp.domain.model.ReminderAction
 import com.ohmz.remindersapp.domain.model.ReminderType
 import com.ohmz.remindersapp.presentation.common.components.AndroidStyleTopBar
+import com.ohmz.remindersapp.presentation.common.theme.IOSColors
 import com.ohmz.remindersapp.presentation.common.utils.DateUtils
 import com.ohmz.remindersapp.presentation.common.utils.DateUtils.pastDue
 import com.ohmz.remindersapp.presentation.reminder.add.AddReminderScreen
@@ -104,22 +105,29 @@ fun ReminderFilteredListScreen(
         }
     }
 
+    // Get theme colors
+    val appColors = com.ohmz.remindersapp.presentation.common.theme.AppTheme
+    
     // Get the title, icon and color based on the type
     val (screenTitle, themeColor) = when (reminderType) {
-        ReminderType.TODAY -> Pair("Today", Color(0xFF007AFF))
-        ReminderType.SCHEDULED -> Pair("Scheduled", Color(0xFFFF9500)) // Red color for scheduled
-        ReminderType.ALL -> Pair("All", Color(0xFF000000))
-        ReminderType.FAVOURITE -> Pair("Favourite", Color(0xFFFF3B30))
-        ReminderType.COMPLETED -> Pair("Completed", Color(0xFF8E8E93))
+        ReminderType.TODAY -> Pair("Today", appColors.todayColor)
+        ReminderType.SCHEDULED -> Pair("Scheduled", appColors.scheduledColor)
+        ReminderType.ALL -> Pair("All", appColors.allColor)
+        ReminderType.FAVOURITE -> Pair("Favourite", appColors.favoriteColor)
+        ReminderType.COMPLETED -> Pair("Completed", appColors.completedColor)
     }
-
-    // iOS colors
-    val iosWhiteBackground = Color.White // Pure white background like in iOS
-    val iosBlue = Color(0xFF007AFF)
+    
+    // Get screen icon based on the type
+    val screenIcon = when (reminderType) {
+        ReminderType.TODAY, ReminderType.SCHEDULED -> Icons.Default.DateRange
+        ReminderType.FAVOURITE -> Icons.Default.Favorite
+        ReminderType.COMPLETED -> Icons.Default.Check 
+        else -> Icons.Default.List
+    }
 
     // Inside ReminderFilteredListScreen.kt, replace the current top bar implementation with:
 
-    Scaffold(containerColor = iosWhiteBackground,
+    Scaffold(containerColor = appColors.mainBackground,
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         floatingActionButton = {
             // Only show FAB if not on the Completed screen
@@ -132,7 +140,7 @@ fun ReminderFilteredListScreen(
 
                         showBottomSheet = true
                         coroutineScope.launch { sheetState.show() }
-                    }, containerColor = themeColor, contentColor = Color.White
+                    }, containerColor = themeColor, contentColor = IOSColors.White
                 ) {
                     Icon(
                         imageVector = Icons.Default.Add, contentDescription = "Add Reminder"
@@ -152,7 +160,7 @@ fun ReminderFilteredListScreen(
                 titleColor = themeColor,
                 onBackClick = onNavigateBack,
                 showAddButton = false, // No add button, using FAB instead
-                iconTint = iosBlue
+                iconTint = appColors.todayColor
             )
 
             // Content area
@@ -289,25 +297,8 @@ fun ScheduledRemindersList(
     // Format for day headers
     val dayFormat = SimpleDateFormat("EEE MMM d", Locale.getDefault())
 
-    // Custom function to find past due reminders INCLUDING completed ones (for stable positioning)
-    fun findPastDueRemindersIncludingCompleted(reminders: List<Reminder>): List<Reminder> {
-        val today = Calendar.getInstance().apply {
-            set(Calendar.HOUR_OF_DAY, 0)
-            set(Calendar.MINUTE, 0)
-            set(Calendar.SECOND, 0)
-            set(Calendar.MILLISECOND, 0)
-        }
-
-        return reminders.filter { reminder ->
-            reminder.dueDate?.let { date ->
-                val reminderCal = Calendar.getInstance().apply { time = date }
-                reminderCal.before(today) // Only check date, not completion status
-            } ?: false
-        }
-    }
-    
-    // Prepare date sections - use our custom function for past due
-    val pastDueReminders = findPastDueRemindersIncludingCompleted(reminders)
+    // Prepare date sections - use DateUtils for all date filtering
+    val pastDueReminders = DateUtils.findPastDueRemindersIncludingCompleted(reminders)
     val todayReminders = DateUtils.findTodayReminders(reminders)
     val tomorrowReminders = DateUtils.findTomorrowReminders(reminders)
 
@@ -325,7 +316,7 @@ fun ScheduledRemindersList(
                     text = "Past Due",
                     fontWeight = FontWeight.Bold,
                     fontSize = 24.sp,
-                    color = Color.Black,
+                    color = IOSColors.Black,
                     modifier = Modifier.padding(start = 16.dp, top = 16.dp, bottom = 4.dp)
                 )
             }
@@ -349,7 +340,7 @@ fun ScheduledRemindersList(
                     Text(
                         text = dayFormat.format(firstReminderDate),
                         fontSize = 17.sp,
-                        color = Color.Gray,
+                        color = IOSColors.Gray,
                         modifier = Modifier.padding(start = 16.dp, top = 8.dp)
                     )
                 }
@@ -395,7 +386,7 @@ fun ScheduledRemindersList(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .background(Color.White)
+                            .background(IOSColors.White)
                     ) {
                         ScheduledReminderItem(reminder = reminder,
                             onCheckedChange = { onCheckedChange(reminder) },
@@ -418,7 +409,7 @@ fun ScheduledRemindersList(
                 text = "Tomorrow",
                 fontWeight = FontWeight.Normal,
                 fontSize = 17.sp,
-                color = Color.Gray,
+                color = IOSColors.Gray,
                 modifier = Modifier.padding(start = 16.dp, top = 16.dp, bottom = 4.dp)
             )
         }
@@ -429,7 +420,7 @@ fun ScheduledRemindersList(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .background(Color.White)
+                            .background(IOSColors.White)
                     ) {
                         ScheduledReminderItem(reminder = reminder,
                             onCheckedChange = { onCheckedChange(reminder) },
@@ -468,7 +459,7 @@ fun ScheduledRemindersList(
                     text = dateStr,
                     fontSize = 17.sp,
                     fontWeight = FontWeight.Normal,
-                    color = if (dayReminders.isNotEmpty()) Color.Black else Color.Gray,
+                    color = if (dayReminders.isNotEmpty()) IOSColors.Black else IOSColors.Gray,
                     modifier = Modifier.padding(start = 16.dp, top = 16.dp, bottom = 4.dp)
                 )
             }
@@ -480,7 +471,7 @@ fun ScheduledRemindersList(
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .background(Color.White)
+                                .background(IOSColors.White)
                         ) {
                             ScheduledReminderItem(reminder = reminder,
                                 onCheckedChange = { onCheckedChange(reminder) },
@@ -505,7 +496,7 @@ fun ScheduledRemindersList(
                 text = "Rest of $currentMonthName",
                 fontWeight = FontWeight.Normal,
                 fontSize = 17.sp,
-                color = Color.Gray,
+                color = IOSColors.Gray,
                 modifier = Modifier.padding(start = 16.dp, top = 16.dp, bottom = 4.dp)
             )
         }
@@ -547,7 +538,7 @@ fun ScheduledRemindersList(
                     fontWeight = FontWeight.Bold,
                     fontSize = 24.sp,
                     // Black for months with reminders, Gray for months without
-                    color = if (monthReminders.isNotEmpty()) Color.Black else Color.Gray,
+                    color = if (monthReminders.isNotEmpty()) IOSColors.Black else IOSColors.Gray,
                     modifier = Modifier.padding(start = 16.dp, top = 16.dp, bottom = 4.dp)
                 )
             }
@@ -568,7 +559,7 @@ fun ScheduledRemindersList(
                         Text(
                             text = dateStr,
                             fontSize = 17.sp,
-                            color = Color.Black,  // Black for days with reminders
+                            color = IOSColors.Black,  // Black for days with reminders
                             modifier = Modifier.padding(start = 16.dp, top = 8.dp)
                         )
                     }
@@ -578,7 +569,7 @@ fun ScheduledRemindersList(
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .background(Color.White)
+                                    .background(IOSColors.White)
                             ) {
                                 ScheduledReminderItem(reminder = reminder,
                                     onCheckedChange = { onCheckedChange(reminder) },
@@ -625,7 +616,7 @@ fun TodayRemindersList(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .background(Color.White)
+                            .background(IOSColors.White)
                     ) {
                         ScheduledReminderItem(reminder = reminder,
                             onCheckedChange = { onCheckedChange(reminder) },
@@ -669,7 +660,7 @@ fun TodayRemindersList(
 
                         Text(
                             text = "No Today Reminders",
-                            color = Color.Gray,
+                            color = IOSColors.Gray,
                             style = MaterialTheme.typography.headlineSmall,
                             fontWeight = FontWeight.Medium
                         )
@@ -678,7 +669,7 @@ fun TodayRemindersList(
 
                         Text(
                             text = "Tap + to add a new reminder",
-                            color = Color.Gray,
+                            color = IOSColors.Gray,
                             style = MaterialTheme.typography.bodyMedium
                         )
                     }
@@ -742,13 +733,13 @@ fun AllRemindersList(
                             modifier = Modifier
                                 .size(70.dp)
                                 .clip(CircleShape)
-                                .background(Color.Black.copy(alpha = 0.1f)), // All reminders: black
+                                .background(IOSColors.Black.copy(alpha = 0.1f)), // All reminders: black
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
                                 imageVector = Icons.Default.List,
                                 contentDescription = null,
-                                tint = Color.Black,
+                                tint = IOSColors.Black,
                                 modifier = Modifier.size(34.dp)
                             )
                         }
@@ -757,7 +748,7 @@ fun AllRemindersList(
 
                         Text(
                             text = "No Reminders",
-                            color = Color.Gray,
+                            color = IOSColors.Gray,
                             style = MaterialTheme.typography.headlineSmall,
                             fontWeight = FontWeight.Medium
                         )
@@ -766,7 +757,7 @@ fun AllRemindersList(
 
                         Text(
                             text = "Tap + to add a new reminder",
-                            color = Color.Gray,
+                            color = IOSColors.Gray,
                             style = MaterialTheme.typography.bodyMedium
                         )
                     }
@@ -779,7 +770,7 @@ fun AllRemindersList(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .background(Color.White)
+                            .background(IOSColors.White)
                     ) {
                         AllReminderItem(reminder = reminder,
                             onCheckedChange = { onCheckedChange(reminder) },
@@ -825,7 +816,7 @@ fun AllReminderItem(
                 .size(24.dp)
                 .clip(CircleShape)
                 .clickable(onClick = { onCheckedChange(!reminder.isCompleted) })
-                .background(if (reminder.isCompleted) Color(0xFF007AFF) else Color.White)
+                .background(if (reminder.isCompleted) Color(0xFF007AFF) else IOSColors.White)
                 .border(
                     width = 1.5.dp,
                     color = if (reminder.isCompleted) Color(0xFF007AFF) else Color(0xFFD1D1D6),
@@ -836,7 +827,7 @@ fun AllReminderItem(
                 Icon(
                     imageVector = Icons.Default.Check,
                     contentDescription = "Completed",
-                    tint = Color.White,
+                    tint = IOSColors.White,
                     modifier = Modifier.size(16.dp)
                 )
             }
@@ -872,7 +863,7 @@ fun AllReminderItem(
                     text = reminder.title,
                     fontWeight = FontWeight.Normal,
                     fontSize = 17.sp,
-                    color = if (reminder.isCompleted) Color.Gray else Color.Black
+                    color = if (reminder.isCompleted) IOSColors.Gray else IOSColors.Black
                 )
             }
 
@@ -881,7 +872,7 @@ fun AllReminderItem(
                 Text(
                     text = reminder.notes,
                     fontSize = 14.sp,
-                    color = Color.Gray,
+                    color = IOSColors.Gray,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -902,7 +893,7 @@ fun AllReminderItem(
                 Text(
                     text = dateText,
                     fontSize = 13.sp,
-                    color = if (reminder.isCompleted) Color.Gray else dateColor,
+                    color = if (reminder.isCompleted) IOSColors.Gray else dateColor,
                     fontWeight = FontWeight.Medium
                 )
             }
@@ -983,7 +974,7 @@ fun FavoriteRemindersList(
 
                         Text(
                             text = "No Favorite Reminders",
-                            color = Color.Gray,
+                            color = IOSColors.Gray,
                             style = MaterialTheme.typography.headlineSmall,
                             fontWeight = FontWeight.Medium
                         )
@@ -992,7 +983,7 @@ fun FavoriteRemindersList(
 
                         Text(
                             text = "Tap + to add a new reminder",
-                            color = Color.Gray,
+                            color = IOSColors.Gray,
                             style = MaterialTheme.typography.bodyMedium
                         )
                     }
@@ -1006,7 +997,7 @@ fun FavoriteRemindersList(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .background(Color.White)
+                            .background(IOSColors.White)
                     ) {
                         ScheduledReminderItem(reminder = reminder,
                             onCheckedChange = { onCheckedChange(reminder) },

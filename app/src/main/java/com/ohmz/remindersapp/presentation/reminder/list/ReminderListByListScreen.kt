@@ -73,15 +73,26 @@ fun ReminderListByListScreen(
     // Filter reminders by the listId
     val remindersInList = uiState.reminders.filter { it.listId == listId }
 
-    // Colors for UI
-    val iosWhite = Color.White
-    val iosBlue = Color(0xFF007AFF)
-    // Create a very light version of the list color for the background
-    // If the list color is default blue, use white background instead
-    val listBackgroundColor = if (listColor == Color(0xFF007AFF)) {
-        Color.White
+    // Get theme colors
+    val appColors = com.ohmz.remindersapp.presentation.common.theme.AppTheme
+    
+    // Create a background color based on the list color
+    // In dark mode, use a darker version, in light mode use a lighter version
+    val listBackgroundColor = if (appColors.isDark) {
+        // For dark mode, we use the darker background with a hint of the list color
+        if (listColor == com.ohmz.remindersapp.presentation.common.theme.AppColors.Primary.Blue) {
+            appColors.mainBackground  // Use pure black in dark mode if default blue
+        } else {
+            // Use dark gray with a slight tint towards the list color
+            com.ohmz.remindersapp.presentation.common.theme.AppColors.Background.DarkGray
+        }
     } else {
-        listColor.copy(alpha = 0.1f)
+        // For light mode, use a very light version of the list color
+        if (listColor == com.ohmz.remindersapp.presentation.common.theme.AppColors.Primary.Blue) {
+            appColors.mainBackground  // Use system background if default blue
+        } else {
+            listColor.copy(alpha = 0.1f)  // Very light tint of the list color
+        }
     }
 
     // State for showing the bottom sheet
@@ -129,7 +140,7 @@ fun ReminderListByListScreen(
                 titleColor = listColor,
                 onBackClick = onNavigateBack,
                 showAddButton = false, // No add button, using FAB instead
-                iconTint = iosBlue
+                iconTint = appColors.todayColor
             )
 
             // Very subtle divider

@@ -12,7 +12,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
+import com.ohmz.remindersapp.presentation.common.theme.IOSColors
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -34,12 +34,11 @@ fun PrioritySelector(
     val selectedOption = remember { mutableStateOf(currentPriority.name) }
 
     // Define colors
-    val iosBlue = Color(0xFF007AFF)
-    val lowPriorityColor = Color(0xFF34C759) // iOS green
-    val mediumPriorityColor = iosBlue // iOS blue
-    val highPriorityColor = Color(0xFFFF3B30) // iOS red
-    val grayColor = Color(0xFFE0E0E0)
-    val grayBorder = Color(0xFFBDBDBD)
+    val lowPriorityColor = IOSColors.Green
+    val mediumPriorityColor = IOSColors.Blue
+    val highPriorityColor = IOSColors.Red
+    val grayColor = IOSColors.ButtonGray
+    val grayBorder = IOSColors.ButtonGrayBorder
 
     Row(
         modifier = modifier
@@ -90,17 +89,14 @@ fun PriorityButton(
     text: String,
     label: String,
     isSelected: Boolean,
-    activeColor: Color,
+    activeColor: androidx.compose.ui.graphics.Color,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     // Define colors for the button
-    val grayColor = Color(0xFFE0E0E0)
-    val grayBorder = Color(0xFFBDBDBD)
-
-    val backgroundColor = if (isSelected) activeColor.copy(alpha = 0.15f) else grayColor
-    val borderColor = if (isSelected) activeColor else grayBorder
-    val textColor = if (isSelected) activeColor else Color.DarkGray
+    val backgroundColor = if (isSelected) activeColor.copy(alpha = 0.15f) else IOSColors.ButtonGray
+    val borderColor = if (isSelected) activeColor else IOSColors.ButtonGrayBorder
+    val textColor = if (isSelected) activeColor else IOSColors.DarkGrayText
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,

@@ -54,7 +54,7 @@ fun ReminderCategoryCardAlt(
             .fillMaxWidth()
             .height(110.dp),
         shape = cornerShape,
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = IOSColors.White),
         // Subtle iOS-style shadow that respects the corner shape
         elevation = CardDefaults.cardElevation(
             defaultElevation = 1.dp,
@@ -81,7 +81,7 @@ fun ReminderCategoryCardAlt(
                 Icon(
                     imageVector = category.icon,
                     contentDescription = category.title,
-                    tint = Color.White,
+                    tint = IOSColors.White,
                     modifier = Modifier.size(24.dp)
                 )
             }

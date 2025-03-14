@@ -79,14 +79,31 @@ class AddReminderViewModel @Inject constructor(
     }
 
     /**
+     * Helper function to calculate if any changes have been made to the reminder
+     */
+    private fun isModified(
+        title: String = _uiState.value.title,
+        notes: String = _uiState.value.notes,
+        dueDate: Date? = _uiState.value.dueDate,
+        isFavorite: Boolean = _uiState.value.isFavorite,
+        listId: Int? = _uiState.value.listId,
+        priority: Priority = _uiState.value.priority
+    ): Boolean {
+        return title.isNotEmpty() || 
+               notes.isNotEmpty() || 
+               dueDate != null || 
+               isFavorite || 
+               listId != null || 
+               priority != Priority.MEDIUM
+    }
+
+    /**
      * Updates the title of the reminder
      */
     fun updateTitle(title: String) {
         _uiState.value = _uiState.value.copy(
             title = title,
-            isModified = title.isNotEmpty() || _uiState.value.notes.isNotEmpty() || 
-                        _uiState.value.dueDate != null || _uiState.value.isFavorite || 
-                        _uiState.value.listId != null || _uiState.value.priority != Priority.MEDIUM
+            isModified = isModified(title = title)
         )
     }
 
@@ -96,9 +113,7 @@ class AddReminderViewModel @Inject constructor(
     fun updateNotes(notes: String) {
         _uiState.value = _uiState.value.copy(
             notes = notes,
-            isModified = _uiState.value.title.isNotEmpty() || notes.isNotEmpty() || 
-                        _uiState.value.dueDate != null || _uiState.value.isFavorite || 
-                        _uiState.value.listId != null || _uiState.value.priority != Priority.MEDIUM
+            isModified = isModified(notes = notes)
         )
     }
 
@@ -108,9 +123,7 @@ class AddReminderViewModel @Inject constructor(
     fun updateDueDate(dueDate: Date?) {
         _uiState.value = _uiState.value.copy(
             dueDate = dueDate,
-            isModified = _uiState.value.title.isNotEmpty() || _uiState.value.notes.isNotEmpty() || 
-                        dueDate != null || _uiState.value.isFavorite || 
-                        _uiState.value.listId != null || _uiState.value.priority != Priority.MEDIUM
+            isModified = isModified(dueDate = dueDate)
         )
     }
 
@@ -120,9 +133,7 @@ class AddReminderViewModel @Inject constructor(
     fun updatePriority(priority: Priority) {
         _uiState.value = _uiState.value.copy(
             priority = priority,
-            isModified = _uiState.value.title.isNotEmpty() || _uiState.value.notes.isNotEmpty() || 
-                        _uiState.value.dueDate != null || _uiState.value.isFavorite || 
-                        _uiState.value.listId != null || priority != Priority.MEDIUM
+            isModified = isModified(priority = priority)
         )
     }
 
@@ -133,9 +144,7 @@ class AddReminderViewModel @Inject constructor(
         val newFavoriteStatus = !_uiState.value.isFavorite
         _uiState.value = _uiState.value.copy(
             isFavorite = newFavoriteStatus,
-            isModified = _uiState.value.title.isNotEmpty() || _uiState.value.notes.isNotEmpty() || 
-                        _uiState.value.dueDate != null || newFavoriteStatus || 
-                        _uiState.value.listId != null || _uiState.value.priority != Priority.MEDIUM
+            isModified = isModified(isFavorite = newFavoriteStatus)
         )
     }
     
@@ -145,9 +154,7 @@ class AddReminderViewModel @Inject constructor(
     fun setFavorite(isFavorite: Boolean) {
         _uiState.value = _uiState.value.copy(
             isFavorite = isFavorite,
-            isModified = _uiState.value.title.isNotEmpty() || _uiState.value.notes.isNotEmpty() || 
-                        _uiState.value.dueDate != null || isFavorite || 
-                        _uiState.value.listId != null || _uiState.value.priority != Priority.MEDIUM
+            isModified = isModified(isFavorite = isFavorite)
         )
     }
 
@@ -156,8 +163,10 @@ class AddReminderViewModel @Inject constructor(
      */
     fun addTag(tag: String) {
         if (tag.isNotBlank() && !_uiState.value.tags.contains(tag)) {
+            val newTags = _uiState.value.tags + tag
             _uiState.value = _uiState.value.copy(
-                tags = _uiState.value.tags + tag
+                tags = newTags,
+                isModified = true // Adding a tag means the reminder is modified
             )
         }
     }
@@ -166,7 +175,11 @@ class AddReminderViewModel @Inject constructor(
      * Removes a tag from the reminder
      */
     fun removeTag(tag: String) {
-        _uiState.value = _uiState.value.copy(tags = _uiState.value.tags.filter { it != tag })
+        val newTags = _uiState.value.tags.filter { it != tag }
+        _uiState.value = _uiState.value.copy(
+            tags = newTags,
+            isModified = true // Removing a tag means the reminder is modified
+        )
     }
 
     /**
@@ -177,9 +190,7 @@ class AddReminderViewModel @Inject constructor(
             listId = list.id, 
             selectedListName = list.name, 
             showListSelector = false,
-            isModified = _uiState.value.title.isNotEmpty() || _uiState.value.notes.isNotEmpty() || 
-                        _uiState.value.dueDate != null || _uiState.value.isFavorite || 
-                        list.id != null || _uiState.value.priority != Priority.MEDIUM
+            isModified = isModified(listId = list.id)
         )
     }
 
@@ -222,7 +233,10 @@ class AddReminderViewModel @Inject constructor(
      * Updates the image URI of the reminder
      */
     fun updateImageUri(imageUri: String?) {
-        _uiState.value = _uiState.value.copy(imageUri = imageUri)
+        _uiState.value = _uiState.value.copy(
+            imageUri = imageUri,
+            isModified = imageUri != null || isModified()
+        )
     }
 
     /**
@@ -235,43 +249,60 @@ class AddReminderViewModel @Inject constructor(
     }
 
     /**
+     * Validates the current reminder data
+     * @return Error message if validation fails, null if validation passes
+     */
+    private fun validateReminder(): String? {
+        return if (_uiState.value.title.isBlank()) {
+            "Title cannot be empty"
+        } else {
+            null
+        }
+    }
+    
+    /**
+     * Creates a Reminder domain object from the current UI state
+     */
+    private fun createReminderFromState(state: AddReminderUiState): Reminder {
+        return Reminder(
+            title = state.title,
+            notes = state.notes.ifBlank { null },
+            dueDate = state.dueDate,
+            isCompleted = false,
+            isFavorite = state.isFavorite,
+            priority = state.priority,
+            tags = state.tags,
+            listId = state.listId,
+            imageUri = state.imageUri
+        )
+    }
+
+    /**
      * Saves the reminder
      */
     fun saveReminder() {
         viewModelScope.launch {
             val state = _uiState.value
-
-            // Validate title
-            if (state.title.isBlank()) {
-                _uiState.value = state.copy(
-                    error = "Title cannot be empty"
-                )
+            
+            // Validate the reminder
+            val validationError = validateReminder()
+            if (validationError != null) {
+                _uiState.value = state.copy(error = validationError)
                 return@launch
             }
 
-            // Removed list validation - list selection is now optional
-
+            // Set loading state
             _uiState.value = state.copy(isLoading = true)
 
             try {
-                val reminder = Reminder(
-                    title = state.title,
-                    notes = state.notes.ifBlank { null },
-                    dueDate = state.dueDate,
-                    isCompleted = false,
-                    isFavorite = state.isFavorite,
-                    priority = state.priority,
-                    tags = state.tags,
-                    listId = state.listId, // This can now be null
-                    imageUri = state.imageUri
-                )
-
+                // Create and save reminder
+                val reminder = createReminderFromState(state)
                 addReminderUseCase(reminder)
-
-                _uiState.value = state.copy(
-                    isLoading = false, isSuccess = true
-                )
+                
+                // Update state with success
+                _uiState.value = state.copy(isLoading = false, isSuccess = true)
             } catch (e: Exception) {
+                // Handle errors
                 _uiState.value = state.copy(
                     isLoading = false,
                     error = e.message ?: "Unknown error occurred while saving the reminder"

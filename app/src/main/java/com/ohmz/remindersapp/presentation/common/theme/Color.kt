@@ -1,35 +1,9 @@
 package com.ohmz.remindersapp.presentation.common.theme
 
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.lightColorScheme
 import androidx.compose.ui.graphics.Color
 
-val Purple80 = Color(0xFFD0BCFF)
-val PurpleGrey80 = Color(0xFFCCC2DC)
-val Pink80 = Color(0xFFEFB8C8)
+// This file is kept for backward compatibility but all active color definitions
+// have been moved to IOSColors.kt for better organization.
+// See IOSColors.kt for the complete color palette used in the app.
 
-val Purple40 = Color(0xFF6650a4)
-val PurpleGrey40 = Color(0xFF625b71)
-val Pink40 = Color(0xFF7D5260)
-
-// iOS-style colors
-val iOSBlue = Color(0xFF007AFF)
-val iOSBackground = Color(0xFFF2F2F7)
-
-// Light and dark color schemes
-val LightColors = lightColorScheme(
-    primary = iOSBlue,
-    onPrimary = Color.White,
-    secondary = Color(0xFF03DAC5),
-    onSecondary = Color.Black,
-    background = iOSBackground,
-    surface = Color.White
-)
-
-val DarkColors = darkColorScheme(
-    primary = Color(0xFFBB86FC),
-    onPrimary = Color.Black,
-    secondary = Color(0xFF03DAC5),
-    onSecondary = Color.Black,
-    // etc.
-)
+// For any new color needs, please add them to the AppColors object in IOSColors.kt

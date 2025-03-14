@@ -37,6 +37,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.ohmz.remindersapp.domain.model.ReminderAction
 import com.ohmz.remindersapp.presentation.common.components.DateTimePicker
 import com.ohmz.remindersapp.presentation.common.components.TitleNotesCard
+import com.ohmz.remindersapp.presentation.common.theme.IOSColors
 import java.util.Calendar
 import java.util.Date
 
@@ -205,7 +206,7 @@ fun AddReminderScreen(
             )
         },
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
-        containerColor = Color.Transparent,
+        containerColor = IOSColors.Transparent,
         contentWindowInsets = WindowInsets(0, 0, 0, 0)
     ) { padding ->
         Column(
@@ -244,7 +245,7 @@ fun AddReminderScreen(
                 ) {
                     val textColor =
                         if (uiState.title.isNotBlank()) MaterialTheme.colorScheme.primary
-                        else Color.Gray
+                        else IOSColors.Gray
 
                     Text(
                         text = "Add",
@@ -301,7 +302,7 @@ private fun PriorityButton(
     ) {
         Text(
             text = text,
-            color = if (isSelected) MaterialTheme.colorScheme.primary else Color.Gray,
+            color = if (isSelected) MaterialTheme.colorScheme.primary else IOSColors.Gray,
             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
         )
     }
@@ -313,7 +314,7 @@ fun DiscardChangesDialog(
 ) {
     Dialog(onDismissRequest = onCancelDialog) {
         Surface(
-            shape = RoundedCornerShape(16.dp), color = Color.White
+            shape = RoundedCornerShape(16.dp), color = IOSColors.White
         ) {
             Column(
                 modifier = Modifier
@@ -329,7 +330,7 @@ fun DiscardChangesDialog(
                 ) {
                     Text(
                         text = "Discard Changes",
-                        color = Color.Red,
+                        color = IOSColors.Red,
                         fontWeight = FontWeight.Medium,
                         fontSize = 18.sp
                     )

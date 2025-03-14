@@ -21,7 +21,7 @@ sealed class Screen(val route: String) {
             return "reminder_filtered_list/${type.name}"
         }
     }
-    
+
     object ReminderListByList : Screen("reminder_list_by_list/{listId}/{listName}/{listColor}") {
         fun createRoute(listId: Int, listName: String, listColor: String = "#007AFF"): String {
             // URL encode list name and color for safety
@@ -47,87 +47,68 @@ sealed class Screen(val route: String) {
  */
 @Composable
 fun AppNavHost(
-    navController: NavHostController,
-    startDestination: String = Screen.ReminderMain.route
+    navController: NavHostController, startDestination: String = Screen.ReminderMain.route
 ) {
     NavHost(
-        navController = navController,
-        startDestination = startDestination
+        navController = navController, startDestination = startDestination
     ) {
         // Main Screen with category buttons
         composable(route = Screen.ReminderMain.route) {
-            ReminderMainScreen(
-                navigateToAddReminder = {
-                    // This is just a placeholder - we now use the bottom sheet directly
-                },
-                navigateToFilteredList = { reminderType ->
-                    navController.navigate(Screen.ReminderFilteredList.createRoute(reminderType))
-                },
-                navController = navController
+            ReminderMainScreen(navigateToAddReminder = {
+                // This is just a placeholder - we now use the bottom sheet directly
+            }, navigateToFilteredList = { reminderType ->
+                navController.navigate(Screen.ReminderFilteredList.createRoute(reminderType))
+            }, navController = navController
             )
         }
 
         // Filtered List Screen showing specific reminders by type
         composable(
-            route = Screen.ReminderFilteredList.route,
-            arguments = listOf(
-                navArgument("type") {
-                    type = NavType.StringType
-                }
-            )
+            route = Screen.ReminderFilteredList.route, arguments = listOf(navArgument("type") {
+                type = NavType.StringType
+            })
         ) { backStackEntry ->
             val typeString = backStackEntry.arguments?.getString("type") ?: ReminderType.ALL.name
             val reminderType = ReminderType.valueOf(typeString)
 
-            ReminderFilteredListScreen(
-                reminderType = reminderType,
-                onNavigateBack = {
-                    navController.popBackStack()
-                },
-                navigateToAddReminder = {
-                    // This is just a placeholder - we now use the bottom sheet directly
-                }
-            )
+            ReminderFilteredListScreen(reminderType = reminderType, onNavigateBack = {
+                navController.popBackStack()
+            }, navigateToAddReminder = {
+                // This is just a placeholder - we now use the bottom sheet directly
+            })
         }
-        
+
         // List Screen showing reminders by list
         composable(
-            route = Screen.ReminderListByList.route,
-            arguments = listOf(
-                navArgument("listId") {
-                    type = NavType.IntType
-                },
-                navArgument("listName") {
-                    type = NavType.StringType
-                },
-                navArgument("listColor") {
-                    type = NavType.StringType
-                }
-            )
+            route = Screen.ReminderListByList.route, arguments = listOf(navArgument("listId") {
+                type = NavType.IntType
+            }, navArgument("listName") {
+                type = NavType.StringType
+            }, navArgument("listColor") {
+                type = NavType.StringType
+            })
         ) { backStackEntry ->
             val listId = backStackEntry.arguments?.getInt("listId") ?: 0
             val listName = backStackEntry.arguments?.getString("listName") ?: ""
             val listColorStr = backStackEntry.arguments?.getString("listColor") ?: "#007AFF"
-            
+
             // URL decode the list name and color
             val decodedListName = java.net.URLDecoder.decode(listName, "UTF-8")
             val decodedColor = java.net.URLDecoder.decode(listColorStr, "UTF-8")
-            
+
             // Parse the color
             val listColor = try {
                 androidx.compose.ui.graphics.Color(android.graphics.Color.parseColor(decodedColor))
             } catch (e: Exception) {
                 androidx.compose.ui.graphics.Color(0xFF007AFF)  // Default iOS blue
             }
-            
-            ReminderListByListScreen(
-                listId = listId,
+
+            ReminderListByListScreen(listId = listId,
                 listName = decodedListName,
                 listColor = listColor,
                 onNavigateBack = {
                     navController.popBackStack()
-                }
-            )
+                })
         }
     }
 }

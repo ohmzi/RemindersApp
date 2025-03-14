@@ -49,7 +49,7 @@ fun EnhancedReminderItem(
                 .clickable(onClick = { onCheckedChange(!reminder.isCompleted) })
                 .background(
                     if (reminder.isCompleted) IOSColors.Blue
-                    else Color.White
+                    else IOSColors.White
                 )
                 .border(
                     width = 1.5.dp,
@@ -62,7 +62,7 @@ fun EnhancedReminderItem(
                 Icon(
                     imageVector = Icons.Default.Check,
                     contentDescription = "Completed",
-                    tint = Color.White,
+                    tint = IOSColors.White,
                     modifier = Modifier.size(16.dp)
                 )
             }
@@ -98,7 +98,7 @@ fun EnhancedReminderItem(
                     text = reminder.title,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Medium,
-                    color = if (reminder.isCompleted) IOSColors.Gray else Color.Black,
+                    color = if (reminder.isCompleted) IOSColors.Gray else IOSColors.Black,
                     textDecoration = if (reminder.isCompleted) TextDecoration.LineThrough else TextDecoration.None
                 )
             }

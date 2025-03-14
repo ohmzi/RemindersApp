@@ -216,7 +216,11 @@ fun ReminderListByListScreen(
     if (showBottomSheet) {
         ModalBottomSheet(
             onDismissRequest = {
-                coroutineScope.launch { sheetState.hide() }
+                coroutineScope.launch { 
+                    sheetState.hide() 
+                    // Reset state when dismissing to ensure a fresh start next time
+                    addReminderViewModel.resetState()
+                }
                 showBottomSheet = false
             },
             sheetState = sheetState,
@@ -232,6 +236,8 @@ fun ReminderListByListScreen(
                         coroutineScope.launch {
                             sheetState.hide()
                             showBottomSheet = false
+                            // Reset state when canceling to ensure a fresh start next time
+                            addReminderViewModel.resetState()
                         }
                     },
                     viewModel = addReminderViewModel

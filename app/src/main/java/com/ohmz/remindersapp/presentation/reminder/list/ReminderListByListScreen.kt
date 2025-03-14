@@ -98,7 +98,7 @@ fun ReminderListByListScreen(
                 .padding(paddingValues)
         ) {
             // Use the Android-style top bar
-            AndroidStyleTopBar(onBackClick = onNavigateBack,
+            AndroidStyleTopBar(title = listName, titleColor = listColor, onBackClick = onNavigateBack,
                 showAddButton = true,
                 iconTint = iosBlue,
                 onAddClick = {
@@ -121,16 +121,10 @@ fun ReminderListByListScreen(
                 })
 
             // Very subtle divider
-            HorizontalDivider(thickness = 0.5.dp, color = Color(0xFFE5E5EA))
+         //   HorizontalDivider(thickness = 0.5.dp, color = Color(0xFFE5E5EA))
 
-            // Large title with the list color - matching ReminderFilteredListScreen style
-            Text(
-                text = listName,
-                fontWeight = FontWeight.Bold,
-                fontSize = 36.sp,
-                color = listColor,
-                modifier = Modifier.padding(start = 16.dp, top = 16.dp, bottom = 8.dp)
-            )
+         //   HorizontalDivider(thickness = 0.5.dp, color = Color(0xFFE5E5EA))
+
 
             // Content area
             if (uiState.isLoading) {

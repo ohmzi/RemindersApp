@@ -124,7 +124,9 @@ fun ReminderFilteredListScreen(
 // Add import at the top of the file
 
 // Then replace the top bar Box with:
-            AndroidStyleTopBar(onBackClick = onNavigateBack,
+            AndroidStyleTopBar(title = screenTitle,
+                titleColor = themeColor,
+                onBackClick = onNavigateBack,
                 showAddButton = reminderType != ReminderType.COMPLETED,
                 iconTint = iosBlue,
                 onAddClick = {
@@ -155,18 +157,6 @@ fun ReminderFilteredListScreen(
                     showBottomSheet = true
                     coroutineScope.launch { sheetState.show() }
                 })
-
-            // Very subtle divider for white background
-            HorizontalDivider(thickness = 0.5.dp, color = Color(0xFFE5E5EA))
-
-            // Large title for all screens
-            Text(
-                text = screenTitle,
-                fontWeight = FontWeight.Bold,
-                fontSize = 36.sp,
-                color = themeColor,
-                modifier = Modifier.padding(start = 16.dp, top = 16.dp, bottom = 8.dp)
-            )
 
             // Content area
             if (uiState.isLoading) {

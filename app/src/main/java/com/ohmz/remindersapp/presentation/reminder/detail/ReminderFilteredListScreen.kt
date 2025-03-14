@@ -18,16 +18,15 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.List
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -61,11 +60,12 @@ import com.ohmz.remindersapp.domain.model.ReminderAction
 import com.ohmz.remindersapp.domain.model.ReminderType
 import com.ohmz.remindersapp.presentation.common.components.AndroidStyleTopBar
 import com.ohmz.remindersapp.presentation.common.utils.DateUtils
+import com.ohmz.remindersapp.presentation.common.utils.DateUtils.pastDue
 import com.ohmz.remindersapp.presentation.reminder.add.AddReminderScreen
 import com.ohmz.remindersapp.presentation.reminder.add.AddReminderViewModel
 import com.ohmz.remindersapp.presentation.reminder.list.ReminderListViewModel
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -119,8 +119,7 @@ fun ReminderFilteredListScreen(
 
     // Inside ReminderFilteredListScreen.kt, replace the current top bar implementation with:
 
-    Scaffold(
-        containerColor = iosWhiteBackground,
+    Scaffold(containerColor = iosWhiteBackground,
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         floatingActionButton = {
             // Only show FAB if not on the Completed screen
@@ -130,21 +129,17 @@ fun ReminderFilteredListScreen(
                         // No pre-selection here, it's now handled in LaunchedEffect
                         // Just show the bottom sheet
                         addReminderViewModel.resetState() // This will be overridden by LaunchedEffect
-                        
+
                         showBottomSheet = true
                         coroutineScope.launch { sheetState.show() }
-                    },
-                    containerColor = themeColor,
-                    contentColor = Color.White
+                    }, containerColor = themeColor, contentColor = Color.White
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = "Add Reminder"
+                        imageVector = Icons.Default.Add, contentDescription = "Add Reminder"
                     )
                 }
             }
-        }
-    ) { paddingValues ->
+        }) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -225,16 +220,18 @@ fun ReminderFilteredListScreen(
             addReminderViewModel.resetState()
             // Then apply specific pre-selections based on reminderType
             delay(100) // Short delay to ensure resetState completes
-            
+
             when (reminderType) {
                 ReminderType.FAVOURITE -> {
                     // Force favorite=true for Favourite screen
                     addReminderViewModel.setFavorite(true)
                 }
+
                 ReminderType.SCHEDULED -> {
                     // Open calendar for Scheduled screen
                     addReminderViewModel.toggleAction(ReminderAction.CALENDAR)
                 }
+
                 ReminderType.TODAY -> {
                     // Set due date to today at 11:59 PM for Today screen
                     val today = Calendar.getInstance().apply {
@@ -244,12 +241,13 @@ fun ReminderFilteredListScreen(
                     }.time
                     addReminderViewModel.updateDueDate(today)
                 }
+
                 else -> {
                     // No special pre-selection for other screens
                 }
             }
         }
-        
+
         ModalBottomSheet(onDismissRequest = {
             coroutineScope.launch {
                 sheetState.hide()
@@ -867,12 +865,13 @@ fun AllReminderItem(
                         SimpleDateFormat("EEE, MMM d, yyyy", Locale.getDefault()).format(date)
                     }
                 }
+                val dateColor = if (pastDue(date)) Color(0xFFFF3B30) else Color(0xFF007AFF)
 
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = dateText,
                     fontSize = 13.sp,
-                    color = Color(0xFF007AFF),
+                    color = if (reminder.isCompleted) Color.Gray else dateColor,
                     fontWeight = FontWeight.Medium
                 )
             }
@@ -917,7 +916,8 @@ fun FavoriteRemindersList(
         ))
 
     LazyColumn(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+            .fillMaxSize()
             .padding(start = 10.dp)
     ) {
         if (favoriteReminders.isEmpty()) {

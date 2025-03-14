@@ -2,7 +2,9 @@ package com.ohmz.remindersapp.presentation.common.utils
 
 import com.ohmz.remindersapp.domain.model.Reminder
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
 
 /**
  * Utility class for date-related operations in the Reminders app
@@ -92,6 +94,24 @@ object DateUtils {
     }
 
     /**
+     * Compare the sent date against today
+     */
+    fun pastDue(date: Date): Boolean {
+        val today = Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+
+
+        val reminderCal = Calendar.getInstance().apply { time = date }
+        val checkingPastDue = reminderCal.before(today)
+
+        return checkingPastDue
+    }
+
+    /**
      * Check if a calendar date is tomorrow
      */
     fun isTomorrow(cal: Calendar): Boolean {
@@ -109,20 +129,19 @@ object DateUtils {
      * Check if two calendars represent the same day
      */
     fun isSameDay(cal1: Calendar, cal2: Calendar): Boolean {
-        return cal1.get(Calendar.YEAR) == cal2.get(Calendar.YEAR) &&
-                cal1.get(Calendar.MONTH) == cal2.get(Calendar.MONTH) &&
-                cal1.get(Calendar.DAY_OF_MONTH) == cal2.get(Calendar.DAY_OF_MONTH)
+        return cal1.get(Calendar.YEAR) == cal2.get(Calendar.YEAR) && cal1.get(Calendar.MONTH) == cal2.get(
+            Calendar.MONTH
+        ) && cal1.get(Calendar.DAY_OF_MONTH) == cal2.get(Calendar.DAY_OF_MONTH)
     }
 
     /**
      * Group reminders by month
      */
     fun groupRemindersByMonth(reminders: List<Reminder>): Map<Pair<Int, Int>, List<Reminder>> {
-        return reminders.filter { it.dueDate != null }
-            .groupBy { reminder ->
-                val cal = Calendar.getInstance().apply { time = reminder.dueDate!! }
-                Pair(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH))
-            }
+        return reminders.filter { it.dueDate != null }.groupBy { reminder ->
+            val cal = Calendar.getInstance().apply { time = reminder.dueDate!! }
+            Pair(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH))
+        }
     }
 
     /**

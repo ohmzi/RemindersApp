@@ -231,8 +231,12 @@ fun ReminderFilteredListScreen(
                     addReminderViewModel.toggleAction(ReminderAction.CALENDAR)
                 }
                 ReminderType.TODAY -> {
-                    // Set due date to today for Today screen
-                    val today = Calendar.getInstance().time
+                    // Set due date to today at 11:59 PM for Today screen
+                    val today = Calendar.getInstance().apply {
+                        set(Calendar.HOUR_OF_DAY, 23)
+                        set(Calendar.MINUTE, 59)
+                        set(Calendar.SECOND, 59)
+                    }.time
                     addReminderViewModel.updateDueDate(today)
                 }
                 else -> {

@@ -24,27 +24,14 @@ fun DateTimePicker(
             calendar.set(Calendar.YEAR, year)
             calendar.set(Calendar.MONTH, month)
             calendar.set(Calendar.DAY_OF_MONTH, dayOfMonth)
-
-            // After date is selected, show the time picker
-            val timePickerDialog = TimePickerDialog(
-                context,
-                { _, hourOfDay, minute ->
-                    calendar.set(Calendar.HOUR_OF_DAY, hourOfDay)
-                    calendar.set(Calendar.MINUTE, minute)
-
-                    // Return the complete date with time
-                    onDateTimeSelected(calendar.time)
-                },
-                calendar.get(Calendar.HOUR_OF_DAY),
-                calendar.get(Calendar.MINUTE),
-                false // 12-hour format
-            )
-
-            timePickerDialog.setOnCancelListener {
-                onDismiss()
-            }
-
-            timePickerDialog.show()
+            
+            // Set time to 11:59 PM
+            calendar.set(Calendar.HOUR_OF_DAY, 23)
+            calendar.set(Calendar.MINUTE, 59)
+            calendar.set(Calendar.SECOND, 59)
+            
+            // Return the date with time set to 11:59 PM
+            onDateTimeSelected(calendar.time)
         },
         // Initial date values
         calendar.get(Calendar.YEAR),

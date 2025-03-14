@@ -3,7 +3,14 @@ package com.ohmz.remindersapp.presentation.common.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
@@ -16,11 +23,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import java.util.*
+import java.util.Calendar
+import java.util.Date
 
 /**
  * A component that displays date selection options similar to iOS Reminders app
@@ -120,8 +129,7 @@ fun DateSelector(
         horizontalArrangement = Arrangement.SpaceEvenly
     ) {
         // Today date button
-        DateButton(
-            date = today.toString(),
+        DateButton(date = today.toString(),
             label = "Today",
             backgroundColor = if (selectedOption.value == "Today") iosBlue.copy(alpha = 0.15f) else grayColor,
             borderColor = if (selectedOption.value == "Today") iosBlue else grayBorder,
@@ -129,12 +137,10 @@ fun DateSelector(
             onClick = {
                 selectedOption.value = "Today"
                 onTodaySelected()
-            }
-        )
+            })
 
         // Tomorrow date button
-        DateButton(
-            date = tomorrow.toString(),
+        DateButton(date = tomorrow.toString(),
             label = "Tomorrow",
             backgroundColor = if (selectedOption.value == "Tomorrow") iosBlue.copy(alpha = 0.15f) else grayColor,
             borderColor = if (selectedOption.value == "Tomorrow") iosBlue else grayBorder,
@@ -142,39 +148,39 @@ fun DateSelector(
             onClick = {
                 selectedOption.value = "Tomorrow"
                 onTomorrowSelected()
-            }
-        )
+            })
 
-        // Next Weekend date button
-        DateButton(
-            date = weekend.toString(),
-            label = "Weekend",
-            backgroundColor = if (selectedOption.value == "Weekend") iosBlue.copy(alpha = 0.15f) else grayColor,
-            borderColor = if (selectedOption.value == "Weekend") iosBlue else grayBorder,
-            textColor = if (selectedOption.value == "Weekend") Color.Black else Color.DarkGray,
-            onClick = {
-                selectedOption.value = "Weekend"
-                onNextWeekendSelected()
-            }
-        )
+        if (tomorrow != weekend) {
+
+            // Next Weekend date button
+            DateButton(date = weekend.toString(),
+                label = "Weekend",
+                backgroundColor = if (selectedOption.value == "Weekend") iosBlue.copy(alpha = 0.15f) else grayColor,
+                borderColor = if (selectedOption.value == "Weekend") iosBlue else grayBorder,
+                textColor = if (selectedOption.value == "Weekend") Color.Black else Color.DarkGray,
+                onClick = {
+                    selectedOption.value = "Weekend"
+                    onNextWeekendSelected()
+                })
+        }
 
         // Date & Time button
-        DateButton(
-            date = "...",
-            label = "Date & Time",
+        DateButton(icon = Icons.Default.DateRange,
+            date = "",
+            label = "Calendar",
             backgroundColor = if (selectedOption.value == "DateTime") iosBlue.copy(alpha = 0.15f) else grayColor,
             borderColor = if (selectedOption.value == "DateTime") iosBlue else grayBorder,
             textColor = if (selectedOption.value == "DateTime") Color.Black else Color.DarkGray,
             onClick = {
                 selectedOption.value = "DateTime"
                 onDateTimeSelected()
-            }
-        )
+            })
     }
 }
 
 @Composable
 fun DateButton(
+    icon: ImageVector? = null,
     date: String,
     label: String,
     backgroundColor: Color,
@@ -184,8 +190,7 @@ fun DateButton(
     modifier: Modifier = Modifier
 ) {
     Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = modifier.width(80.dp)
+        horizontalAlignment = Alignment.CenterHorizontally, modifier = modifier.width(80.dp)
     ) {
         // Date bubble
         Box(
@@ -197,13 +202,20 @@ fun DateButton(
                 .border(1.dp, borderColor, RoundedCornerShape(20.dp))
                 .clickable(onClick = onClick)
         ) {
-            Text(
-                text = date,
-                color = textColor,
-                fontWeight = FontWeight.Bold,
-                fontSize = 18.sp,
-                textAlign = TextAlign.Center
-            )
+            if (icon == null) {
+
+                Text(
+                    text = date,
+                    color = textColor,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp,
+                    textAlign = TextAlign.Center
+                )
+            } else {
+                Icon(
+                    imageVector = icon, contentDescription = "Add Reminder"
+                )
+            }
         }
 
         // Label

@@ -76,8 +76,12 @@ fun AddReminderScreen(
                 }, 
                 // Date handling
                 onTodaySelected = {
-                    // Set due date to today
-                    val today = Calendar.getInstance().time
+                    // Set due date to today at 11:59 PM
+                    val today = Calendar.getInstance().apply {
+                        set(Calendar.HOUR_OF_DAY, 23)
+                        set(Calendar.MINUTE, 59)
+                        set(Calendar.SECOND, 59)
+                    }.time
                     viewModel.updateDueDate(today)
                     // Deselect calendar to hide the date selector
                     if (uiState.selectedAction == ReminderAction.CALENDAR) {
@@ -85,9 +89,12 @@ fun AddReminderScreen(
                     }
                 }, 
                 onTomorrowSelected = {
-                    // Set due date to tomorrow
+                    // Set due date to tomorrow at 11:59 PM
                     val tomorrow = Calendar.getInstance().apply {
                         add(Calendar.DAY_OF_YEAR, 1)
+                        set(Calendar.HOUR_OF_DAY, 23)
+                        set(Calendar.MINUTE, 59)
+                        set(Calendar.SECOND, 59)
                     }.time
                     viewModel.updateDueDate(tomorrow)
                     // Deselect calendar to hide the date selector
@@ -96,7 +103,7 @@ fun AddReminderScreen(
                     }
                 }, 
                 onWeekendSelected = {
-                    // Set due date to next weekend (Saturday)
+                    // Set due date to next weekend (Saturday) at 11:59 PM
                     val calendar = Calendar.getInstance()
                     val dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK)
                     val daysUntilSaturday = if (dayOfWeek <= Calendar.SATURDAY) {
@@ -105,6 +112,9 @@ fun AddReminderScreen(
                         7 - (dayOfWeek - Calendar.SATURDAY)
                     }
                     calendar.add(Calendar.DAY_OF_YEAR, daysUntilSaturday)
+                    calendar.set(Calendar.HOUR_OF_DAY, 23)
+                    calendar.set(Calendar.MINUTE, 59)
+                    calendar.set(Calendar.SECOND, 59)
                     viewModel.updateDueDate(calendar.time)
                     // Deselect calendar to hide the date selector
                     if (uiState.selectedAction == ReminderAction.CALENDAR) {

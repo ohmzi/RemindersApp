@@ -318,22 +318,9 @@ fun DiscardChangesDialog(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(24.dp)
+                    .padding(10.dp)
             ) {
-                Text(
-                    text = "Discard Changes?",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
-
-                Text(
-                    text = "You have unsaved changes that will be lost if you discard this reminder.",
-                    fontSize = 16.sp,
-                    modifier = Modifier.padding(bottom = 24.dp)
-                )
-
-                // Discard Changes Button (Red)
+                             // Discard Changes Button (Red)
                 TextButton(
                     onClick = onDiscardChanges,
                     modifier = Modifier

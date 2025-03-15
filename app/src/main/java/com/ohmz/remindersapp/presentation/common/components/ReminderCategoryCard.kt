@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ohmz.remindersapp.domain.model.ReminderType
+import com.ohmz.remindersapp.presentation.common.theme.AppColorsScheme
 import com.ohmz.remindersapp.presentation.common.theme.IOSColors
 import kotlin.math.roundToInt
 
@@ -48,13 +49,16 @@ fun ReminderCategoryCardAlt(
 ) {
     // Define the corner shape once to keep it consistent
     val cornerShape = RoundedCornerShape(12.dp)
+    val appColors = com.ohmz.remindersapp.presentation.common.theme.AppTheme
 
+    // Card background color
+    val cardBackgroundColor = appColors.cardBackground
     Card(
         modifier = modifier
             .fillMaxWidth()
             .height(110.dp),
         shape = cornerShape,
-        colors = CardDefaults.cardColors(containerColor = IOSColors.White),
+        colors = CardDefaults.cardColors(containerColor = cardBackgroundColor),
         // Subtle iOS-style shadow that respects the corner shape
         elevation = CardDefaults.cardElevation(
             defaultElevation = 1.dp,

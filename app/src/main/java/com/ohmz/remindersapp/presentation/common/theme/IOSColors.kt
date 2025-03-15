@@ -87,7 +87,7 @@ object AppColors {
         // Dark mode
         val TodayDark = Primary.BlueDark
         val ScheduledDark = Primary.OrangeDark
-        val AllDark = Color.White
+        val AllDark = Color.Gray
         val FavoriteDark = Primary.RedDark
         val CompletedDark = Gray.GrayDark
     }
@@ -196,7 +196,7 @@ data class AppColorsScheme(
     
     // Background colors
     val mainBackground: Color = if (isDark) AppColors.Background.Black else AppColors.Background.LightGray,
-    val cardBackground: Color = if (isDark) AppColors.Background.DarkGray else AppColors.Background.White,
+    val cardBackground: Color = if (isDark) AppColors.Background.DarkGray2 else AppColors.Background.White,
     val secondaryBackground: Color = if (isDark) AppColors.Background.DarkGray else AppColors.Background.White,
     
     // Text colors

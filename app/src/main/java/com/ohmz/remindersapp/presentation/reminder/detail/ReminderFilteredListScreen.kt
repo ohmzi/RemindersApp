@@ -59,6 +59,7 @@ import com.ohmz.remindersapp.domain.model.Reminder
 import com.ohmz.remindersapp.domain.model.ReminderAction
 import com.ohmz.remindersapp.domain.model.ReminderType
 import com.ohmz.remindersapp.presentation.common.components.AndroidStyleTopBar
+import com.ohmz.remindersapp.presentation.common.theme.AppTheme
 import com.ohmz.remindersapp.presentation.common.theme.IOSColors
 import com.ohmz.remindersapp.presentation.common.utils.DateUtils
 import com.ohmz.remindersapp.presentation.common.utils.DateUtils.pastDue
@@ -107,7 +108,7 @@ fun ReminderFilteredListScreen(
 
     // Get theme colors
     val appColors = com.ohmz.remindersapp.presentation.common.theme.AppTheme
-    
+
     // Get the title, icon and color based on the type
     val (screenTitle, themeColor) = when (reminderType) {
         ReminderType.TODAY -> Pair("Today", appColors.todayColor)
@@ -116,18 +117,18 @@ fun ReminderFilteredListScreen(
         ReminderType.FAVOURITE -> Pair("Favourite", appColors.favoriteColor)
         ReminderType.COMPLETED -> Pair("Completed", appColors.completedColor)
     }
-    
+
     // Get screen icon based on the type
     val screenIcon = when (reminderType) {
         ReminderType.TODAY, ReminderType.SCHEDULED -> Icons.Default.DateRange
         ReminderType.FAVOURITE -> Icons.Default.Favorite
-        ReminderType.COMPLETED -> Icons.Default.Check 
+        ReminderType.COMPLETED -> Icons.Default.Check
         else -> Icons.Default.List
     }
 
     // Inside ReminderFilteredListScreen.kt, replace the current top bar implementation with:
 
-    Scaffold(containerColor = appColors.mainBackground,
+    Scaffold(containerColor = appColors.sharedBackground,
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         floatingActionButton = {
             // Only show FAB if not on the Completed screen
@@ -364,7 +365,7 @@ fun ScheduledRemindersList(
 
                 // Add divider after each past due date section
                 item {
-                    HorizontalDivider(thickness = 0.5.dp, color = Color(0xFFE5E5EA))
+                    HorizontalDivider(thickness = 0.5.dp, color = AppTheme.dividerColor)
                 }
             }
         }
@@ -375,7 +376,7 @@ fun ScheduledRemindersList(
                 text = "Today",
                 fontWeight = FontWeight.Bold,
                 fontSize = 24.sp,
-                color = Color(0xFF000000), // Black on white
+                color = AppTheme.primaryText,
                 modifier = Modifier.padding(start = 16.dp, top = 16.dp, bottom = 4.dp)
             )
         }
@@ -386,7 +387,7 @@ fun ScheduledRemindersList(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .background(IOSColors.White)
+                            .background(AppTheme.sharedBackground)
                     ) {
                         ScheduledReminderItem(reminder = reminder,
                             onCheckedChange = { onCheckedChange(reminder) },
@@ -400,7 +401,7 @@ fun ScheduledRemindersList(
         }
 
         item {
-            HorizontalDivider(thickness = 0.5.dp, color = Color(0xFFE5E5EA))
+            HorizontalDivider(thickness = 0.5.dp, color = AppTheme.dividerColor)
         }
 
         // TOMORROW SECTION
@@ -420,7 +421,7 @@ fun ScheduledRemindersList(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .background(IOSColors.White)
+                            .background(AppTheme.sharedBackground)
                     ) {
                         ScheduledReminderItem(reminder = reminder,
                             onCheckedChange = { onCheckedChange(reminder) },
@@ -434,7 +435,7 @@ fun ScheduledRemindersList(
         }
 
         item {
-            HorizontalDivider(thickness = 0.5.dp, color = Color(0xFFE5E5EA))
+            HorizontalDivider(thickness = 0.5.dp, color = AppTheme.dividerColor)
         }
 
         // NEXT 5 DAYS
@@ -471,7 +472,7 @@ fun ScheduledRemindersList(
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .background(IOSColors.White)
+                                .background(AppTheme.sharedBackground)
                         ) {
                             ScheduledReminderItem(reminder = reminder,
                                 onCheckedChange = { onCheckedChange(reminder) },
@@ -485,7 +486,7 @@ fun ScheduledRemindersList(
 
                 // Only add divider if there were reminders
                 item {
-                    HorizontalDivider(thickness = 0.5.dp, color = Color(0xFFE5E5EA))
+                    HorizontalDivider(thickness = 0.5.dp, color = AppTheme.dividerColor)
                 }
             }
         }
@@ -569,7 +570,7 @@ fun ScheduledRemindersList(
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .background(IOSColors.White)
+                                    .background(AppTheme.sharedBackground)
                             ) {
                                 ScheduledReminderItem(reminder = reminder,
                                     onCheckedChange = { onCheckedChange(reminder) },
@@ -582,7 +583,7 @@ fun ScheduledRemindersList(
                     }
 
                     item {
-                        HorizontalDivider(thickness = 0.5.dp, color = Color(0xFFE5E5EA))
+                        HorizontalDivider(thickness = 0.5.dp, color = AppTheme.dividerColor)
                     }
                 }
             }
@@ -616,7 +617,7 @@ fun TodayRemindersList(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .background(IOSColors.White)
+                            .background(AppTheme.sharedBackground)
                     ) {
                         ScheduledReminderItem(reminder = reminder,
                             onCheckedChange = { onCheckedChange(reminder) },
@@ -692,22 +693,20 @@ fun AllRemindersList(
     onFavoriteToggle: (Reminder, Boolean) -> Unit
 ) {
     // Custom sorting that keeps past due items in consistent positions regardless of completion status
-    val sortedReminders = reminders.sortedWith(
-        compareBy<Reminder> { 
-            // First sort criteria: is the reminder past due by date (ignoring completion status)
-            val isPastDue = it.dueDate?.let { date ->
-                val today = Calendar.getInstance().apply {
-                    set(Calendar.HOUR_OF_DAY, 0)
-                    set(Calendar.MINUTE, 0)
-                    set(Calendar.SECOND, 0)
-                    set(Calendar.MILLISECOND, 0)
-                }
-                val reminderCal = Calendar.getInstance().apply { time = date }
-                reminderCal.before(today) // Check if it's past due by date only
-            } ?: false
-            !isPastDue // Invert so past due comes first
-        }
-        .thenByDescending { it.priority } // Then by priority (HIGH first)
+    val sortedReminders = reminders.sortedWith(compareBy<Reminder> {
+        // First sort criteria: is the reminder past due by date (ignoring completion status)
+        val isPastDue = it.dueDate?.let { date ->
+            val today = Calendar.getInstance().apply {
+                set(Calendar.HOUR_OF_DAY, 0)
+                set(Calendar.MINUTE, 0)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
+            }
+            val reminderCal = Calendar.getInstance().apply { time = date }
+            reminderCal.before(today) // Check if it's past due by date only
+        } ?: false
+        !isPastDue // Invert so past due comes first
+    }.thenByDescending { it.priority } // Then by priority (HIGH first)
         .thenBy { it.dueDate } // Then by date ascending for non-past due
         .thenBy { it.isCompleted } // Uncompleted items first within same date & priority
     )
@@ -770,7 +769,7 @@ fun AllRemindersList(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .background(IOSColors.White)
+                            .background(AppTheme.sharedBackground)
                     ) {
                         AllReminderItem(reminder = reminder,
                             onCheckedChange = { onCheckedChange(reminder) },
@@ -783,7 +782,7 @@ fun AllRemindersList(
 
                 // Add divider after each reminder
                 item {
-                    HorizontalDivider(thickness = 0.5.dp, color = Color(0xFFE5E5EA))
+                    HorizontalDivider(thickness = 0.5.dp, color = AppTheme.dividerColor)
                 }
             }
         }
@@ -863,7 +862,7 @@ fun AllReminderItem(
                     text = reminder.title,
                     fontWeight = FontWeight.Normal,
                     fontSize = 17.sp,
-                    color = if (reminder.isCompleted) IOSColors.Gray else IOSColors.Black
+                    color = if (reminder.isCompleted) IOSColors.Gray else AppTheme.primaryText
                 )
             }
 
@@ -997,7 +996,7 @@ fun FavoriteRemindersList(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .background(IOSColors.White)
+                            .background(AppTheme.sharedBackground)
                     ) {
                         ScheduledReminderItem(reminder = reminder,
                             onCheckedChange = { onCheckedChange(reminder) },
@@ -1009,7 +1008,7 @@ fun FavoriteRemindersList(
                 }
 
                 item {
-                    HorizontalDivider(thickness = 0.5.dp, color = Color(0xFFE5E5EA))
+                    HorizontalDivider(thickness = 0.5.dp, color = AppTheme.dividerColor)
                 }
             }
         }

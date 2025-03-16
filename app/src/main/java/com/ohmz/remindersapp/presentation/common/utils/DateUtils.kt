@@ -1,5 +1,6 @@
 package com.ohmz.remindersapp.presentation.common.utils
 
+import android.annotation.SuppressLint
 import com.ohmz.remindersapp.domain.model.Reminder
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -10,9 +11,9 @@ import java.util.Locale
  * Utility class for date-related operations in the Reminders app
  */
 object DateUtils {
-    private val dateTimeFormat = SimpleDateFormat("EEEE, h:mm a", Locale.getDefault())
-    private val dateWithTimeFormat = SimpleDateFormat("EEEE, MMM d, h:mm a", Locale.getDefault())
-    
+    @SuppressLint("ConstantLocale")
+    private val dateWithTimeFormat = SimpleDateFormat("EEEE, MMM d", Locale.getDefault())
+
     /**
      * Creates a Calendar instance set to the start of the day
      * @param daysToAdd Number of days to add to today (default 0)
@@ -36,7 +37,7 @@ object DateUtils {
         val inputDate = Calendar.getInstance().apply { time = date }
 
         return if (isSameDay(inputDate, today)) {
-            "Today, ${SimpleDateFormat("h:mm a", Locale.getDefault()).format(date)}"
+            "Today"
         } else {
             dateWithTimeFormat.format(date)
         }
@@ -55,7 +56,7 @@ object DateUtils {
             } ?: false
         }
     }
-    
+
     /**
      * Find past due reminders including completed ones (for consistent UI display)
      */
@@ -139,7 +140,7 @@ object DateUtils {
      */
     fun generateNextFiveDays(): List<Date> {
         val result = mutableListOf<Date>()
-        
+
         // Start from the day after tomorrow (2 days from now)
         for (i in 2 until 7) {
             result.add(getStartOfDay(i).time)

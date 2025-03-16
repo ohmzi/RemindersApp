@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ohmz.remindersapp.domain.model.Priority
 import com.ohmz.remindersapp.domain.model.Reminder
+import com.ohmz.remindersapp.presentation.common.theme.AppTheme
 import com.ohmz.remindersapp.presentation.common.theme.IOSColors
 import com.ohmz.remindersapp.presentation.common.utils.DateUtils
 
@@ -150,7 +151,7 @@ fun CompletedRemindersList(
                         text = "Today",
                         fontWeight = FontWeight.Medium,
                         fontSize = 22.sp,
-                        color = IOSColors.Black,
+                        color = AppTheme.primaryText,
                         modifier = Modifier.padding(start = 16.dp, top = 16.dp, bottom = 8.dp)
                     )
                 }
@@ -160,7 +161,7 @@ fun CompletedRemindersList(
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .background(IOSColors.White)
+                                .background(AppTheme.sharedBackground)
                         ) {
                             CompletedReminderItem(reminder = reminder,
                                 onCheckedChange = { onCheckedChange(reminder) },
@@ -168,11 +169,12 @@ fun CompletedRemindersList(
                                     onFavoriteToggle(reminder, isFavorite)
                                 })
                         }
+                        HorizontalDivider(thickness = 0.5.dp, color = AppTheme.dividerColor)
                     }
                 }
 
                 item {
-                    HorizontalDivider(thickness = 0.5.dp, color = Color(0xFFE5E5EA))
+                    HorizontalDivider(thickness = 1.dp, color = AppTheme.dividerColor)
                 }
             }
 
@@ -195,7 +197,7 @@ fun CompletedRemindersList(
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .background(IOSColors.White)
+                                .background(AppTheme.sharedBackground)
                         ) {
                             CompletedReminderItem(reminder = reminder,
                                 onCheckedChange = { onCheckedChange(reminder) },
@@ -203,6 +205,7 @@ fun CompletedRemindersList(
                                     onFavoriteToggle(reminder, isFavorite)
                                 })
                         }
+                        HorizontalDivider(thickness = 0.5.dp, color = AppTheme.dividerColor)
                     }
                 }
             }
@@ -211,6 +214,7 @@ fun CompletedRemindersList(
         item {
             Spacer(modifier = Modifier.height(80.dp))
         }
+
     }
 }
 
@@ -237,7 +241,7 @@ fun CompletedReminderItem(
                 .size(24.dp)
                 .clip(CircleShape)
                 .clickable(onClick = { onCheckedChange(!reminder.isCompleted) })
-                .background(if (reminder.isCompleted) Color(0xFF007AFF) else IOSColors.White)
+                .background(if (reminder.isCompleted) Color(0xFF007AFF) else AppTheme.sharedBackground)
                 .border(
                     width = 1.5.dp,
                     color = if (reminder.isCompleted) Color(0xFF007AFF) else Color(0xFFD1D1D6),
@@ -322,9 +326,4 @@ fun CompletedReminderItem(
 
         // No Delete icon for completed reminders
     }
-
-    // Add a divider after each reminder
-    HorizontalDivider(
-        modifier = Modifier.padding(start = 56.dp), thickness = 0.5.dp, color = Color(0xFFE5E5EA)
-    )
 }

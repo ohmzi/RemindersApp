@@ -1,7 +1,6 @@
 package com.ohmz.remindersapp.presentation.common.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
@@ -195,6 +194,7 @@ data class AppColorsScheme(
     val completedColor: Color = if (isDark) AppColors.ReminderType.CompletedDark else AppColors.ReminderType.Completed,
     
     // Background colors
+    val sharedBackground: Color = if (isDark) AppColors.Background.Black else AppColors.Background.White,
     val mainBackground: Color = if (isDark) AppColors.Background.Black else AppColors.Background.LightGray,
     val cardBackground: Color = if (isDark) AppColors.Background.DarkGray2 else AppColors.Background.White,
     val secondaryBackground: Color = if (isDark) AppColors.Background.DarkGray else AppColors.Background.White,
@@ -204,7 +204,10 @@ data class AppColorsScheme(
     val secondaryText: Color = if (isDark) AppColors.Text.SecondaryDark else AppColors.Text.Secondary,
     
     // Functional colors
-    val overdueColor: Color = if (isDark) AppColors.Primary.RedDark else AppColors.Primary.Red
+    val overdueColor: Color = if (isDark) AppColors.Primary.RedDark else AppColors.Primary.Red,
+
+    val dividerColor: Color = if (isDark) AppColors.Gray.Gray5 else AppColors.Gray.Gray5
+
 )
 
 // Enhanced iOS light theme

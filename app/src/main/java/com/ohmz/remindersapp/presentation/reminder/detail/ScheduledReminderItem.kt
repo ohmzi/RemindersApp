@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ohmz.remindersapp.domain.model.Priority
 import com.ohmz.remindersapp.domain.model.Reminder
+import com.ohmz.remindersapp.presentation.common.theme.AppTheme
 import com.ohmz.remindersapp.presentation.common.theme.IOSColors
 
 /**
@@ -95,7 +96,7 @@ fun ScheduledReminderItem(
                     text = reminder.title,
                     fontWeight = FontWeight.Normal,
                     fontSize = 17.sp,
-                    color = if (reminder.isCompleted) IOSColors.Gray else IOSColors.Black
+                    color = if (reminder.isCompleted) IOSColors.Gray else AppTheme.primaryText
                 )
             }
 

@@ -81,7 +81,7 @@ fun ReminderListByListScreen(
     val listBackgroundColor = if (appColors.isDark) {
         // For dark mode, we use the darker background with a hint of the list color
         if (listColor == com.ohmz.remindersapp.presentation.common.theme.AppColors.Primary.Blue) {
-            appColors.mainBackground  // Use pure black in dark mode if default blue
+            appColors.sharedBackground  // Use pure black in dark mode if default blue
         } else {
             // Use dark gray with a slight tint towards the list color
             com.ohmz.remindersapp.presentation.common.theme.AppColors.Background.DarkGray
@@ -89,7 +89,7 @@ fun ReminderListByListScreen(
     } else {
         // For light mode, use a very light version of the list color
         if (listColor == com.ohmz.remindersapp.presentation.common.theme.AppColors.Primary.Blue) {
-            appColors.mainBackground  // Use system background if default blue
+            appColors.sharedBackground  // Use system background if default blue
         } else {
             listColor.copy(alpha = 0.1f)  // Very light tint of the list color
         }

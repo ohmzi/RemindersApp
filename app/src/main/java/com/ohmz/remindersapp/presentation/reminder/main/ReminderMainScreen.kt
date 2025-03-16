@@ -30,6 +30,8 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FabPosition
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
@@ -37,7 +39,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -127,29 +128,25 @@ fun ReminderMainScreen(
             count = counts.todayCount,
             color = todayColor,
             icon = Icons.Default.DateRange
-        ),
-        ReminderCategoryData(
+        ), ReminderCategoryData(
             type = ReminderType.SCHEDULED,
             title = "Scheduled",
             count = counts.scheduledCount,
             color = scheduledColor,
             icon = Icons.Default.DateRange
-        ),
-        ReminderCategoryData(
+        ), ReminderCategoryData(
             type = ReminderType.ALL,
             title = "All",
             count = counts.allCount,
             color = allColor,
             icon = Icons.Default.List
-        ),
-        ReminderCategoryData(
+        ), ReminderCategoryData(
             type = ReminderType.FAVOURITE,
             title = "Favourite",
             count = counts.favoriteCount,
             color = favouriteColor,
             icon = Icons.Default.Favorite
-        ),
-        ReminderCategoryData(
+        ), ReminderCategoryData(
             type = ReminderType.COMPLETED,
             title = "Completed",
             count = counts.completedCount,
@@ -173,11 +170,16 @@ fun ReminderMainScreen(
                     coroutineScope.launch { sheetState.show() }
                 },
                 containerColor = appColors.todayColor,
-                contentColor = IOSColors.White
+                contentColor = IOSColors.White,
+                elevation = FloatingActionButtonDefaults.elevation(
+                    defaultElevation = 6.dp,          // Increased shadow for more depth
+                    pressedElevation = 2.dp,          // Still visible when pressed
+                    focusedElevation = 4.dp,
+                    hoveredElevation = 6.dp           // Slightly elevated on hover
+                )
             ) {
                 Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "Add Reminder"
+                    imageVector = Icons.Default.Add, contentDescription = "Add Reminder"
                 )
             }
         },
@@ -196,8 +198,8 @@ fun ReminderMainScreen(
             derivedStateOf {
                 // Show the search bar when at or near the top
                 // Hide it when scrolling down and away from the top
-                val isNearTop = lazyListState.firstVisibleItemIndex == 0 &&
-                        lazyListState.firstVisibleItemScrollOffset < 100
+                val isNearTop =
+                    lazyListState.firstVisibleItemIndex == 0 && lazyListState.firstVisibleItemScrollOffset < 100
 
                 isNearTop // Show when near top, hide when scrolling down
             }
@@ -329,14 +331,12 @@ fun ReminderMainScreen(
 
                             // Non-scrollable section - list of user's lists
                             Column(
-                                modifier = Modifier
-                                    .fillMaxWidth(),
+                                modifier = Modifier.fillMaxWidth(),
                                 verticalArrangement = Arrangement.spacedBy(12.dp) // Add spacing between list items
                             ) {
                                 mainUiState.lists.forEach { list ->
 
-                                    EnhancedListItem(
-                                        title = list.name,
+                                    EnhancedListItem(title = list.name,
                                         count = viewModel.getFilteredReminders()
                                             .count { it.listId == list.id },
                                         icon = Icons.Default.List,
@@ -345,9 +345,7 @@ fun ReminderMainScreen(
                                             // Navigate to the list view
                                             navController.navigate(
                                                 Screen.ReminderListByList.createRoute(
-                                                    list.id,
-                                                    list.name,
-                                                    list.color
+                                                    list.id, list.name, list.color
                                                 )
                                             )
                                         },
@@ -363,8 +361,7 @@ fun ReminderMainScreen(
                                         onDeleteList = { reminderList ->
                                             // Call ViewModel function to delete the list
                                             mainViewModel.deleteList(reminderList)
-                                        }
-                                    )
+                                        })
                                 }
 
                                 // Add some bottom padding
@@ -382,13 +379,10 @@ fun ReminderMainScreen(
 
             // Add list dialog - shown when the Add List FAB is clicked
             if (showAddListDialog) {
-                AddListDialog(
-                    onDismiss = { showAddListDialog = false },
-                    onAddList = { name ->
-                        mainViewModel.addList(name)
-                        showAddListDialog = false
-                    }
-                )
+                AddListDialog(onDismiss = { showAddListDialog = false }, onAddList = { name ->
+                    mainViewModel.addList(name)
+                    showAddListDialog = false
+                })
             }
 
             // Add List FAB positioned on the left side
@@ -406,8 +400,7 @@ fun ReminderMainScreen(
                     contentColor = IOSColors.White
                 ) {
                     Icon(
-                        imageVector = Icons.Default.List,
-                        contentDescription = "Add List"
+                        imageVector = Icons.Default.List, contentDescription = "Add List"
                     )
                 }
             }
@@ -420,8 +413,7 @@ fun ReminderMainScreen(
         if (showDiscardBottomSheetDialog) {
             Dialog(onDismissRequest = { showDiscardBottomSheetDialog = false }) {
                 Surface(
-                    shape = RoundedCornerShape(16.dp),
-                    color = IOSColors.White
+                    shape = RoundedCornerShape(16.dp), color = IOSColors.White
                 ) {
                     Column(
                         modifier = Modifier
@@ -450,8 +442,7 @@ fun ReminderMainScreen(
                                     sheetState.hide()
                                     showBottomSheet = false
                                 }
-                            },
-                            modifier = Modifier
+                            }, modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(vertical = 8.dp)
                         ) {
@@ -476,8 +467,7 @@ fun ReminderMainScreen(
                                         // Handle any potential exceptions
                                     }
                                 }
-                            },
-                            modifier = Modifier
+                            }, modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(vertical = 8.dp)
                         ) {
@@ -498,22 +488,19 @@ fun ReminderMainScreen(
             addReminderViewModel.resetState()
         }
 
-        ModalBottomSheet(
-            onDismissRequest = {
-                // This is called when user taps outside or presses back
-                // We'll always check for changes here
-                handleBottomSheetDismiss(
-                    hasChanges = addReminderViewModel.hasUnsavedChanges(),
-                    showDialog = { showDiscardBottomSheetDialog = true },
-                    dismiss = {
-                        coroutineScope.launch {
-                            sheetState.hide()
-                            showBottomSheet = false
-                            addReminderViewModel.resetState()
-                        }
+        ModalBottomSheet(onDismissRequest = {
+            // This is called when user taps outside or presses back
+            // We'll always check for changes here
+            handleBottomSheetDismiss(hasChanges = addReminderViewModel.hasUnsavedChanges(),
+                showDialog = { showDiscardBottomSheetDialog = true },
+                dismiss = {
+                    coroutineScope.launch {
+                        sheetState.hide()
+                        showBottomSheet = false
+                        addReminderViewModel.resetState()
                     }
-                )
-            },
+                })
+        },
             sheetState = sheetState,
             dragHandle = { } // Hide the drag handle to make it less obvious it can be dragged
         ) {
@@ -542,9 +529,7 @@ fun ReminderMainScreen(
  * Helper function to handle bottom sheet dismissal with confirmation when needed
  */
 private fun handleBottomSheetDismiss(
-    hasChanges: Boolean,
-    showDialog: () -> Unit,
-    dismiss: () -> Unit
+    hasChanges: Boolean, showDialog: () -> Unit, dismiss: () -> Unit
 ) {
     if (hasChanges) {
         // Show confirmation dialog

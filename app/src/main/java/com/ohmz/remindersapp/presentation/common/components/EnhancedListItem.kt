@@ -46,10 +46,10 @@ fun EnhancedListItem(
         colors = CardDefaults.cardColors(containerColor = IOSColors.White),
         // Subtle iOS-style shadow that respects the corner shape
         elevation = CardDefaults.cardElevation(
-            defaultElevation = 1.dp,
-            pressedElevation = 0.5.dp, // Subtle pressed effect
-            focusedElevation = 1.dp,
-            hoveredElevation = 1.5.dp
+            defaultElevation = 6.dp,          // Increased shadow for more depth
+            pressedElevation = 2.dp,          // Still visible when pressed
+            focusedElevation = 4.dp,
+            hoveredElevation = 6.dp           // Slightly elevated on hover
         ),
         onClick = onClick
     ) {

@@ -59,12 +59,12 @@ fun ReminderCategoryCardAlt(
             .height(110.dp),
         shape = cornerShape,
         colors = CardDefaults.cardColors(containerColor = cardBackgroundColor),
-        // Subtle iOS-style shadow that respects the corner shape
+        // Enhanced shadow for more prominent appearance
         elevation = CardDefaults.cardElevation(
-            defaultElevation = 1.dp,
-            pressedElevation = 0.5.dp, // Subtle pressed effect
-            focusedElevation = 1.dp,
-            hoveredElevation = 1.5.dp
+            defaultElevation = 6.dp,          // Increased shadow for more depth
+            pressedElevation = 2.dp,          // Still visible when pressed
+            focusedElevation = 4.dp,
+            hoveredElevation = 6.dp           // Slightly elevated on hover
         ),
         onClick = onClick
     ) {
@@ -93,8 +93,8 @@ fun ReminderCategoryCardAlt(
             // Category title moved farther down for better spacing
             Text(
                 text = category.title,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Medium,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.ExtraBold,
                 modifier = Modifier
                     .align(Alignment.BottomStart)
                     .padding(start = 2.dp, top = 42.dp)

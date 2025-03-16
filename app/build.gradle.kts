@@ -90,4 +90,7 @@ dependencies {
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     kapt(libs.androidx.room.compiler)
+    
+    // Google Fonts
+    implementation("androidx.compose.ui:ui-text-google-fonts:1.6.0")
 }

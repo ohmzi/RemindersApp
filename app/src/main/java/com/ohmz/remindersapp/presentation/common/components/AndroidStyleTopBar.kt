@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -18,6 +19,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.ohmz.remindersapp.presentation.common.theme.NunitoFontFamily
 
 /**
  * A reusable Android-style top app bar that mimics the Google Contacts style
@@ -54,6 +56,7 @@ fun AndroidStyleTopBar(
         // Centered title
         Text(
             text = title,
+            fontFamily = NunitoFontFamily,
             fontWeight = FontWeight.Bold,
             fontSize = 36.sp,
             color = titleColor,

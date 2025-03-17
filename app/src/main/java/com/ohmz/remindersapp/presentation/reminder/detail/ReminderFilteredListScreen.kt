@@ -317,7 +317,7 @@ fun ScheduledRemindersList(
                     text = "Past Due",
                     fontWeight = FontWeight.Bold,
                     fontSize = 24.sp,
-                    color = IOSColors.Black,
+                    color = AppTheme.primaryText,
                     modifier = Modifier.padding(start = 16.dp, top = 16.dp, bottom = 4.dp)
                 )
             }
@@ -341,7 +341,7 @@ fun ScheduledRemindersList(
                     Text(
                         text = dayFormat.format(firstReminderDate),
                         fontSize = 17.sp,
-                        color = IOSColors.Gray,
+                        color = AppTheme.primaryText,
                         modifier = Modifier.padding(start = 16.dp, top = 8.dp)
                     )
                 }
@@ -408,9 +408,9 @@ fun ScheduledRemindersList(
         item {
             Text(
                 text = "Tomorrow",
-                fontWeight = FontWeight.Normal,
+                fontWeight = if (tomorrowReminders.isNotEmpty()) FontWeight.Bold else FontWeight.Normal,
                 fontSize = 17.sp,
-                color = IOSColors.Gray,
+                color = if (tomorrowReminders.isNotEmpty()) AppTheme.primaryText else IOSColors.Gray,
                 modifier = Modifier.padding(start = 16.dp, top = 16.dp, bottom = 4.dp)
             )
         }
@@ -430,13 +430,12 @@ fun ScheduledRemindersList(
                                 onFavoriteToggle(reminder, isFavorite)
                             })
                     }
+                    HorizontalDivider(thickness = 0.5.dp, color = AppTheme.dividerColor)
                 }
             }
         }
 
-        item {
-            HorizontalDivider(thickness = 0.5.dp, color = AppTheme.dividerColor)
-        }
+        item {}
 
         // NEXT 5 DAYS
         val nextFiveDays = DateUtils.generateNextFiveDays()
@@ -459,8 +458,8 @@ fun ScheduledRemindersList(
                 Text(
                     text = dateStr,
                     fontSize = 17.sp,
-                    fontWeight = FontWeight.Normal,
-                    color = if (dayReminders.isNotEmpty()) IOSColors.Black else IOSColors.Gray,
+                    fontWeight = if (dayReminders.isNotEmpty()) FontWeight.Bold else FontWeight.Normal,
+                    color = if (dayReminders.isNotEmpty()) AppTheme.primaryText else IOSColors.Gray,
                     modifier = Modifier.padding(start = 16.dp, top = 16.dp, bottom = 4.dp)
                 )
             }
@@ -497,10 +496,11 @@ fun ScheduledRemindersList(
                 text = "Rest of $currentMonthName",
                 fontWeight = FontWeight.Normal,
                 fontSize = 17.sp,
-                color = IOSColors.Gray,
+                color = AppTheme.primaryText,
                 modifier = Modifier.padding(start = 16.dp, top = 16.dp, bottom = 4.dp)
             )
         }
+
 
         // FUTURE MONTHS - just headers, no placeholders
         val monthFormat = SimpleDateFormat("MMMM", Locale.getDefault())
@@ -536,7 +536,7 @@ fun ScheduledRemindersList(
             item {
                 Text(
                     text = titleWithYear,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = if (monthReminders.isNotEmpty()) FontWeight.Bold else FontWeight.Normal,
                     fontSize = 24.sp,
                     // Black for months with reminders, Gray for months without
                     color = if (monthReminders.isNotEmpty()) IOSColors.Black else IOSColors.Gray,
@@ -626,6 +626,7 @@ fun TodayRemindersList(
                                 onFavoriteToggle(reminder, isFavorite)
                             })
                     }
+                    HorizontalDivider(thickness = 0.5.dp, color = AppTheme.dividerColor)
                 }
             }
         } else {

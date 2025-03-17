@@ -18,6 +18,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ohmz.remindersapp.domain.model.ReminderList
+import com.ohmz.remindersapp.presentation.common.theme.AppTheme
 import com.ohmz.remindersapp.presentation.common.theme.IOSColors
 
 /**
@@ -43,7 +44,7 @@ fun EnhancedListItem(
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = cornerShape,
-        colors = CardDefaults.cardColors(containerColor = IOSColors.White),
+        colors = CardDefaults.cardColors(containerColor = AppTheme.cardBackground),
         // Subtle iOS-style shadow that respects the corner shape
         elevation = CardDefaults.cardElevation(
             defaultElevation = 6.dp,          // Increased shadow for more depth

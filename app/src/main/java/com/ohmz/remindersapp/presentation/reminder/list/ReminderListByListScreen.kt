@@ -20,6 +20,7 @@ import androidx.compose.material.icons.filled.List
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -44,6 +45,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.ohmz.remindersapp.presentation.common.components.AndroidStyleTopBar
+import com.ohmz.remindersapp.presentation.common.theme.AppTheme
 import com.ohmz.remindersapp.presentation.common.theme.IOSColors
 import com.ohmz.remindersapp.presentation.reminder.add.AddReminderScreen
 import com.ohmz.remindersapp.presentation.reminder.add.AddReminderViewModel
@@ -225,6 +227,8 @@ fun ReminderListByListScreen(
                                     viewModel.toggleReminderFavorite(reminder, isFavorite)
                                 })
                         }
+                        HorizontalDivider(thickness = 0.5.dp, color = AppTheme.dividerColor)
+
                     }
 
                     // Add some bottom spacing

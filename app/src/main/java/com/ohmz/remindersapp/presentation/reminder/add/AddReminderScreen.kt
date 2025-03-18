@@ -37,6 +37,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.ohmz.remindersapp.domain.model.ReminderAction
 import com.ohmz.remindersapp.presentation.common.components.DateTimePicker
 import com.ohmz.remindersapp.presentation.common.components.TitleNotesCard
+import com.ohmz.remindersapp.presentation.common.theme.AppTheme
 import com.ohmz.remindersapp.presentation.common.theme.IOSColors
 import java.util.Calendar
 import java.util.Date
@@ -314,7 +315,7 @@ fun DiscardChangesDialog(
 ) {
     Dialog(onDismissRequest = onCancelDialog) {
         Surface(
-            shape = RoundedCornerShape(16.dp), color = IOSColors.White
+            shape = RoundedCornerShape(16.dp), color = AppTheme.cardBackground, shadowElevation = 8.dp
         ) {
             Column(
                 modifier = Modifier

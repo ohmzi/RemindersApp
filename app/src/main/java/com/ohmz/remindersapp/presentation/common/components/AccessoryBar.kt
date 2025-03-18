@@ -81,7 +81,7 @@ fun AccessoryBar(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .background(com.ohmz.remindersapp.presentation.common.theme.IOSColors.White)
+            .background(com.ohmz.remindersapp.presentation.common.theme.AppTheme.cardBackground)
             .imePadding() // This ensures the bar stays above the keyboard
             .windowInsetsPadding(WindowInsets.navigationBars) // For navigation bar
             .wrapContentHeight() // Force the bar to wrap its content
@@ -182,7 +182,7 @@ fun AccessoryBar(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 16.dp)
-                .background(com.ohmz.remindersapp.presentation.common.theme.IOSColors.White),
+                .background(com.ohmz.remindersapp.presentation.common.theme.AppTheme.cardBackground),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
             // Calendar icon - colored blue if date is set

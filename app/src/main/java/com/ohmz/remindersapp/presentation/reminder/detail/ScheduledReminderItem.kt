@@ -47,7 +47,7 @@ fun ScheduledReminderItem(
                 .size(24.dp)
                 .clip(CircleShape)
                 .clickable(onClick = { onCheckedChange(!reminder.isCompleted) })
-                .background(if (reminder.isCompleted) Color(0xFF007AFF) else IOSColors.White)
+                .background(if (reminder.isCompleted) Color(0xFF007AFF) else AppTheme.sharedBackground)
                 .border(
                     width = 1.5.dp,
                     color = if (reminder.isCompleted) Color(0xFF007AFF) else Color(0xFFD1D1D6),

@@ -557,7 +557,7 @@ private fun AddListDialog(
 
     Dialog(onDismissRequest = onDismiss) {
         Surface(
-            shape = RoundedCornerShape(16.dp), color = IOSColors.White
+            shape = RoundedCornerShape(16.dp), color = AppTheme.cardBackground
         ) {
             Column(
                 modifier = Modifier

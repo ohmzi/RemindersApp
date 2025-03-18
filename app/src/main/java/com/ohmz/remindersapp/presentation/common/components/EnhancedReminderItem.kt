@@ -22,6 +22,7 @@ import com.ohmz.remindersapp.domain.model.Priority
 import com.ohmz.remindersapp.domain.model.Reminder
 import com.ohmz.remindersapp.presentation.common.theme.AppTheme
 import com.ohmz.remindersapp.presentation.common.theme.IOSColors
+import com.ohmz.remindersapp.presentation.common.theme.IOSColors.Transparent
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -48,7 +49,7 @@ fun EnhancedReminderItem(
                 .size(24.dp)
                 .clip(CircleShape)
                 .clickable(onClick = { onCheckedChange(!reminder.isCompleted) })
-                .background(if (reminder.isCompleted) Color(0xFF007AFF) else AppTheme.sharedBackground)
+                .background(if (reminder.isCompleted) Color(0xFF007AFF) else Transparent)
                 .border(
                     width = 1.5.dp,
                     color = if (reminder.isCompleted) IOSColors.Blue else IOSColors.Gray3,

@@ -45,6 +45,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.ohmz.remindersapp.presentation.common.components.AndroidStyleTopBar
+import com.ohmz.remindersapp.presentation.common.theme.AppColors
 import com.ohmz.remindersapp.presentation.common.theme.AppTheme
 import com.ohmz.remindersapp.presentation.common.theme.IOSColors
 import com.ohmz.remindersapp.presentation.reminder.add.AddReminderScreen
@@ -63,7 +64,7 @@ fun ReminderListByListScreen(
     listName: String,
     onNavigateBack: () -> Unit,
     viewModel: ReminderListViewModel = hiltViewModel(),
-    listColor: Color = com.ohmz.remindersapp.presentation.common.theme.IOSColors.Blue // Default iOS blue
+    listColor: Color = IOSColors.Blue // Default iOS blue
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -82,15 +83,15 @@ fun ReminderListByListScreen(
     // In dark mode, use a darker version, in light mode use a lighter version
     val listBackgroundColor = if (appColors.isDark) {
         // For dark mode, we use the darker background with a hint of the list color
-        if (listColor == com.ohmz.remindersapp.presentation.common.theme.AppColors.Primary.Blue) {
+        if (listColor == AppColors.Primary.Blue) {
             appColors.sharedBackground  // Use pure black in dark mode if default blue
         } else {
             // Use dark gray with a slight tint towards the list color
-            com.ohmz.remindersapp.presentation.common.theme.AppColors.Background.DarkGray
+            listColor.copy(alpha = 0.3f)
         }
     } else {
         // For light mode, use a very light version of the list color
-        if (listColor == com.ohmz.remindersapp.presentation.common.theme.AppColors.Primary.Blue) {
+        if (listColor == AppColors.Primary.Blue) {
             appColors.sharedBackground  // Use system background if default blue
         } else {
             listColor.copy(alpha = 0.1f)  // Very light tint of the list color
@@ -175,7 +176,7 @@ fun ReminderListByListScreen(
                             modifier = Modifier
                                 .size(70.dp)
                                 .clip(CircleShape)
-                                .background(listColor.copy(alpha = 0.1f)),
+                                .background(IOSColors.Transparent),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
@@ -214,7 +215,6 @@ fun ReminderListByListScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(start = 10.dp)
-                                .background(listBackgroundColor)
                         ) {
                             ScheduledReminderItem(reminder = reminder,
                                 onCheckedChange = { isChecked ->

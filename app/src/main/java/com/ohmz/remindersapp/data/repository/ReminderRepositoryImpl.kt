@@ -7,7 +7,7 @@ import com.ohmz.remindersapp.domain.model.Reminder
 import com.ohmz.remindersapp.domain.repository.ReminderRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import java.util.*
+import java.util.Calendar
 import javax.inject.Inject
 
 class ReminderRepositoryImpl @Inject constructor(

@@ -1,6 +1,5 @@
 package com.ohmz.remindersapp.domain.usecase
 
-import com.ohmz.remindersapp.domain.model.Reminder
 import com.ohmz.remindersapp.domain.repository.ReminderRepository
 import kotlinx.coroutines.flow.firstOrNull
 import javax.inject.Inject

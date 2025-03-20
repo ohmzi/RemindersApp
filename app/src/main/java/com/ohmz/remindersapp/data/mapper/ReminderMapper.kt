@@ -3,7 +3,7 @@ package com.ohmz.remindersapp.data.mapper
 import com.ohmz.remindersapp.data.local.entity.ReminderEntity
 import com.ohmz.remindersapp.domain.model.Priority
 import com.ohmz.remindersapp.domain.model.Reminder
-import java.util.*
+import java.util.Date
 
 fun ReminderEntity.toDomainModel(): Reminder {
     return Reminder(

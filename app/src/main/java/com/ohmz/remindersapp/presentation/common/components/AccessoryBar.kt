@@ -19,30 +19,25 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountBox
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.ohmz.remindersapp.presentation.common.theme.IOSColors
 import androidx.compose.ui.unit.dp
+import com.ohmz.remindersapp.domain.model.Priority
 import com.ohmz.remindersapp.domain.model.ReminderAction
+import com.ohmz.remindersapp.domain.model.ReminderList
 import com.ohmz.remindersapp.presentation.common.components.DateSelector
+import com.ohmz.remindersapp.presentation.common.components.ListSelector
+import com.ohmz.remindersapp.presentation.common.components.PrioritySelector
 import java.util.Calendar
 import java.util.Date
-import androidx.compose.foundation.layout.*
-import androidx.compose.animation.*
-import androidx.compose.material.icons.filled.*
-import com.ohmz.remindersapp.domain.model.Priority
-import com.ohmz.remindersapp.domain.model.ReminderList
-import com.ohmz.remindersapp.presentation.common.components.PrioritySelector
-import com.ohmz.remindersapp.presentation.common.components.ListSelector
 
 /**
  * Utility function to get the current date with time set to midnight

@@ -7,13 +7,11 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -31,12 +29,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.ohmz.remindersapp.domain.model.ReminderAction
 import com.ohmz.remindersapp.presentation.common.components.DateTimePicker
+import com.ohmz.remindersapp.presentation.common.components.DiscardDialog
 import com.ohmz.remindersapp.presentation.common.components.TitleNotesCard
-import com.ohmz.remindersapp.presentation.common.theme.AppTheme
 import com.ohmz.remindersapp.presentation.common.theme.IOSColors
 import java.util.Calendar
 import java.util.Date
@@ -86,14 +83,19 @@ fun AddReminderScreen(
 
     // Show discard changes dialog if needed
     if (showDiscardDialog) {
-        DiscardChangesDialog(onDiscardChanges = {
-            showDiscardDialog = false
-            viewModel.resetState()
-            onNavigateBack()
-        }, onCancelDialog = {
-            showDiscardDialog = false
-            // User chose to continue editing
-        })
+        DiscardDialog(
+            onDismiss = { showDiscardDialog = false },
+            onDiscard = {
+                showDiscardDialog = false
+                viewModel.resetState()
+                onNavigateBack()
+            },
+            onContinueEditing = {
+                showDiscardDialog = false
+                // User chose to continue editing - nothing special needed here
+                // as this screen doesn't control the bottom sheet directly
+            }
+        )
     }
 
     Scaffold(
@@ -292,49 +294,3 @@ fun AddReminderScreen(
     }
 }
 
-@Composable
-fun DiscardChangesDialog(
-    onDiscardChanges: () -> Unit, onCancelDialog: () -> Unit
-) {
-    Dialog(onDismissRequest = onCancelDialog) {
-        Surface(
-            shape = RoundedCornerShape(16.dp), color = AppTheme.cardBackground, shadowElevation = 8.dp
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(10.dp)
-            ) {
-                             // Discard Changes Button (Red)
-                TextButton(
-                    onClick = onDiscardChanges,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp)
-                ) {
-                    Text(
-                        text = "Discard Changes",
-                        color = IOSColors.Red,
-                        fontWeight = FontWeight.Medium,
-                        fontSize = 18.sp
-                    )
-                }
-
-                // Cancel Button (Blue)
-                TextButton(
-                    onClick = onCancelDialog,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp)
-                ) {
-                    Text(
-                        text = "Cancel",
-                        color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.Medium,
-                        fontSize = 18.sp
-                    )
-                }
-            }
-        }
-    }
-}

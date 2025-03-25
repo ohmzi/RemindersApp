@@ -19,7 +19,6 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -45,9 +44,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.ohmz.remindersapp.presentation.common.components.AndroidStyleTopBar
+import com.ohmz.remindersapp.presentation.common.components.DiscardDialog
 import com.ohmz.remindersapp.presentation.common.theme.AppColors
 import com.ohmz.remindersapp.presentation.common.theme.AppTheme
 import com.ohmz.remindersapp.presentation.common.theme.IOSColors
+import com.ohmz.remindersapp.presentation.common.utils.EnhancedFAB
+import com.ohmz.remindersapp.presentation.common.utils.dismissBottomSheet
+import com.ohmz.remindersapp.presentation.common.utils.handleBottomSheetDismiss
 import com.ohmz.remindersapp.presentation.reminder.add.AddReminderScreen
 import com.ohmz.remindersapp.presentation.reminder.add.AddReminderViewModel
 import com.ohmz.remindersapp.presentation.reminder.detail.ScheduledReminderItem
@@ -100,6 +103,7 @@ fun ReminderListByListScreen(
 
     // State for showing the bottom sheet
     var showBottomSheet by remember { mutableStateOf(false) }
+    var showDiscardDialog by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     // Show error in a snackbar if one exists
@@ -117,7 +121,7 @@ fun ReminderListByListScreen(
     Scaffold(containerColor = listBackgroundColor,
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         floatingActionButton = {
-            FloatingActionButton(
+            EnhancedFAB(
                 onClick = {
                     // No pre-selection here, it's now handled in LaunchedEffect
                     // Just show the bottom sheet
@@ -125,7 +129,9 @@ fun ReminderListByListScreen(
 
                     showBottomSheet = true
                     coroutineScope.launch { sheetState.show() }
-                }, containerColor = listColor, contentColor = IOSColors.White
+                },
+                containerColor = listColor, 
+                contentColor = IOSColors.White
             ) {
                 Icon(
                     imageVector = Icons.Default.Add, contentDescription = "Add Reminder"
@@ -255,13 +261,52 @@ fun ReminderListByListScreen(
             )
             addReminderViewModel.updateList(currentList)
         }
+        // Discard dialog shown when trying to dismiss with unsaved changes
+        if (showDiscardDialog) {
+            DiscardDialog(
+                onDismiss = { showDiscardDialog = false },
+                onDiscard = {
+                    showDiscardDialog = false
+                    dismissBottomSheet(
+                        coroutineScope = coroutineScope,
+                        sheetState = sheetState,
+                        hideBottomSheet = { showBottomSheet = false },
+                        resetState = { addReminderViewModel.resetState() }
+                    )
+                },
+                onContinueEditing = {
+                    showDiscardDialog = false
+                    // Force the sheet to be shown again
+                    coroutineScope.launch {
+                        try {
+                            // Ensure the sheet is shown and focused
+                            sheetState.show()
+                        } catch (e: Exception) {
+                            // If there's an exception, recreate the sheet
+                            showBottomSheet = false
+                            // Wait for the animation to finish
+                            kotlinx.coroutines.delay(100)
+                            showBottomSheet = true
+                        }
+                    }
+                }
+            )
+        }
+        
         ModalBottomSheet(onDismissRequest = {
-            coroutineScope.launch {
-                sheetState.hide()
-                // Reset state when dismissing to ensure a fresh start next time
-                addReminderViewModel.resetState()
-            }
-            showBottomSheet = false
+            // Check for unsaved changes when user tries to dismiss
+            handleBottomSheetDismiss(
+                hasChanges = addReminderViewModel.hasUnsavedChanges(),
+                showDiscardDialog = { showDiscardDialog = true },
+                dismiss = {
+                    dismissBottomSheet(
+                        coroutineScope = coroutineScope,
+                        sheetState = sheetState,
+                        hideBottomSheet = { showBottomSheet = false },
+                        resetState = { addReminderViewModel.resetState() }
+                    )
+                }
+            )
         }, sheetState = sheetState, dragHandle = {}) {
             Column(
                 modifier = Modifier
@@ -270,12 +315,14 @@ fun ReminderListByListScreen(
             ) {
                 AddReminderScreen(
                     onNavigateBack = {
-                        coroutineScope.launch {
-                            sheetState.hide()
-                            showBottomSheet = false
-                            // Reset state when canceling to ensure a fresh start next time
-                            addReminderViewModel.resetState()
-                        }
+                        // Always dismiss without showing dialog when Cancel is tapped
+                        // The dialog is handled by the ModalBottomSheet.onDismissRequest
+                        dismissBottomSheet(
+                            coroutineScope = coroutineScope,
+                            sheetState = sheetState,
+                            hideBottomSheet = { showBottomSheet = false },
+                            resetState = { addReminderViewModel.resetState() }
+                        )
                     }, viewModel = addReminderViewModel
                 )
             }

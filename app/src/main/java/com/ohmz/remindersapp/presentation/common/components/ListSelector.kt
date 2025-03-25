@@ -281,7 +281,7 @@ private fun AddListDialog(
                 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End
+                    horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
                     TextButton(onClick = onDismiss) {
                         Text("Cancel")

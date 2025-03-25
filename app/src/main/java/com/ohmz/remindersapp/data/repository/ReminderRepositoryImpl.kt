@@ -5,13 +5,15 @@ import com.ohmz.remindersapp.data.mapper.toDomainModel
 import com.ohmz.remindersapp.data.mapper.toEntity
 import com.ohmz.remindersapp.domain.model.Reminder
 import com.ohmz.remindersapp.domain.repository.ReminderRepository
+import com.ohmz.remindersapp.util.ReminderNotificationScheduler
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.util.Calendar
 import javax.inject.Inject
 
 class ReminderRepositoryImpl @Inject constructor(
-    private val reminderDao: ReminderDao
+    private val reminderDao: ReminderDao,
+    private val notificationScheduler: ReminderNotificationScheduler
 ) : ReminderRepository {
 
     override fun getReminders(): Flow<List<Reminder>> {
@@ -25,15 +27,35 @@ class ReminderRepositoryImpl @Inject constructor(
     }
 
     override suspend fun addReminder(reminder: Reminder): Long {
-        return reminderDao.insertReminder(reminder.toEntity())
+        val newId = reminderDao.insertReminder(reminder.toEntity())
+        
+        // Schedule notifications if the reminder has a due date
+        if (reminder.dueDate != null && !reminder.isCompleted) {
+            // Create a copy with the correct ID from the database
+            val reminderWithId = reminder.copy(id = newId.toInt())
+            notificationScheduler.scheduleReminderNotifications(reminderWithId)
+        }
+        
+        return newId
     }
 
     override suspend fun updateReminder(reminder: Reminder) {
         reminderDao.updateReminder(reminder.toEntity())
+        
+        // Reschedule notifications if the due date changed or completion status changed
+        if (reminder.dueDate != null && !reminder.isCompleted) {
+            notificationScheduler.rescheduleReminderNotifications(reminder)
+        } else {
+            // If the reminder no longer has a due date or is now completed, cancel notifications
+            notificationScheduler.cancelReminderNotifications(reminder.id)
+        }
     }
 
     override suspend fun deleteReminder(reminder: Reminder) {
         reminderDao.deleteReminder(reminder.toEntity())
+        
+        // Cancel any scheduled notifications
+        notificationScheduler.cancelReminderNotifications(reminder.id)
     }
 
     override fun getRemindersByCompletionStatus(isCompleted: Boolean): Flow<List<Reminder>> {

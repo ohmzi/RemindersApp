@@ -69,6 +69,7 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.protolite.well.known.types)
     implementation(libs.androidx.palette.ktx)
+    implementation(libs.firebase.components)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -93,4 +94,7 @@ dependencies {
     
     // Google Fonts
     implementation("androidx.compose.ui:ui-text-google-fonts:1.6.0")
+    
+    // WorkManager for notification scheduling
+    implementation("androidx.work:work-runtime-ktx:2.9.0")
 }

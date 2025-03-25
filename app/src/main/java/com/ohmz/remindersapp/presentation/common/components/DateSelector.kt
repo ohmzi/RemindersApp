@@ -27,6 +27,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.ohmz.remindersapp.presentation.common.theme.AppTheme
 import com.ohmz.remindersapp.presentation.common.theme.IOSColors
 import java.util.Calendar
 import java.util.Date
@@ -119,7 +120,7 @@ fun DateSelector(
 
     // Define colors
     val iosBlue = IOSColors.Blue
-    val grayColor = IOSColors.ButtonGray
+    val grayColor = AppTheme.secondaryBackground
     val grayBorder = IOSColors.ButtonGrayBorder
 
     Row(
@@ -134,7 +135,7 @@ fun DateSelector(
             label = "Today",
             backgroundColor = if (selectedOption.value == "Today") iosBlue.copy(alpha = 0.15f) else grayColor,
             borderColor = if (selectedOption.value == "Today") iosBlue else grayBorder,
-            textColor = if (selectedOption.value == "Today") IOSColors.Black else IOSColors.DarkGrayText,
+            textColor = if (selectedOption.value == "Today") iosBlue else AppTheme.primaryText,
             onClick = {
                 selectedOption.value = "Today"
                 onTodaySelected()
@@ -146,7 +147,7 @@ fun DateSelector(
             label = "Tomorrow",
             backgroundColor = if (selectedOption.value == "Tomorrow") iosBlue.copy(alpha = 0.15f) else grayColor,
             borderColor = if (selectedOption.value == "Tomorrow") iosBlue else grayBorder,
-            textColor = if (selectedOption.value == "Tomorrow") IOSColors.Black else IOSColors.DarkGrayText,
+            textColor = if (selectedOption.value == "Tomorrow") iosBlue else AppTheme.primaryText,
             onClick = {
                 selectedOption.value = "Tomorrow"
                 onTomorrowSelected()
@@ -160,7 +161,7 @@ fun DateSelector(
                 label = "Weekend",
                 backgroundColor = if (selectedOption.value == "Weekend") iosBlue.copy(alpha = 0.15f) else grayColor,
                 borderColor = if (selectedOption.value == "Weekend") iosBlue else grayBorder,
-                textColor = if (selectedOption.value == "Weekend") IOSColors.Black else IOSColors.DarkGrayText,
+                textColor = if (selectedOption.value == "Weekend") iosBlue else AppTheme.primaryText,
                 onClick = {
                     selectedOption.value = "Weekend"
                     onNextWeekendSelected()
@@ -174,7 +175,7 @@ fun DateSelector(
             label = "Calendar",
             backgroundColor = if (selectedOption.value == "DateTime") iosBlue.copy(alpha = 0.15f) else grayColor,
             borderColor = if (selectedOption.value == "DateTime") iosBlue else grayBorder,
-            textColor = if (selectedOption.value == "DateTime") IOSColors.Black else IOSColors.DarkGrayText,
+            textColor = if (selectedOption.value == "DateTime") iosBlue else AppTheme.primaryText,
             onClick = {
                 selectedOption.value = "DateTime"
                 onDateTimeSelected()
@@ -217,7 +218,7 @@ fun DateButton(
                 )
             } else {
                 Icon(
-                    imageVector = icon, contentDescription = "Add Reminder"
+                    imageVector = icon, contentDescription = "Calendar", tint = textColor
                 )
             }
         }

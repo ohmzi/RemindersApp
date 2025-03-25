@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.ohmz.remindersapp.domain.model.ReminderList
+import com.ohmz.remindersapp.presentation.common.theme.AppTheme
 import com.ohmz.remindersapp.presentation.common.theme.IOSColors
 
 /**
@@ -160,12 +161,14 @@ private fun ListButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val grayColor = IOSColors.ButtonGray
+    // Define colors
+    val iosBlue = IOSColors.Blue
+    val grayColor = AppTheme.secondaryBackground
     val grayBorder = IOSColors.ButtonGrayBorder
     
     val backgroundColor = if (isSelected) activeColor.copy(alpha = 0.15f) else grayColor
     val borderColor = if (isSelected) activeColor else grayBorder
-    val textColor = if (isSelected) activeColor else IOSColors.DarkGrayText
+    val textColor = if (isSelected) activeColor else AppTheme.primaryText
     
     Box(
         contentAlignment = Alignment.Center,
@@ -215,7 +218,7 @@ private fun AddListDialog(
     ) {
         Surface(
             shape = RoundedCornerShape(16.dp),
-            color = IOSColors.White
+            color = AppTheme.cardBackground
         ) {
             Column(
                 modifier = Modifier

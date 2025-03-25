@@ -292,22 +292,6 @@ fun AddReminderScreen(
     }
 }
 
-
-@Composable
-private fun PriorityButton(
-    text: String, isSelected: Boolean, onClick: () -> Unit
-) {
-    TextButton(
-        onClick = onClick, modifier = Modifier.padding(horizontal = 4.dp)
-    ) {
-        Text(
-            text = text,
-            color = if (isSelected) MaterialTheme.colorScheme.primary else IOSColors.Gray,
-            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
-        )
-    }
-}
-
 @Composable
 fun DiscardChangesDialog(
     onDiscardChanges: () -> Unit, onCancelDialog: () -> Unit

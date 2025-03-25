@@ -24,6 +24,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ohmz.remindersapp.domain.model.Priority
+import com.ohmz.remindersapp.presentation.common.theme.AppTheme
 import com.ohmz.remindersapp.presentation.common.theme.IOSColors
 
 /**
@@ -54,40 +55,34 @@ fun PrioritySelector(
         horizontalArrangement = Arrangement.SpaceEvenly
     ) {
         // Low Priority button
-        PriorityButton(
-            text = "Low",
+        PriorityButton(text = "Low",
             label = "",
             isSelected = selectedOption.value == Priority.LOW.name,
             activeColor = lowPriorityColor,
             onClick = {
                 selectedOption.value = Priority.LOW.name
                 onLowPrioritySelected()
-            }
-        )
+            })
 
         // Medium Priority button
-        PriorityButton(
-            text = "Medium",
+        PriorityButton(text = "Medium",
             label = "",
             isSelected = selectedOption.value == Priority.MEDIUM.name,
             activeColor = mediumPriorityColor,
             onClick = {
                 selectedOption.value = Priority.MEDIUM.name
                 onMediumPrioritySelected()
-            }
-        )
+            })
 
         // High Priority button
-        PriorityButton(
-            text = "High",
+        PriorityButton(text = "High",
             label = "",
             isSelected = selectedOption.value == Priority.HIGH.name,
             activeColor = highPriorityColor,
             onClick = {
                 selectedOption.value = Priority.HIGH.name
                 onHighPrioritySelected()
-            }
-        )
+            })
     }
 }
 
@@ -101,13 +96,13 @@ fun PriorityButton(
     modifier: Modifier = Modifier
 ) {
     // Define colors for the button
-    val backgroundColor = if (isSelected) activeColor.copy(alpha = 0.15f) else IOSColors.ButtonGray
+    val backgroundColor =
+        if (isSelected) activeColor.copy(alpha = 0.15f) else AppTheme.secondaryBackground
     val borderColor = if (isSelected) activeColor else IOSColors.ButtonGrayBorder
-    val textColor = if (isSelected) activeColor else IOSColors.DarkGrayText
+    val textColor = if (isSelected) activeColor else AppTheme.primaryText
 
     Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = modifier.width(100.dp)
+        horizontalAlignment = Alignment.CenterHorizontally, modifier = modifier.width(100.dp)
     ) {
         // Priority bubble
         Box(

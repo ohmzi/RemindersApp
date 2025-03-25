@@ -19,8 +19,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.List
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
@@ -66,16 +64,40 @@ fun ListSelector(
     ) {
         // First row for existing lists (scrollable horizontally if many)
         if (lists.isNotEmpty()) {
+            // Create a scrollState we can control programmatically
+            val scrollState = rememberScrollState()
+            
+            // Find the selected list button and its estimated position
+            // We'll approximate based on average button width - actual implementation may need adjustments
+            val selectedListButtonWidth = 120.dp  // estimated average width with padding
+            val initialPadding = 20.dp
+            
+            // Find the index of the selected list for precise scrolling
+            val selectedIndex = lists.indexOfFirst { it.id == selectedListId }
+            
+            // Use LaunchedEffect to scroll to the selected item when shown
+            // This prevents the list from jumping around when you re-open it
+            androidx.compose.runtime.LaunchedEffect(selectedListId) {
+                if (selectedIndex >= 0) {
+                    // Calculate approximate scroll position based on button width
+                    val scrollPosition = (initialPadding.value + (selectedIndex * selectedListButtonWidth.value)).toInt()
+                    
+                    // Don't animate the scroll - just set position directly
+                    // This prevents visible movement when opening
+                    scrollState.scrollTo(scrollPosition)
+                }
+            }
+            
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .horizontalScroll(state = rememberScrollState()),
+                    .horizontalScroll(state = scrollState),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 // Add some initial padding
                 Spacer(modifier = Modifier.width(4.dp))
                 
-                // Show existing lists as clickable bubbles
+                // Keep the lists in their original sorted order (alphabetical)
                 lists.forEach { list ->
                     ListButton(
                         text = list.name,
@@ -114,29 +136,44 @@ fun ListSelector(
                 .padding(horizontal = 8.dp),
             horizontalArrangement = Arrangement.Center
         ) {
-            Button(
-                onClick = { showAddListDialog = true },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = iosBlue.copy(alpha = 0.1f),
-                    contentColor = iosBlue
-                ),
-                shape = RoundedCornerShape(20.dp),
-                border = androidx.compose.foundation.BorderStroke(1.dp, iosBlue),
-                modifier = Modifier.height(40.dp)
+            // Define colors based on state (dialog showing or not)
+            val primaryColor = IOSColors.Blue  // Primary from IOSLightColorScheme
+            val grayColor = AppTheme.secondaryBackground
+            
+            // Colors change based on whether dialog is showing
+            val backgroundColor = if (showAddListDialog) primaryColor.copy(alpha = 0.15f) else grayColor
+            val borderColor = if (showAddListDialog) primaryColor else IOSColors.ButtonGrayBorder
+            val textColor = if (showAddListDialog) primaryColor else AppTheme.primaryText
+            
+            // Create a custom button that matches the ListButton style
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(backgroundColor)
+                    .border(1.dp, borderColor, RoundedCornerShape(20.dp))
+                    .clickable { showAddListDialog = true }
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
             ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "Add new list",
-                    tint = iosBlue,
-                    modifier = Modifier.size(16.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = "New List",
-                    color = iosBlue,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Medium
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = "Add new list",
+                        tint = textColor,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    
+                    Spacer(modifier = Modifier.width(8.dp))
+                    
+                    Text(
+                        text = "New List",
+                        color = textColor,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
             }
         }
     }

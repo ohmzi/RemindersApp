@@ -193,17 +193,27 @@ fun AccessoryBar(
                 )
             }
 
-            // List icon (replaced location icon) - colored blue if list is selected
+            // List icon (replaced location icon) - colored with the selected list's color
             IconButton(
                 onClick = { onActionSelected(ReminderAction.LOCATION) }, // Keep using LOCATION action for backward compatibility
                 modifier = Modifier.size(48.dp)
             ) {
+                // Get the color of the selected list if available
+                val selectedList = if (selectedListId != null) {
+                    availableLists.find { it.id == selectedListId }
+                } else null
+                
+                // Use the selected list's color, or blue when active, or gray when inactive
+                val iconColor = when {
+                    selectedList != null -> selectedList.color  // Use the list's color
+                    selectedAction == ReminderAction.LOCATION -> com.ohmz.remindersapp.presentation.common.theme.IOSColors.Blue
+                    else -> com.ohmz.remindersapp.presentation.common.theme.IOSColors.Gray
+                }
+                
                 Icon(
                     imageVector = Icons.Default.List,
                     contentDescription = "List",
-                    tint = if (selectedListId != null) com.ohmz.remindersapp.presentation.common.theme.IOSColors.Blue 
-                          else if (selectedAction == ReminderAction.LOCATION) com.ohmz.remindersapp.presentation.common.theme.IOSColors.Blue
-                          else com.ohmz.remindersapp.presentation.common.theme.IOSColors.Gray,
+                    tint = iconColor,
                     modifier = Modifier.size(28.dp)
                 )
             }

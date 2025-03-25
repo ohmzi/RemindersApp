@@ -405,46 +405,52 @@ fun ReminderMainScreen(
                 }
             }
             
-            // Test notification button - positioned on the right side above the main FAB
-            Box(
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(end = 16.dp, bottom = 80.dp)
-                    .navigationBarsPadding()
-            ) {
-                // Notification status indicator
-                mainUiState.testNotificationStatus?.let { status ->
-                    Box(
-                        modifier = Modifier
-                            .padding(bottom = 60.dp)
-                            .align(Alignment.BottomCenter)
-                    ) {
-                        // Show a floating status message
-                        Surface(
-                            color = IOSColors.Gray5.copy(alpha = 0.9f),
-                            shape = RoundedCornerShape(8.dp)
+            // We can show a helpful button to access system notification settings
+            // But for now we'll just let users manage it from the system Settings app
+            
+            // Test notification button - only shown when enabled in settings
+            if (mainUiState.isTestNotificationsEnabled) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(end = 16.dp, bottom = 80.dp)
+                        .navigationBarsPadding()
+                ) {
+                    // Notification status indicator
+                    mainUiState.testNotificationStatus?.let { status ->
+                        Box(
+                            modifier = Modifier
+                                .padding(bottom = 60.dp)
+                                .align(Alignment.BottomCenter)
                         ) {
-                            Text(
-                                text = status,
-                                color = IOSColors.White,
-                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                                fontSize = 14.sp
-                            )
+                            // Show a floating status message
+                            Surface(
+                                color = IOSColors.Gray2.copy(alpha = 0.9f),
+                                shape = RoundedCornerShape(8.dp)
+                            ) {
+                                Text(
+                                    text = status,
+                                    color = IOSColors.White,
+                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                                    fontSize = 14.sp
+                                )
+                            }
                         }
                     }
-                }
-                
-                FloatingActionButton(
-                    onClick = {
-                        // Call the test notification function
-                        mainViewModel.testNotifications()
-                    },
-                    containerColor = IOSColors.Orange, // Orange color for the test button
-                    contentColor = IOSColors.White
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.DateRange, contentDescription = "Test Notifications"
-                    )
+                    
+                    FloatingActionButton(
+                        onClick = {
+                            // Call the test notification function
+                            mainViewModel.testNotifications()
+                        },
+                        containerColor = IOSColors.Orange, // Orange color for the test button
+                        contentColor = IOSColors.White
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.DateRange, 
+                            contentDescription = "Test Notifications"
+                        )
+                    }
                 }
             }
         }

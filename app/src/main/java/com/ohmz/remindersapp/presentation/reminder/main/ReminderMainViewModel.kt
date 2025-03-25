@@ -1,9 +1,18 @@
 package com.ohmz.remindersapp.presentation.reminder.main
 
+import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
 import androidx.compose.ui.graphics.Color
+import androidx.core.app.ActivityCompat
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.ohmz.remindersapp.MainActivity
+import com.ohmz.remindersapp.R
 import com.ohmz.remindersapp.domain.model.ReminderList
 import com.ohmz.remindersapp.domain.repository.ReminderListRepository
 import com.ohmz.remindersapp.domain.repository.ReminderRepository
@@ -23,7 +32,8 @@ data class ReminderMainUiState(
     val lists: List<ReminderList> = emptyList(),
     val isLoading: Boolean = false,
     val error: String? = null,
-    val testNotificationStatus: String? = null
+    val testNotificationStatus: String? = null,
+    val isTestNotificationsEnabled: Boolean = false
 )
 
 @HiltViewModel
@@ -40,6 +50,33 @@ class ReminderMainViewModel @Inject constructor(
 
     init {
         loadLists()
+        loadSettings()
+    }
+    
+    private fun loadSettings() {
+        // Check if test notification channel is enabled via Android notification settings
+        viewModelScope.launch {
+            val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            
+            // Periodically check for notification channel status
+            while (true) {
+                // Get status of the test notification channel
+                val isEnabled = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                    val channel = notificationManager.getNotificationChannel(NotificationHelper.CHANNEL_ID_TEST)
+                    channel?.importance != NotificationManager.IMPORTANCE_NONE
+                } else {
+                    // Pre-O devices just return true (channel concept doesn't exist)
+                    true
+                }
+                
+                _uiState.update { currentState ->
+                    currentState.copy(isTestNotificationsEnabled = isEnabled)
+                }
+                
+                // Check every 2 seconds - in a real app you might want to use a better strategy
+                kotlinx.coroutines.delay(2000)
+            }
+        }
     }
     
     /**
@@ -53,11 +90,10 @@ class ReminderMainViewModel @Inject constructor(
                 
                 // Create a test reminder that's due in 15 minutes
                 val testReminderId = 9999  // Use a special ID for test
-                val currentTime = System.currentTimeMillis()
                 
-                // Send 12-hour notification
-                notificationHelper.showReminderNotification(
-                    reminderId = testReminderId,
+                // Create test notifications using a custom method
+                showTestNotification(
+                    testReminderId = testReminderId,
                     title = "Test 12-Hour Notification",
                     content = "This is a test notification that would normally appear 12 hours before the deadline",
                     timeframe = "in 12 hours",
@@ -68,8 +104,8 @@ class ReminderMainViewModel @Inject constructor(
                 kotlinx.coroutines.delay(1000)
                 
                 // Send 3-hour notification
-                notificationHelper.showReminderNotification(
-                    reminderId = testReminderId + 1,
+                showTestNotification(
+                    testReminderId = testReminderId + 1,
                     title = "Test 3-Hour Notification",
                     content = "This is a test notification that would normally appear 3 hours before the deadline",
                     timeframe = "in 3 hours",
@@ -80,8 +116,8 @@ class ReminderMainViewModel @Inject constructor(
                 kotlinx.coroutines.delay(1000)
                 
                 // Send 15-minute notification
-                notificationHelper.showReminderNotification(
-                    reminderId = testReminderId + 2,
+                showTestNotification(
+                    testReminderId = testReminderId + 2,
                     title = "Test 15-Minute Notification",
                     content = "This is a test notification that would normally appear 15 minutes before the deadline",
                     timeframe = "in 15 minutes",
@@ -101,6 +137,56 @@ class ReminderMainViewModel @Inject constructor(
                 kotlinx.coroutines.delay(3000)
                 _uiState.update { it.copy(testNotificationStatus = null) }
             }
+        }
+    }
+    
+    /**
+     * Show a test notification using the test notification channel
+     */
+    private fun showTestNotification(
+        testReminderId: Int,
+        title: String,
+        content: String,
+        timeframe: String,
+        notificationType: NotificationType
+    ) {
+        // Create intent for tapping on the notification
+        val intent = Intent(context, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        }
+        
+        val pendingIntent = PendingIntent.getActivity(
+            context, 
+            testReminderId, 
+            intent, 
+            PendingIntent.FLAG_IMMUTABLE
+        )
+
+        // Determine notification ID based on type
+        val notificationId = when (notificationType) {
+            NotificationType.HOURS_12 -> testReminderId + NotificationHelper.NOTIFICATION_ID_OFFSET_12_HOURS
+            NotificationType.HOURS_3 -> testReminderId + NotificationHelper.NOTIFICATION_ID_OFFSET_3_HOURS
+            NotificationType.MINUTES_15 -> testReminderId + NotificationHelper.NOTIFICATION_ID_OFFSET_15_MINS
+        }
+        
+        // Build the notification with the test channel
+        val notificationBuilder = NotificationCompat.Builder(context, NotificationHelper.CHANNEL_ID_TEST)
+            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setContentTitle(title)
+            .setContentText("Due $timeframe")
+            .setStyle(NotificationCompat.BigTextStyle().bigText(content ?: "Due $timeframe"))
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setContentIntent(pendingIntent)
+            .setAutoCancel(true)
+            .setGroup(NotificationHelper.NOTIFICATION_GROUP)
+
+        // Show the notification if permission is granted
+        if (ActivityCompat.checkSelfPermission(
+                context,
+                android.Manifest.permission.POST_NOTIFICATIONS
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            NotificationManagerCompat.from(context).notify(notificationId, notificationBuilder.build())
         }
     }
 

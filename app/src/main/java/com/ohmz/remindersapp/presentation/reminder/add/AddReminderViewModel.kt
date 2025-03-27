@@ -491,36 +491,42 @@ class AddReminderViewModel @Inject constructor(
 
     /**
      * Saves the reminder (creates new or updates existing based on isEditMode)
+     * Immediately shows success UI while saving happens in background
      */
     fun saveReminder() {
-        viewModelScope.launch {
-            val state = _uiState.value
-            
-            // Validate the reminder
-            val validationError = validateReminder()
-            if (validationError != null) {
-                _uiState.value = state.copy(error = validationError)
-                return@launch
+        val state = _uiState.value
+
+        // Validate the reminder first
+        val validationError = validateReminder()
+        if (validationError != null) {
+            _uiState.value = state.copy(error = validationError)
+            return
+        }
+
+        // Create reminder object from current state
+        val reminder = createReminderFromState(state)
+
+        // Include any existing suggestions
+        val reminderWithSuggestions =
+            if (state.hasAiSuggestions && state.aiSuggestions.isNotEmpty()) {
+                reminder.copy(
+                    hasAiSuggestions = true,
+                    aiSuggestions = state.aiSuggestions
+                )
+            } else {
+                reminder
             }
 
-            // Set loading state
-            _uiState.value = state.copy(isLoading = true)
+        // IMMEDIATELY update UI to success state for better responsiveness
+        // This allows the reminder form to close immediately
+        _uiState.value = state.copy(
+            isLoading = false,
+            isSuccess = true
+        )
 
+        // Then perform the actual save operation in the background
+        viewModelScope.launch {
             try {
-                // Create reminder object from current state
-                val reminder = createReminderFromState(state)
-
-                // Make sure we include any existing suggestions
-                val reminderWithSuggestions =
-                    if (state.hasAiSuggestions && state.aiSuggestions.isNotEmpty()) {
-                        reminder.copy(
-                            hasAiSuggestions = true,
-                            aiSuggestions = state.aiSuggestions
-                        )
-                } else {
-                        reminder
-                }
-
                 // Save reminder with suggestions option
                 val shouldFetchSuggestions =
                     state.aiSuggestions.isEmpty() && !state.hasAiSuggestions
@@ -529,31 +535,17 @@ class AddReminderViewModel @Inject constructor(
                     shouldFetchSuggestions = shouldFetchSuggestions
                 )
 
-                if (result.isSuccess) {
-                    val savedReminder = result.getOrNull()
+                // The save operation happens in the background
+                // The UI has already transitioned to success state, so no need to update it again
 
-                    // If we got AI suggestions, update the UI state with them
-                    if (savedReminder != null && savedReminder.hasAiSuggestions && savedReminder.aiSuggestions.isNotEmpty()) {
-                        _uiState.value = state.copy(
-                            isLoading = false,
-                            isSuccess = true,
-                            aiSuggestions = savedReminder.aiSuggestions,
-                            hasAiSuggestions = true,
-                            showAiSuggestions = false // Don't show suggestions dialog after saving
-                        )
-                    } else {
-                        // Regular success without suggestions
-                        _uiState.value = state.copy(isLoading = false, isSuccess = true)
-                    }
-                } else {
-                    throw result.exceptionOrNull() ?: Exception("Failed to save reminder")
+                // However, if we failed, we should log the error for debugging
+                if (!result.isSuccess) {
+                    println("Background save failed: ${result.exceptionOrNull()?.message}")
                 }
             } catch (e: Exception) {
-                // Handle errors
-                _uiState.value = state.copy(
-                    isLoading = false,
-                    error = e.message ?: "Unknown error occurred while saving the reminder"
-                )
+                // Log errors for debugging but don't show them to the user
+                // since the UI has already transitioned
+                println("Background save error: ${e.message}")
             }
         }
     }

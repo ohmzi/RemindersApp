@@ -6,7 +6,6 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.os.Build
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -37,29 +36,30 @@ class NotificationHelper(private val context: Context) {
      * Creates the notification channels for Android O and above
      */
     private fun createNotificationChannels() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            
-            // Regular reminders channel
-            val remindersName = "Reminders"
-            val remindersDescription = "Notifications for upcoming reminders"
-            val remindersImportance = NotificationManager.IMPORTANCE_DEFAULT
-            val remindersChannel = NotificationChannel(CHANNEL_ID_REMINDERS, remindersName, remindersImportance).apply {
+        val notificationManager =
+            context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
+        // Regular reminders channel
+        val remindersName = "Reminders"
+        val remindersDescription = "Notifications for upcoming reminders"
+        val remindersImportance = NotificationManager.IMPORTANCE_DEFAULT
+        val remindersChannel =
+            NotificationChannel(CHANNEL_ID_REMINDERS, remindersName, remindersImportance).apply {
                 description = remindersDescription
             }
-            
-            // Test notifications channel - user can disable this in system settings
-            val testName = "Test Notifications"
-            val testDescription = "Testing notifications for developers (can be disabled)"
-            val testImportance = NotificationManager.IMPORTANCE_DEFAULT
-            val testChannel = NotificationChannel(CHANNEL_ID_TEST, testName, testImportance).apply {
-                description = testDescription
-            }
-            
-            // Create both channels
-            notificationManager.createNotificationChannel(remindersChannel)
-            notificationManager.createNotificationChannel(testChannel)
+
+        // Test notifications channel - disabled by default
+        val testName = "Test Notifications"
+        val testDescription = "Testing notifications for developers (disabled by default)"
+        val testImportance =
+            NotificationManager.IMPORTANCE_NONE  // Set to NONE to disable by default
+        val testChannel = NotificationChannel(CHANNEL_ID_TEST, testName, testImportance).apply {
+            description = testDescription
         }
+
+        // Create both channels
+        notificationManager.createNotificationChannel(remindersChannel)
+        notificationManager.createNotificationChannel(testChannel)
     }
 
     /**

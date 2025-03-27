@@ -66,7 +66,6 @@ fun dismissBottomSheet(
  * @param onClick Action to perform when the button is clicked
  * @param containerColor Color of the FAB
  * @param contentColor Color of the icon
- * @param expandedWidth Whether to double the width of the FAB
  * @param content Content of the FAB (usually an Icon)
  */
 @Composable

@@ -1,7 +1,6 @@
 package com.ohmz.remindersapp.presentation.reminder.main
 
 import androidx.compose.foundation.gestures.FlingBehavior
-import androidx.compose.foundation.gestures.ScrollScope
 import androidx.compose.foundation.gestures.ScrollableDefaults
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -23,11 +22,11 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.List
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.Icon
@@ -83,7 +82,6 @@ import kotlin.math.absoluteValue
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReminderMainScreen(
-    navigateToAddReminder: () -> Unit,
     navigateToFilteredList: (ReminderType) -> Unit,
     viewModel: ReminderListViewModel = hiltViewModel(),
     mainViewModel: ReminderMainViewModel = hiltViewModel(),
@@ -143,7 +141,7 @@ fun ReminderMainScreen(
             title = "All",
             count = counts.allCount,
             color = allColor,
-            icon = Icons.Default.List
+            icon = Icons.AutoMirrored.Filled.List
         ), ReminderCategoryData(
             type = ReminderType.FAVOURITE,
             title = "Favourite",
@@ -191,10 +189,10 @@ fun ReminderMainScreen(
 
         // Calculate search bar height and convert to pixels
         val searchBarHeight = 68 // Height of search bar + padding in dp
-        val searchBarHeightPx = with(LocalDensity.current) { searchBarHeight.dp.toPx() }
+        with(LocalDensity.current) { searchBarHeight.dp.toPx() }
 
         // Calculate search bar visibility based on scroll
-        val searchBarVisible = remember {
+        remember {
             derivedStateOf {
                 // Show the search bar when at or near the top
                 // Hide it when scrolling down and away from the top
@@ -211,7 +209,9 @@ fun ReminderMainScreen(
             // Super elastic, stretchy iOS-like overscroll effect
             val iosOverscrollEffect = ScrollableDefaults.flingBehavior().let { original ->
                 object : FlingBehavior {
-                    override suspend fun ScrollScope.performFling(initialVelocity: Float): Float {
+                    override suspend fun androidx.compose.foundation.gestures.ScrollScope.performFling(
+                        initialVelocity: Float
+                    ): Float {
                         // Dramatically exaggerate the overscroll with a much higher multiplier
                         // This creates an extremely stretchy, rubber-band like effect
                         val stretchFactor = 2.5f
@@ -339,7 +339,7 @@ fun ReminderMainScreen(
                                     EnhancedListItem(title = list.name,
                                         count = viewModel.getFilteredReminders()
                                             .count { it.listId == list.id },
-                                        icon = Icons.Default.List,
+                                        icon = Icons.AutoMirrored.Filled.List,
                                         iconBackgroundColor = list.color,
                                         onClick = {
                                             // Navigate to the list view
@@ -400,7 +400,8 @@ fun ReminderMainScreen(
                     contentColor = IOSColors.White
                 ) {
                     Icon(
-                        imageVector = Icons.Default.List, contentDescription = "Add List"
+                        imageVector = Icons.AutoMirrored.Filled.List,
+                        contentDescription = "Add List"
                     )
                 }
             }

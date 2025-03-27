@@ -33,15 +33,6 @@ sealed class Screen(val route: String) {
         }
     }
 
-    // Helper function to create route with arguments
-    fun createRoute(vararg args: String): String {
-        return buildString {
-            append(route)
-            args.forEach { arg ->
-                append("/$arg")
-            }
-        }
-    }
 }
 
 /**
@@ -56,11 +47,11 @@ fun AppNavHost(
     ) {
         // Main Screen with category buttons
         composable(route = Screen.ReminderMain.route) {
-            ReminderMainScreen(navigateToAddReminder = {
-                // This is just a placeholder - we now use the bottom sheet directly
-            }, navigateToFilteredList = { reminderType ->
-                navController.navigate(Screen.ReminderFilteredList.createRoute(reminderType))
-            }, navController = navController
+            ReminderMainScreen(
+                navigateToFilteredList = { reminderType ->
+                    navController.navigate(Screen.ReminderFilteredList.createRoute(reminderType))
+                },
+                navController = navController
             )
         }
 
@@ -73,11 +64,12 @@ fun AppNavHost(
             val typeString = backStackEntry.arguments?.getString("type") ?: ReminderType.ALL.name
             val reminderType = ReminderType.valueOf(typeString)
 
-            ReminderFilteredListScreen(reminderType = reminderType, onNavigateBack = {
-                navController.popBackStack()
-            }, navigateToAddReminder = {
-                // This is just a placeholder - we now use the bottom sheet directly
-            })
+            ReminderFilteredListScreen(
+                reminderType = reminderType,
+                onNavigateBack = {
+                    navController.popBackStack()
+                }
+            )
         }
 
         // List Screen showing reminders by list

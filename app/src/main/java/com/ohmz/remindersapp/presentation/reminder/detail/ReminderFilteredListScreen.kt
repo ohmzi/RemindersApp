@@ -19,12 +19,12 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.List
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -85,7 +85,6 @@ import java.util.Locale
 fun ReminderFilteredListScreen(
     reminderType: ReminderType,
     onNavigateBack: () -> Unit,
-    navigateToAddReminder: () -> Unit,
     viewModel: ReminderListViewModel = hiltViewModel()
 ) {
     // Get haptic feedback instance
@@ -146,7 +145,7 @@ fun ReminderFilteredListScreen(
     }
 
     // Get theme colors
-    val appColors = com.ohmz.remindersapp.presentation.common.theme.AppTheme
+    val appColors = AppTheme
 
     // Get the title, icon and color based on the type
     val (screenTitle, themeColor) = when (reminderType) {
@@ -158,11 +157,11 @@ fun ReminderFilteredListScreen(
     }
 
     // Get screen icon based on the type
-    val screenIcon = when (reminderType) {
+    when (reminderType) {
         ReminderType.TODAY, ReminderType.SCHEDULED -> Icons.Default.DateRange
         ReminderType.FAVOURITE -> Icons.Default.Favorite
         ReminderType.COMPLETED -> Icons.Default.Check
-        else -> Icons.Default.List
+        else -> Icons.AutoMirrored.Filled.List
     }
 
     // Inside ReminderFilteredListScreen.kt, replace the current top bar implementation with:
@@ -430,7 +429,7 @@ fun ReminderFilteredListScreen(
                             // If there's an exception, recreate the sheet
                             showBottomSheet = false
                             // Wait for the animation to finish
-                            kotlinx.coroutines.delay(100)
+                            delay(100)
                             showBottomSheet = true
                         }
                     }
@@ -484,7 +483,7 @@ fun ScheduledRemindersList(
     // Current date info for calculations
     val today = Calendar.getInstance()
     val currentYear = today.get(Calendar.YEAR)
-    val currentMonth = today.get(Calendar.MONTH)
+    today.get(Calendar.MONTH)
 
     // Format for day headers
     val dayFormat = SimpleDateFormat("EEE MMM d", Locale.getDefault())
@@ -525,7 +524,7 @@ fun ScheduledRemindersList(
                 val month = entry.key.first
                 val day = entry.key.second
                 month * 100 + day
-            }.forEach { (dateKey, dayReminders) ->
+            }.forEach { (_, dayReminders) ->
                 // Show the date
                 val firstReminderDate = dayReminders.first().dueDate!!
                 item {
@@ -707,7 +706,7 @@ fun ScheduledRemindersList(
 
         // FUTURE MONTHS - just headers, no placeholders
         val monthFormat = SimpleDateFormat("MMMM", Locale.getDefault())
-        val yearFormat = SimpleDateFormat("yyyy", Locale.getDefault())
+        SimpleDateFormat("yyyy", Locale.getDefault())
 
         // Generate next 12 months
         for (i in 1..12) {
@@ -948,7 +947,7 @@ fun AllRemindersList(
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
-                                imageVector = Icons.Default.List,
+                                imageVector = Icons.AutoMirrored.Filled.List,
                                 contentDescription = null,
                                 tint = IOSColors.Black,
                                 modifier = Modifier.size(34.dp)

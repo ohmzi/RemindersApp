@@ -24,6 +24,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -35,6 +36,7 @@ import com.ohmz.remindersapp.presentation.common.components.DateTimePicker
 import com.ohmz.remindersapp.presentation.common.components.DiscardDialog
 import com.ohmz.remindersapp.presentation.common.components.TitleNotesCard
 import com.ohmz.remindersapp.presentation.common.theme.IOSColors
+import com.ohmz.remindersapp.presentation.common.utils.performClickHaptic
 import java.util.Calendar
 import java.util.Date
 
@@ -47,11 +49,15 @@ fun AddReminderScreen(
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     val keyboardController = LocalSoftwareKeyboardController.current
+    val hapticFeedback = LocalHapticFeedback.current
     var showDateTimePicker by remember { mutableStateOf(false) }
     var showDiscardDialog by remember { mutableStateOf(false) }
 
     // Function to handle navigation back with unsaved changes check
     val handleNavigateBack = {
+        // Provide haptic feedback when Cancel is pressed
+        performClickHaptic(hapticFeedback)
+        
         if (uiState.isModified) {
             // Show confirmation dialog if there are unsaved changes
             showDiscardDialog = true

@@ -12,13 +12,16 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import com.ohmz.remindersapp.presentation.common.theme.AppTheme
 import com.ohmz.remindersapp.presentation.common.theme.IOSColors
+import com.ohmz.remindersapp.presentation.common.utils.performDeleteHaptic
 
 /**
  * A reusable dialog component for confirmation when discarding unsaved changes
@@ -29,14 +32,21 @@ import com.ohmz.remindersapp.presentation.common.theme.IOSColors
  */
 @Composable
 fun DiscardDialog(
-    onDismiss: () -> Unit,
-    onDiscard: () -> Unit,
-    onContinueEditing: () -> Unit
+    onDismiss: () -> Unit, onDiscard: () -> Unit, onContinueEditing: () -> Unit
 ) {
-    Dialog(onDismissRequest = onDismiss) {
+    // Get access to haptic feedback
+    val hapticFeedback = LocalHapticFeedback.current
+    
+    Dialog(
+        // Set up dialog to prevent dismissal by tapping outside or back button
+        onDismissRequest = onContinueEditing, // Treat dismissal as continue editing
+        properties = DialogProperties(
+            dismissOnBackPress = false,    // Prevent dismiss on back press
+            dismissOnClickOutside = false, // Prevent dismiss on outside click
+        )
+    ) {
         Surface(
-            shape = RoundedCornerShape(16.dp),
-            color = AppTheme.cardBackground
+            shape = RoundedCornerShape(16.dp), color = AppTheme.cardBackground
         ) {
             Column(
                 modifier = Modifier
@@ -65,7 +75,11 @@ fun DiscardDialog(
 
                 // Discard Changes Button (Red)
                 OutlinedButton(
-                    onClick = onDiscard,
+                    onClick = {
+                        // Add haptic feedback when discarding changes
+                        performDeleteHaptic(hapticFeedback)
+                        onDiscard()
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 8.dp),

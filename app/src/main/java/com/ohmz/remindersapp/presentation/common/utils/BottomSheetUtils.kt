@@ -79,17 +79,17 @@ fun EnhancedFAB(
 ) {
     // Use interaction source to track press state
     val interactionSource = remember { MutableInteractionSource() }
-    
+
     // Track if button is pressed
     val isPressed by interactionSource.collectIsPressedAsState()
-    
+
     // Create darker version of the container color (70% brightness)
     val pressedColor = containerColor.copy(
         red = containerColor.red * 0.7f,
         green = containerColor.green * 0.7f,
         blue = containerColor.blue * 0.7f
     )
-    
+
     // Use the darker color when pressed
     val currentColor = if (isPressed) pressedColor else containerColor
 
@@ -105,7 +105,9 @@ fun EnhancedFAB(
             hoveredElevation = 10.dp          // Higher on hover for interactive feel
         ),
         interactionSource = interactionSource,
-        modifier =  modifier.width(100.dp) .height((60.dp)) // Double the width of a standard FAB
+        modifier = modifier
+            .width(100.dp)
+            .height((60.dp)) // Double the width of a standard FAB
     ) {
         content()
     }

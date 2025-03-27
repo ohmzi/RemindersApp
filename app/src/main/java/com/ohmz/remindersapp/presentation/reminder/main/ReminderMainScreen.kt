@@ -53,7 +53,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.LayoutDirection
@@ -159,6 +161,7 @@ fun ReminderMainScreen(
 
     // State for showing the add list dialog
     var showAddListDialog by remember { mutableStateOf(false) }
+    val hapticFeedback = LocalHapticFeedback.current
 
     Scaffold(
         containerColor = backgroundColors,
@@ -170,6 +173,7 @@ fun ReminderMainScreen(
                     addReminderViewModel.resetState()
                     showBottomSheet = true
                     coroutineScope.launch { sheetState.show() }
+                    hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
                 },
                 containerColor = appColors.todayColor,
                 contentColor = IOSColors.White

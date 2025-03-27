@@ -1,5 +1,6 @@
 package com.ohmz.remindersapp.presentation.reminder.list
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -41,6 +42,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -72,6 +75,9 @@ fun ReminderListByListScreen(
     viewModel: ReminderListViewModel = hiltViewModel(),
     listColor: Color = IOSColors.Blue // Default iOS blue
 ) {
+    // Get haptic feedback instance
+    val hapticFeedback = LocalHapticFeedback.current
+    
     // Helper function for consistent reminder editing
     fun handleEditReminder(
         reminder: Reminder, 
@@ -81,6 +87,9 @@ fun ReminderListByListScreen(
         setIsOpeningForEdit: (Boolean) -> Unit,
         setShowBottomSheet: (Boolean) -> Unit
     ) {
+        // Perform haptic feedback when entering edit mode
+        hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+        
         // First prepare for editing by loading the reminder data
         viewModel.prepareForEditing(reminder.id)
         
@@ -150,6 +159,9 @@ fun ReminderListByListScreen(
         floatingActionButton = {
             EnhancedFAB(
                 onClick = {
+                    // Provide haptic feedback when creating a new reminder
+                    hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+                    
                     // Reset state for new reminder
                     addReminderViewModel.resetState()
                     // Mark that we're opening the sheet for adding, not editing
@@ -288,6 +300,23 @@ fun ReminderListByListScreen(
 
     // Bottom sheet for adding a new reminder
     if (showBottomSheet) {
+        // Handle back button press when bottom sheet is shown
+        BackHandler {
+            // Check for unsaved changes when back button is pressed
+            handleBottomSheetDismiss(
+                hasChanges = addReminderViewModel.hasUnsavedChanges(),
+                showDiscardDialog = { showDiscardDialog = true },
+                dismiss = {
+                    dismissBottomSheet(
+                        coroutineScope = coroutineScope,
+                        sheetState = sheetState,
+                        hideBottomSheet = { showBottomSheet = false },
+                        resetState = { addReminderViewModel.resetState() }
+                    )
+                }
+            )
+        }
+        
         // Use LaunchedEffect to apply the pre-selections when the sheet appears
         // BUT ONLY if we're not in edit mode
         LaunchedEffect(showBottomSheet) {

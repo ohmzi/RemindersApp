@@ -12,23 +12,7 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
  * @param hapticFeedback The HapticFeedback instance to use
  */
 fun performDeleteHaptic(hapticFeedback: HapticFeedback) {
-    // Try several types of haptic feedback to ensure one works
-    try {
-        // Try stronger feedback first
-        hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
-    } catch (e: Exception) {
-        try {
-            // Fallback to a different type
-            hapticFeedback.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-        } catch (e: Exception) {
-            try {
-                // Last resort - using a different type that is available
-                hapticFeedback.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-            } catch (e: Exception) {
-                // Silently fail if haptic is not supported
-            }
-        }
-    }
+    hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
 }
 
 /**
@@ -37,12 +21,4 @@ fun performDeleteHaptic(hapticFeedback: HapticFeedback) {
  */
 fun performClickHaptic(hapticFeedback: HapticFeedback) {
     hapticFeedback.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-}
-
-/**
- * Perform a success haptic feedback
- * @param hapticFeedback The HapticFeedback instance to use
- */
-fun performSuccessHaptic(hapticFeedback: HapticFeedback) {
-    hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
 }

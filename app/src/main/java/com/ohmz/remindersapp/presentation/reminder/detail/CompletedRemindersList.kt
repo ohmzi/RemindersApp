@@ -48,7 +48,8 @@ fun CompletedRemindersList(
     onCheckedChange: (Reminder) -> Unit,
     onDeleteClick: (Reminder) -> Unit,
     onFavoriteToggle: (Reminder, Boolean) -> Unit,
-    onClearAllCompleted: () -> Unit = {} // New callback for clearing all completed reminders
+    onClearAllCompleted: () -> Unit = {}, // Callback for clearing all completed reminders
+    onEditClick: (Reminder) -> Unit = {} // New callback for editing a reminder
 ) {
     // The reminders should already be filtered for completed items by the viewModel
     // Sort completed reminders by completion date (most recent first) - using dueDate as proxy
@@ -163,11 +164,14 @@ fun CompletedRemindersList(
                                 .fillMaxWidth()
                                 .background(AppTheme.sharedBackground)
                         ) {
-                            CompletedReminderItem(reminder = reminder,
+                            CompletedReminderItem(
+                                reminder = reminder,
                                 onCheckedChange = { onCheckedChange(reminder) },
                                 onFavoriteToggle = { isFavorite ->
                                     onFavoriteToggle(reminder, isFavorite)
-                                })
+                                },
+                                onEditClick = { onEditClick(reminder) }
+                            )
                         }
                         HorizontalDivider(thickness = 0.5.dp, color = AppTheme.dividerColor)
                     }
@@ -199,11 +203,14 @@ fun CompletedRemindersList(
                                 .fillMaxWidth()
                                 .background(AppTheme.sharedBackground)
                         ) {
-                            CompletedReminderItem(reminder = reminder,
+                            CompletedReminderItem(
+                                reminder = reminder,
                                 onCheckedChange = { onCheckedChange(reminder) },
                                 onFavoriteToggle = { isFavorite ->
                                     onFavoriteToggle(reminder, isFavorite)
-                                })
+                                },
+                                onEditClick = { onEditClick(reminder) }
+                            )
                         }
                         HorizontalDivider(thickness = 0.5.dp, color = AppTheme.dividerColor)
                     }
@@ -227,6 +234,7 @@ fun CompletedReminderItem(
     reminder: Reminder,
     onCheckedChange: (Boolean) -> Unit,
     onFavoriteToggle: (Boolean) -> Unit = {},
+    onEditClick: () -> Unit = {}, // New callback for editing
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -260,9 +268,11 @@ fun CompletedReminderItem(
 
         Spacer(modifier = Modifier.width(16.dp))
 
-        // Title and notes
+        // Title and notes - clickable for editing
         Column(
-            modifier = Modifier.weight(1f)
+            modifier = Modifier
+                .weight(1f)
+                .clickable(onClick = onEditClick) // Add clickable for editing
         ) {
             // Show a colored dot for priority if needed
             Row(

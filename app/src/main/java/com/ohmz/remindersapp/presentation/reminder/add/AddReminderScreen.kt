@@ -230,9 +230,9 @@ fun AddReminderScreen(
                     )
                 }
 
-                // Center: "New Reminder" title
+                // Center: Dynamic title based on edit mode
                 Text(
-                    text = "New Reminder",
+                    text = if (uiState.isEditMode) "Edit Reminder" else "New Reminder",
                     modifier = Modifier.weight(1f),
                     style = MaterialTheme.typography.titleMedium.copy(
                         fontWeight = FontWeight.Bold,
@@ -241,7 +241,7 @@ fun AddReminderScreen(
                     textAlign = TextAlign.Center
                 )
 
-                // Right: "Add" button with larger text
+                // Right: "Add" or "Save" button with larger text
                 TextButton(
                     onClick = { viewModel.saveReminder() }, enabled = uiState.title.isNotBlank()
                 ) {
@@ -250,7 +250,7 @@ fun AddReminderScreen(
                         else IOSColors.Gray
 
                     Text(
-                        text = "Add",
+                        text = if (uiState.isEditMode) "Save" else "Add",
                         fontWeight = FontWeight.ExtraBold,
                         color = textColor,
                         fontSize = 18.sp // Increased by ~2dp

@@ -32,6 +32,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SheetState
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -69,6 +70,7 @@ import com.ohmz.remindersapp.presentation.common.utils.handleBottomSheetDismiss
 import com.ohmz.remindersapp.presentation.reminder.add.AddReminderScreen
 import com.ohmz.remindersapp.presentation.reminder.add.AddReminderViewModel
 import com.ohmz.remindersapp.presentation.reminder.list.ReminderListViewModel
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -83,6 +85,28 @@ fun ReminderFilteredListScreen(
     navigateToAddReminder: () -> Unit,
     viewModel: ReminderListViewModel = hiltViewModel()
 ) {
+    // Define a helper function to handle editing reminders consistently
+    fun handleEditReminder(
+        reminder: Reminder, 
+        viewModel: AddReminderViewModel, 
+        coroutineScope: CoroutineScope, 
+        sheetState: SheetState, 
+        setIsOpeningForEdit: (Boolean) -> Unit,
+        setShowBottomSheet: (Boolean) -> Unit
+    ) {
+        // First prepare for editing by loading the reminder data
+        viewModel.prepareForEditing(reminder.id)
+        
+        // Set the flag to indicate we're opening for edit
+        setIsOpeningForEdit(true)
+        
+        // After a short delay to ensure data is loaded, show the sheet
+        coroutineScope.launch {
+            delay(200)
+            setShowBottomSheet(true)
+            sheetState.show()
+        }
+    }
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
@@ -90,6 +114,8 @@ fun ReminderFilteredListScreen(
     // State for showing the bottom sheet
     var showBottomSheet by remember { mutableStateOf(false) }
     var showDiscardDialog by remember { mutableStateOf(false) }
+    // Track if we're opening the sheet for editing (true) or adding (false)
+    var isOpeningForEdit by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     // Set the selected type in the viewModel
@@ -139,10 +165,11 @@ fun ReminderFilteredListScreen(
             if (reminderType != ReminderType.COMPLETED) {
                 EnhancedFAB(
                     onClick = {
-                        // No pre-selection here, it's now handled in LaunchedEffect
-                        // Just show the bottom sheet
-                        addReminderViewModel.resetState() // This will be overridden by LaunchedEffect
-
+                        // Reset state and ensure we're in ADD mode, not edit
+                        addReminderViewModel.resetState()
+                        // Mark that we're opening the sheet for adding, not editing
+                        isOpeningForEdit = false
+                        // Show the bottom sheet
                         showBottomSheet = true
                         coroutineScope.launch { sheetState.show() }
                     }, 
@@ -181,47 +208,128 @@ fun ReminderFilteredListScreen(
                 val reminders = viewModel.getFilteredReminders()
 
                 if (reminderType == ReminderType.SCHEDULED) {
-                    ScheduledRemindersList(reminders = reminders, onCheckedChange = { reminder ->
-                        viewModel.toggleReminderCompletion(reminder)
-                    }, onDeleteClick = { reminder ->
-                        viewModel.deleteReminder(reminder)
-                    }, onFavoriteToggle = { reminder, isFavorite ->
-                        viewModel.toggleReminderFavorite(reminder, isFavorite)
-                    })
+                    ScheduledRemindersList(
+                        reminders = reminders, 
+                        onCheckedChange = { reminder ->
+                            viewModel.toggleReminderCompletion(reminder)
+                        }, 
+                        onDeleteClick = { reminder ->
+                            viewModel.deleteReminder(reminder)
+                        }, 
+                        onFavoriteToggle = { reminder, isFavorite ->
+                            viewModel.toggleReminderFavorite(reminder, isFavorite)
+                        },
+                        onEditClick = { reminder ->
+                            // Use consistent helper function to edit this reminder
+                            handleEditReminder(
+                                reminder = reminder,
+                                viewModel = addReminderViewModel,
+                                coroutineScope = coroutineScope,
+                                sheetState = sheetState,
+                                setIsOpeningForEdit = { isOpeningForEdit = it },
+                                setShowBottomSheet = { showBottomSheet = it }
+                            )
+                        }
+                    )
                 } else if (reminderType == ReminderType.TODAY) {
-                    TodayRemindersList(reminders = reminders, onCheckedChange = { reminder ->
-                        viewModel.toggleReminderCompletion(reminder)
-                    }, onDeleteClick = { reminder ->
-                        viewModel.deleteReminder(reminder)
-                    }, onFavoriteToggle = { reminder, isFavorite ->
-                        viewModel.toggleReminderFavorite(reminder, isFavorite)
-                    })
+                    TodayRemindersList(
+                        reminders = reminders, 
+                        onCheckedChange = { reminder ->
+                            viewModel.toggleReminderCompletion(reminder)
+                        }, 
+                        onDeleteClick = { reminder ->
+                            viewModel.deleteReminder(reminder)
+                        }, 
+                        onFavoriteToggle = { reminder, isFavorite ->
+                            viewModel.toggleReminderFavorite(reminder, isFavorite)
+                        },
+                        onEditClick = { reminder ->
+                            // Use consistent helper function to edit this reminder
+                            handleEditReminder(
+                                reminder = reminder,
+                                viewModel = addReminderViewModel,
+                                coroutineScope = coroutineScope,
+                                sheetState = sheetState,
+                                setIsOpeningForEdit = { isOpeningForEdit = it },
+                                setShowBottomSheet = { showBottomSheet = it }
+                            )
+                        }
+                    )
                 } else if (reminderType == ReminderType.ALL) {
-                    AllRemindersList(reminders = reminders, onCheckedChange = { reminder ->
-                        viewModel.toggleReminderCompletion(reminder)
-                    }, onDeleteClick = { reminder ->
-                        viewModel.deleteReminder(reminder)
-                    }, onFavoriteToggle = { reminder, isFavorite ->
-                        viewModel.toggleReminderFavorite(reminder, isFavorite)
-                    })
+                    AllRemindersList(
+                        reminders = reminders, 
+                        onCheckedChange = { reminder ->
+                            viewModel.toggleReminderCompletion(reminder)
+                        }, 
+                        onDeleteClick = { reminder ->
+                            viewModel.deleteReminder(reminder)
+                        }, 
+                        onFavoriteToggle = { reminder, isFavorite ->
+                            viewModel.toggleReminderFavorite(reminder, isFavorite)
+                        },
+                        onEditClick = { reminder ->
+                            // Use consistent helper function to edit this reminder
+                            handleEditReminder(
+                                reminder = reminder,
+                                viewModel = addReminderViewModel,
+                                coroutineScope = coroutineScope,
+                                sheetState = sheetState,
+                                setIsOpeningForEdit = { isOpeningForEdit = it },
+                                setShowBottomSheet = { showBottomSheet = it }
+                            )
+                        }
+                    )
                 } else if (reminderType == ReminderType.FAVOURITE) {
-                    FavoriteRemindersList(reminders = reminders, onCheckedChange = { reminder ->
-                        viewModel.toggleReminderCompletion(reminder)
-                    }, onDeleteClick = { reminder ->
-                        viewModel.deleteReminder(reminder)
-                    }, onFavoriteToggle = { reminder, isFavorite ->
-                        viewModel.toggleReminderFavorite(reminder, isFavorite)
-                    })
+                    FavoriteRemindersList(
+                        reminders = reminders, 
+                        onCheckedChange = { reminder ->
+                            viewModel.toggleReminderCompletion(reminder)
+                        }, 
+                        onDeleteClick = { reminder ->
+                            viewModel.deleteReminder(reminder)
+                        }, 
+                        onFavoriteToggle = { reminder, isFavorite ->
+                            viewModel.toggleReminderFavorite(reminder, isFavorite)
+                        },
+                        onEditClick = { reminder ->
+                            // Use consistent helper function to edit this reminder
+                            handleEditReminder(
+                                reminder = reminder,
+                                viewModel = addReminderViewModel,
+                                coroutineScope = coroutineScope,
+                                sheetState = sheetState,
+                                setIsOpeningForEdit = { isOpeningForEdit = it },
+                                setShowBottomSheet = { showBottomSheet = it }
+                            )
+                        }
+                    )
                 } else if (reminderType == ReminderType.COMPLETED) {
-                    CompletedRemindersList(reminders = reminders, onCheckedChange = { reminder ->
-                        viewModel.toggleReminderCompletion(reminder)
-                    }, onDeleteClick = { reminder ->
-                        viewModel.deleteReminder(reminder)
-                    }, onFavoriteToggle = { reminder, isFavorite ->
-                        viewModel.toggleReminderFavorite(reminder, isFavorite)
-                    }, onClearAllCompleted = {
-                        viewModel.clearCompletedReminders()
-                    })
+                    CompletedRemindersList(
+                        reminders = reminders, 
+                        onCheckedChange = { reminder ->
+                            viewModel.toggleReminderCompletion(reminder)
+                        }, 
+                        onDeleteClick = { reminder ->
+                            viewModel.deleteReminder(reminder)
+                        }, 
+                        onFavoriteToggle = { reminder, isFavorite ->
+                            viewModel.toggleReminderFavorite(reminder, isFavorite)
+                        }, 
+                        onClearAllCompleted = {
+                            viewModel.clearCompletedReminders()
+                        },
+                        onEditClick = { reminder ->
+                            // Use consistent helper function to edit this reminder
+                            handleEditReminder(
+                                reminder = reminder,
+                                viewModel = addReminderViewModel,
+                                coroutineScope = coroutineScope,
+                                sheetState = sheetState,
+                                setIsOpeningForEdit = { isOpeningForEdit = it },
+                                setShowBottomSheet = { showBottomSheet = it }
+                            )
+                        }
+                    )
                 }
             }
         }
@@ -230,37 +338,43 @@ fun ReminderFilteredListScreen(
     // Bottom sheet for adding a new reminder
     if (showBottomSheet) {
         // Use LaunchedEffect to apply the pre-selections when the sheet appears
+        // BUT ONLY if we're not in edit mode
         LaunchedEffect(showBottomSheet) {
-            // First reset the state
-            addReminderViewModel.resetState()
-            // Then apply specific pre-selections based on reminderType
-            delay(100) // Short delay to ensure resetState completes
+            // Only apply default settings for NEW reminders, not when editing
+            if (!isOpeningForEdit) {
+                // First reset the state for a clean slate
+                addReminderViewModel.resetState()
+                // Then apply specific pre-selections based on reminderType
+                delay(100) // Short delay to ensure resetState completes
 
-            when (reminderType) {
-                ReminderType.FAVOURITE -> {
-                    // Force favorite=true for Favourite screen
-                    addReminderViewModel.setFavorite(true)
-                }
+                when (reminderType) {
+                    ReminderType.FAVOURITE -> {
+                        // Force favorite=true for Favourite screen
+                        addReminderViewModel.setFavorite(true)
+                    }
 
-                ReminderType.SCHEDULED -> {
-                    // Open calendar for Scheduled screen
-                    addReminderViewModel.toggleAction(ReminderAction.CALENDAR)
-                }
+                    ReminderType.SCHEDULED -> {
+                        // Open calendar for Scheduled screen
+                        addReminderViewModel.toggleAction(ReminderAction.CALENDAR)
+                    }
 
-                ReminderType.TODAY -> {
-                    // Set due date to today at 11:59 PM for Today screen
-                    val today = Calendar.getInstance().apply {
-                        set(Calendar.HOUR_OF_DAY, 23)
-                        set(Calendar.MINUTE, 59)
-                        set(Calendar.SECOND, 59)
-                    }.time
-                    addReminderViewModel.updateDueDate(today)
-                }
+                    ReminderType.TODAY -> {
+                        // Set due date to today at 11:59 PM for Today screen
+                        val today = Calendar.getInstance().apply {
+                            set(Calendar.HOUR_OF_DAY, 23)
+                            set(Calendar.MINUTE, 59)
+                            set(Calendar.SECOND, 59)
+                        }.time
+                        addReminderViewModel.updateDueDate(today)
+                    }
 
-                else -> {
-                    // No special pre-selection for other screens
+                    else -> {
+                        // No special pre-selection for other screens
+                    }
                 }
             }
+            // Note: when isOpeningForEdit is true, we don't reset or apply defaults
+            // because we want to keep the loaded reminder data
         }
 
         // Discard dialog shown when trying to dismiss with unsaved changes
@@ -335,7 +449,8 @@ fun ScheduledRemindersList(
     reminders: List<Reminder>,
     onCheckedChange: (Reminder) -> Unit,
     onDeleteClick: (Reminder) -> Unit,
-    onFavoriteToggle: (Reminder, Boolean) -> Unit
+    onFavoriteToggle: (Reminder, Boolean) -> Unit,
+    onEditClick: (Reminder) -> Unit
 ) {
     // Current date info for calculations
     val today = Calendar.getInstance()
@@ -400,12 +515,15 @@ fun ScheduledRemindersList(
                             modifier = Modifier.fillMaxWidth()
                             // No need to specify background here as entire screen is white
                         ) {
-                            ScheduledReminderItem(reminder = reminder,
+                            ScheduledReminderItem(
+                                reminder = reminder,
                                 onCheckedChange = { onCheckedChange(reminder) },
                                 onDeleteClick = { onDeleteClick(reminder) },
                                 onFavoriteToggle = { isFavorite ->
                                     onFavoriteToggle(reminder, isFavorite)
-                                })
+                                },
+                                onEditClick = { onEditClick(reminder) }
+                            )
                         }
                     }
                 }
@@ -436,12 +554,15 @@ fun ScheduledRemindersList(
                             .fillMaxWidth()
                             .background(AppTheme.sharedBackground)
                     ) {
-                        ScheduledReminderItem(reminder = reminder,
+                        ScheduledReminderItem(
+                            reminder = reminder,
                             onCheckedChange = { onCheckedChange(reminder) },
                             onDeleteClick = { onDeleteClick(reminder) },
                             onFavoriteToggle = { isFavorite ->
                                 onFavoriteToggle(reminder, isFavorite)
-                            })
+                            },
+                            onEditClick = { onEditClick(reminder) }
+                        )
                     }
                 }
             }
@@ -470,12 +591,15 @@ fun ScheduledRemindersList(
                             .fillMaxWidth()
                             .background(AppTheme.sharedBackground)
                     ) {
-                        ScheduledReminderItem(reminder = reminder,
+                        ScheduledReminderItem(
+                            reminder = reminder,
                             onCheckedChange = { onCheckedChange(reminder) },
                             onDeleteClick = { onDeleteClick(reminder) },
                             onFavoriteToggle = { isFavorite ->
                                 onFavoriteToggle(reminder, isFavorite)
-                            })
+                            },
+                            onEditClick = { onEditClick(reminder) }
+                        )
                     }
                     HorizontalDivider(thickness = 0.5.dp, color = AppTheme.dividerColor)
                 }
@@ -520,12 +644,15 @@ fun ScheduledRemindersList(
                                 .fillMaxWidth()
                                 .background(AppTheme.sharedBackground)
                         ) {
-                            ScheduledReminderItem(reminder = reminder,
+                            ScheduledReminderItem(
+                                reminder = reminder,
                                 onCheckedChange = { onCheckedChange(reminder) },
                                 onDeleteClick = { onDeleteClick(reminder) },
                                 onFavoriteToggle = { isFavorite ->
                                     onFavoriteToggle(reminder, isFavorite)
-                                })
+                                },
+                                onEditClick = { onEditClick(reminder) }
+                            )
                         }
                     }
                 }
@@ -619,12 +746,15 @@ fun ScheduledRemindersList(
                                     .fillMaxWidth()
                                     .background(AppTheme.sharedBackground)
                             ) {
-                                ScheduledReminderItem(reminder = reminder,
+                                ScheduledReminderItem(
+                                    reminder = reminder,
                                     onCheckedChange = { onCheckedChange(reminder) },
                                     onDeleteClick = { onDeleteClick(reminder) },
                                     onFavoriteToggle = { isFavorite ->
                                         onFavoriteToggle(reminder, isFavorite)
-                                    })
+                                    },
+                                    onEditClick = { onEditClick(reminder) }
+                                )
                             }
                         }
                     }
@@ -648,7 +778,8 @@ fun TodayRemindersList(
     reminders: List<Reminder>,
     onCheckedChange: (Reminder) -> Unit,
     onDeleteClick: (Reminder) -> Unit,
-    onFavoriteToggle: (Reminder, Boolean) -> Unit
+    onFavoriteToggle: (Reminder, Boolean) -> Unit,
+    onEditClick: (Reminder) -> Unit
 ) {
     LazyColumn(
         modifier = Modifier
@@ -666,12 +797,15 @@ fun TodayRemindersList(
                             .fillMaxWidth()
                             .background(AppTheme.sharedBackground)
                     ) {
-                        ScheduledReminderItem(reminder = reminder,
+                        ScheduledReminderItem(
+                            reminder = reminder,
                             onCheckedChange = { onCheckedChange(reminder) },
                             onDeleteClick = { onDeleteClick(reminder) },
                             onFavoriteToggle = { isFavorite ->
                                 onFavoriteToggle(reminder, isFavorite)
-                            })
+                            },
+                            onEditClick = { onEditClick(reminder) }
+                        )
                     }
                     HorizontalDivider(thickness = 0.5.dp, color = AppTheme.dividerColor)
                 }
@@ -738,7 +872,8 @@ fun AllRemindersList(
     reminders: List<Reminder>,
     onCheckedChange: (Reminder) -> Unit,
     onDeleteClick: (Reminder) -> Unit,
-    onFavoriteToggle: (Reminder, Boolean) -> Unit
+    onFavoriteToggle: (Reminder, Boolean) -> Unit,
+    onEditClick: (Reminder) -> Unit
 ) {
     // Custom sorting that keeps past due items in consistent positions regardless of completion status
     val sortedReminders = reminders.sortedWith(compareBy<Reminder> {
@@ -819,12 +954,15 @@ fun AllRemindersList(
                             .fillMaxWidth()
                             .background(AppTheme.sharedBackground)
                     ) {
-                        AllReminderItem(reminder = reminder,
+                        AllReminderItem(
+                            reminder = reminder,
                             onCheckedChange = { onCheckedChange(reminder) },
                             onDeleteClick = { onDeleteClick(reminder) },
                             onFavoriteToggle = { isFavorite ->
                                 onFavoriteToggle(reminder, isFavorite)
-                            })
+                            },
+                            onEditClick = { onEditClick(reminder) }
+                        )
                     }
                 }
 
@@ -849,7 +987,8 @@ fun AllReminderItem(
     reminder: Reminder,
     onCheckedChange: (Boolean) -> Unit,
     onDeleteClick: () -> Unit,
-    onFavoriteToggle: (Boolean) -> Unit = {}
+    onFavoriteToggle: (Boolean) -> Unit = {},
+    onEditClick: () -> Unit = {} // New callback for when the reminder is clicked for editing
 ) {
     Row(
         modifier = Modifier
@@ -882,9 +1021,11 @@ fun AllReminderItem(
 
         Spacer(modifier = Modifier.width(16.dp))
 
-        // Title, notes and date
+        // Title, notes and date - clickable for editing
         Column(
-            modifier = Modifier.weight(1f)
+            modifier = Modifier
+                .weight(1f)
+                .clickable(onClick = onEditClick) // Add clickable modifier to enable editing
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically
@@ -976,7 +1117,8 @@ fun FavoriteRemindersList(
     reminders: List<Reminder>,
     onCheckedChange: (Reminder) -> Unit,
     onDeleteClick: (Reminder) -> Unit,
-    onFavoriteToggle: (Reminder, Boolean) -> Unit
+    onFavoriteToggle: (Reminder, Boolean) -> Unit,
+    onEditClick: (Reminder) -> Unit
 ) {
     // Filter only favorite reminders and sort by due date
     val favoriteReminders = reminders.filter { it.isFavorite }
@@ -1046,12 +1188,15 @@ fun FavoriteRemindersList(
                             .fillMaxWidth()
                             .background(AppTheme.sharedBackground)
                     ) {
-                        ScheduledReminderItem(reminder = reminder,
+                        ScheduledReminderItem(
+                            reminder = reminder,
                             onCheckedChange = { onCheckedChange(reminder) },
                             onDeleteClick = { onDeleteClick(reminder) },
                             onFavoriteToggle = { isFavorite ->
                                 onFavoriteToggle(reminder, isFavorite)
-                            })
+                            },
+                            onEditClick = { onEditClick(reminder) }
+                        )
                     }
                 }
 

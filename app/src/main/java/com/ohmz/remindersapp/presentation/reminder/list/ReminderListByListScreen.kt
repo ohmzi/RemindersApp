@@ -24,6 +24,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SheetState
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -43,6 +44,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.ohmz.remindersapp.domain.model.Reminder
 import com.ohmz.remindersapp.presentation.common.components.AndroidStyleTopBar
 import com.ohmz.remindersapp.presentation.common.components.DiscardDialog
 import com.ohmz.remindersapp.presentation.common.theme.AppColors
@@ -54,6 +56,7 @@ import com.ohmz.remindersapp.presentation.common.utils.handleBottomSheetDismiss
 import com.ohmz.remindersapp.presentation.reminder.add.AddReminderScreen
 import com.ohmz.remindersapp.presentation.reminder.add.AddReminderViewModel
 import com.ohmz.remindersapp.presentation.reminder.detail.ScheduledReminderItem
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -69,6 +72,28 @@ fun ReminderListByListScreen(
     viewModel: ReminderListViewModel = hiltViewModel(),
     listColor: Color = IOSColors.Blue // Default iOS blue
 ) {
+    // Helper function for consistent reminder editing
+    fun handleEditReminder(
+        reminder: Reminder, 
+        viewModel: AddReminderViewModel, 
+        coroutineScope: CoroutineScope, 
+        sheetState: SheetState,
+        setIsOpeningForEdit: (Boolean) -> Unit,
+        setShowBottomSheet: (Boolean) -> Unit
+    ) {
+        // First prepare for editing by loading the reminder data
+        viewModel.prepareForEditing(reminder.id)
+        
+        // Set the flag to indicate we're opening for edit
+        setIsOpeningForEdit(true)
+        
+        // After a short delay to ensure data is loaded, show the sheet
+        coroutineScope.launch {
+            delay(200)
+            setShowBottomSheet(true)
+            sheetState.show()
+        }
+    }
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
@@ -104,6 +129,8 @@ fun ReminderListByListScreen(
     // State for showing the bottom sheet
     var showBottomSheet by remember { mutableStateOf(false) }
     var showDiscardDialog by remember { mutableStateOf(false) }
+    // Track if we're opening the sheet for editing (true) or adding (false)
+    var isOpeningForEdit by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     // Show error in a snackbar if one exists
@@ -123,10 +150,11 @@ fun ReminderListByListScreen(
         floatingActionButton = {
             EnhancedFAB(
                 onClick = {
-                    // No pre-selection here, it's now handled in LaunchedEffect
-                    // Just show the bottom sheet
-                    addReminderViewModel.resetState() // This will be overridden by LaunchedEffect
-
+                    // Reset state for new reminder
+                    addReminderViewModel.resetState()
+                    // Mark that we're opening the sheet for adding, not editing
+                    isOpeningForEdit = false
+                    // Show the bottom sheet
                     showBottomSheet = true
                     coroutineScope.launch { sheetState.show() }
                 },
@@ -222,7 +250,8 @@ fun ReminderListByListScreen(
                                 .fillMaxWidth()
                                 .padding(start = 10.dp)
                         ) {
-                            ScheduledReminderItem(reminder = reminder,
+                            ScheduledReminderItem(
+                                reminder = reminder,
                                 onCheckedChange = { isChecked ->
                                     viewModel.toggleReminderCompletion(reminder)
                                 },
@@ -231,6 +260,17 @@ fun ReminderListByListScreen(
                                 },
                                 onFavoriteToggle = { isFavorite ->
                                     viewModel.toggleReminderFavorite(reminder, isFavorite)
+                                },
+                                onEditClick = {
+                                    // Use consistent helper function to edit this reminder
+                                    handleEditReminder(
+                                        reminder = reminder,
+                                        viewModel = addReminderViewModel,
+                                        coroutineScope = coroutineScope,
+                                        sheetState = sheetState,
+                                        setIsOpeningForEdit = { isOpeningForEdit = it },
+                                        setShowBottomSheet = { showBottomSheet = it }
+                                    )
                                 })
                         }
                         HorizontalDivider(thickness = 0.5.dp, color = AppTheme.dividerColor)
@@ -249,17 +289,23 @@ fun ReminderListByListScreen(
     // Bottom sheet for adding a new reminder
     if (showBottomSheet) {
         // Use LaunchedEffect to apply the pre-selections when the sheet appears
+        // BUT ONLY if we're not in edit mode
         LaunchedEffect(showBottomSheet) {
-            // First reset the state
-            addReminderViewModel.resetState()
-            // Then apply specific pre-selections
-            delay(100) // Short delay to ensure resetState completes
+            // Only apply default settings for NEW reminders, not when editing
+            if (!isOpeningForEdit) {
+                // First reset the state
+                addReminderViewModel.resetState()
+                // Then apply specific pre-selections
+                delay(100) // Short delay to ensure resetState completes
 
-            // Create a minimal ReminderList object with the current ID and name
-            val currentList = com.ohmz.remindersapp.domain.model.ReminderList(
-                id = listId, name = listName
-            )
-            addReminderViewModel.updateList(currentList)
+                // Create a minimal ReminderList object with the current ID and name
+                val currentList = com.ohmz.remindersapp.domain.model.ReminderList(
+                    id = listId, name = listName
+                )
+                addReminderViewModel.updateList(currentList)
+            }
+            // Note: when isOpeningForEdit is true, we don't reset or apply defaults
+            // because we want to keep the loaded reminder data
         }
         // Discard dialog shown when trying to dismiss with unsaved changes
         if (showDiscardDialog) {

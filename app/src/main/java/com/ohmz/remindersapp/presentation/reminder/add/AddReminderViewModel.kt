@@ -8,6 +8,8 @@ import com.ohmz.remindersapp.domain.model.ReminderAction
 import com.ohmz.remindersapp.domain.model.ReminderList
 import com.ohmz.remindersapp.domain.repository.ReminderListRepository
 import com.ohmz.remindersapp.domain.usecase.AddReminderUseCase
+import com.ohmz.remindersapp.domain.usecase.GetRemindersUseCase
+import com.ohmz.remindersapp.domain.usecase.UpdateReminderUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -18,9 +20,10 @@ import java.util.Date
 import javax.inject.Inject
 
 /**
- * UI state for the add reminder screen
+ * UI state for the add/edit reminder screen
  */
 data class AddReminderUiState(
+    val id: Int = 0, // Will be 0 for new reminders, non-zero for editing
     val title: String = "",
     val notes: String = "",
     val dueDate: Date? = null,
@@ -36,13 +39,16 @@ data class AddReminderUiState(
     val isLoading: Boolean = false,
     val isSuccess: Boolean = false,
     val error: String? = null,
-    val isModified: Boolean = false
+    val isModified: Boolean = false,
+    val isEditMode: Boolean = false // Flag to identify if we're editing an existing reminder
 )
 
 @HiltViewModel
 class AddReminderViewModel @Inject constructor(
     private val addReminderUseCase: AddReminderUseCase,
-    private val reminderListRepository: ReminderListRepository
+    private val updateReminderUseCase: UpdateReminderUseCase,
+    private val reminderListRepository: ReminderListRepository,
+    private val getRemindersUseCase: GetRemindersUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AddReminderUiState())
@@ -265,10 +271,11 @@ class AddReminderViewModel @Inject constructor(
      */
     private fun createReminderFromState(state: AddReminderUiState): Reminder {
         return Reminder(
+            id = state.id, // Use the ID from the state (0 for new, existing ID for edits)
             title = state.title,
             notes = state.notes.ifBlank { null },
             dueDate = state.dueDate,
-            isCompleted = false,
+            isCompleted = false, // Always false when creating/editing
             isFavorite = state.isFavorite,
             priority = state.priority,
             tags = state.tags,
@@ -278,7 +285,78 @@ class AddReminderViewModel @Inject constructor(
     }
 
     /**
-     * Saves the reminder
+     * Prepares the ViewModel for editing mode and loads an existing reminder
+     * This should be called before showing the bottom sheet
+     */
+    fun prepareForEditing(reminderId: Int) {
+        viewModelScope.launch {
+            try {
+                // Completely reset the state first to avoid any conflicts
+                resetState()
+                
+                // Wait for resetState to complete
+                kotlinx.coroutines.delay(100)
+                
+                // Set loading state
+                _uiState.value = _uiState.value.copy(isLoading = true)
+                
+                // Get all reminders and find the one with matching ID
+                val reminders = getRemindersUseCase().first()
+                val reminderToEdit = reminders.find { it.id == reminderId }
+                
+                if (reminderToEdit != null) {
+                    // Also load lists to populate the dropdown
+                    val lists = reminderListRepository.getAllLists().first()
+                    
+                    // Get the list name if this reminder has a list assigned
+                    val selectedListName = reminderToEdit.listId?.let { listId ->
+                        lists.find { it.id == listId }?.name
+                    }
+                    
+                    // Update the UI state with the loaded reminder's values
+                    _uiState.value = _uiState.value.copy(
+                        id = reminderToEdit.id,
+                        title = reminderToEdit.title,
+                        notes = reminderToEdit.notes ?: "",
+                        dueDate = reminderToEdit.dueDate,
+                        priority = reminderToEdit.priority,
+                        isFavorite = reminderToEdit.isFavorite,
+                        tags = reminderToEdit.tags,
+                        listId = reminderToEdit.listId,
+                        selectedListName = selectedListName,
+                        imageUri = reminderToEdit.imageUri,
+                        availableLists = lists,
+                        isLoading = false,
+                        isEditMode = true,
+                        isModified = false // Start in non-modified state
+                    )
+                } else {
+                    // Reminder not found, show error
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        error = "Reminder not found"
+                    )
+                }
+            } catch (e: Exception) {
+                // Handle errors
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    error = e.message ?: "Error loading reminder"
+                )
+            }
+        }
+    }
+    
+    /**
+     * Legacy method for backward compatibility
+     * @deprecated Use prepareForEditing instead
+     */
+    fun loadReminder(reminderId: Int) {
+        prepareForEditing(reminderId)
+    }
+
+    /**
+     * Saves the reminder (creates new or updates existing based on isEditMode)
      */
     fun saveReminder() {
         viewModelScope.launch {
@@ -295,9 +373,15 @@ class AddReminderViewModel @Inject constructor(
             _uiState.value = state.copy(isLoading = true)
 
             try {
-                // Create and save reminder
+                // Create reminder object from current state
                 val reminder = createReminderFromState(state)
-                addReminderUseCase(reminder)
+                
+                // Either update or create based on edit mode
+                if (state.isEditMode) {
+                    updateReminderUseCase(reminder)
+                } else {
+                    addReminderUseCase(reminder)
+                }
                 
                 // Update state with success
                 _uiState.value = state.copy(isLoading = false, isSuccess = true)
@@ -327,7 +411,7 @@ class AddReminderViewModel @Inject constructor(
 
     /**
      * Resets the entire UI state to its initial values
-     * Should be called when the add reminder sheet is closed/dismissed
+     * Should be called when the add/edit reminder sheet is closed/dismissed
      */
     fun resetState() {
         viewModelScope.launch {
@@ -339,13 +423,15 @@ class AddReminderViewModel @Inject constructor(
                 _uiState.value = AddReminderUiState(
                     availableLists = lists, 
                     isLoading = false,
-                    isModified = false
+                    isModified = false,
+                    isEditMode = false // Reset edit mode
                 )
             } catch (e: Exception) {
                 // Just reset to the default state
                 _uiState.value = AddReminderUiState(
                     isLoading = false,
-                    isModified = false
+                    isModified = false,
+                    isEditMode = false // Reset edit mode
                 )
             }
         }

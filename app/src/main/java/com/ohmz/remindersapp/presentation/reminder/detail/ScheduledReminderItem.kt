@@ -41,6 +41,7 @@ fun ScheduledReminderItem(
     onCheckedChange: (Boolean) -> Unit,
     onDeleteClick: () -> Unit,
     onFavoriteToggle: (Boolean) -> Unit = {},
+    onEditClick: () -> Unit = {}, // New callback for when the reminder is clicked for editing
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -74,9 +75,11 @@ fun ScheduledReminderItem(
 
         Spacer(modifier = Modifier.width(16.dp))
 
-        // Title and notes
+        // Title and notes - clickable for editing
         Column(
-            modifier = Modifier.weight(1f)
+            modifier = Modifier
+                .weight(1f)
+                .clickable(onClick = onEditClick) // Add clickable modifier to enable editing
         ) {
             // Show a colored dot for priority if needed
             Row(

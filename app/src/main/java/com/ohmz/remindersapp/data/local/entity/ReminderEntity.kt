@@ -36,5 +36,9 @@ data class ReminderEntity(
     val priority: String = "MEDIUM", // Store enum as string
     val tags: String? = null,        // Store as comma-separated values
     val listId: Int? = null,         // Reference to the reminder list it belongs to
-    val imageUri: String? = null     // URI of an associated image
+    val imageUri: String? = null,    // URI of an associated image
+
+    // AI suggestion fields
+    val hasAiSuggestions: Boolean = false, // Flag to indicate if AI has analyzed this reminder
+    val aiSuggestions: String? = null     // Store suggestions as JSON string for flexibility
 )

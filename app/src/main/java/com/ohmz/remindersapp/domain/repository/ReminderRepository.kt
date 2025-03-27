@@ -30,6 +30,11 @@ interface ReminderRepository {
     suspend fun deleteReminder(reminder: Reminder)
 
     /**
+     * Save a reminder (add new or update existing based on ID)
+     */
+    suspend fun saveReminder(reminder: Reminder): Long
+
+    /**
      * Get reminders by completion status
      */
     fun getRemindersByCompletionStatus(isCompleted: Boolean): Flow<List<Reminder>>

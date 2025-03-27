@@ -8,7 +8,9 @@ import com.ohmz.remindersapp.domain.model.ReminderAction
 import com.ohmz.remindersapp.domain.model.ReminderList
 import com.ohmz.remindersapp.domain.repository.ReminderListRepository
 import com.ohmz.remindersapp.domain.usecase.AddReminderUseCase
+import com.ohmz.remindersapp.domain.usecase.GetAiSuggestionsUseCase
 import com.ohmz.remindersapp.domain.usecase.GetRemindersUseCase
+import com.ohmz.remindersapp.domain.usecase.SaveReminderWithSuggestionsUseCase
 import com.ohmz.remindersapp.domain.usecase.UpdateReminderUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -40,7 +42,14 @@ data class AddReminderUiState(
     val isSuccess: Boolean = false,
     val error: String? = null,
     val isModified: Boolean = false,
-    val isEditMode: Boolean = false // Flag to identify if we're editing an existing reminder
+    val isEditMode: Boolean = false, // Flag to identify if we're editing an existing reminder
+
+    // AI suggestion related fields
+    val aiSuggestions: List<String> = emptyList(),
+    val hasAiSuggestions: Boolean = false,
+    val isLoadingAiSuggestions: Boolean = false,
+    val showAiSuggestions: Boolean = false,
+    val aiSuggestionsError: String? = null
 )
 
 @HiltViewModel
@@ -48,7 +57,9 @@ class AddReminderViewModel @Inject constructor(
     private val addReminderUseCase: AddReminderUseCase,
     private val updateReminderUseCase: UpdateReminderUseCase,
     private val reminderListRepository: ReminderListRepository,
-    private val getRemindersUseCase: GetRemindersUseCase
+    private val getRemindersUseCase: GetRemindersUseCase,
+    private val getAiSuggestionsUseCase: GetAiSuggestionsUseCase,
+    private val saveReminderWithSuggestionsUseCase: SaveReminderWithSuggestionsUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AddReminderUiState())
@@ -280,7 +291,125 @@ class AddReminderViewModel @Inject constructor(
             priority = state.priority,
             tags = state.tags,
             listId = state.listId,
-            imageUri = state.imageUri
+            imageUri = state.imageUri,
+            hasAiSuggestions = state.hasAiSuggestions,
+            aiSuggestions = state.aiSuggestions
+        )
+    }
+
+    /**
+     * Load AI suggestions for the reminder
+     */
+    fun loadAiSuggestions() {
+        val state = _uiState.value
+
+        // Skip if no title or already loading
+        if (state.title.isBlank() || state.isLoadingAiSuggestions) {
+            return
+        }
+
+        // If we already have suggestions, just show them without making a new API call
+        if (state.hasAiSuggestions && state.aiSuggestions.isNotEmpty()) {
+            _uiState.value = state.copy(
+                showAiSuggestions = true
+            )
+            return
+        }
+
+        viewModelScope.launch {
+            try {
+                // Show loading state
+                _uiState.value = state.copy(
+                    isLoadingAiSuggestions = true,
+                    showAiSuggestions = true,
+                    aiSuggestionsError = null
+                )
+
+                // Create a temporary reminder object to get suggestions for
+                val reminder = createReminderFromState(state)
+
+                // Get suggestions
+                val suggestionsResult = getAiSuggestionsUseCase(reminder)
+
+                // Update state with suggestions
+                if (suggestionsResult.isSuccess) {
+                    val suggestions = suggestionsResult.getOrDefault(emptyList())
+                    _uiState.value = _uiState.value.copy(
+                        aiSuggestions = suggestions,
+                        hasAiSuggestions = suggestions.isNotEmpty(),
+                        isLoadingAiSuggestions = false
+                    )
+
+                    // For existing reminders, immediately save the new suggestions
+                    if (state.isEditMode && state.id > 0) {
+                        saveSuggestions(suggestions)
+                    }
+                } else {
+                    val error =
+                        suggestionsResult.exceptionOrNull()?.message ?: "Failed to get suggestions"
+                    _uiState.value = _uiState.value.copy(
+                        isLoadingAiSuggestions = false,
+                        aiSuggestionsError = error
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    isLoadingAiSuggestions = false,
+                    aiSuggestionsError = e.message
+                )
+            }
+        }
+    }
+
+    /**
+     * Save suggestions for an existing reminder
+     */
+    private fun saveSuggestions(suggestions: List<String>) {
+        val state = _uiState.value
+        if (state.id <= 0 || !state.isEditMode) return
+
+        viewModelScope.launch {
+            try {
+                // Create reminder with updated suggestions
+                val reminder = createReminderFromState(state).copy(
+                    hasAiSuggestions = true,
+                    aiSuggestions = suggestions
+                )
+
+                // Save only the suggestions, don't fetch new ones
+                saveReminderWithSuggestionsUseCase(
+                    reminder = reminder,
+                    shouldFetchSuggestions = false
+                )
+            } catch (e: Exception) {
+                // Silently fail - this is a background save operation
+            }
+        }
+    }
+
+    /**
+     * Toggle display of AI suggestions dialog
+     */
+    fun toggleAiSuggestions() {
+        val currentValue = _uiState.value.showAiSuggestions
+        val newValue = !currentValue
+
+        _uiState.value = _uiState.value.copy(
+            showAiSuggestions = newValue
+        )
+
+        // If showing the dialog and we need suggestions, load them
+        if (newValue) {
+            loadAiSuggestions()
+        }
+    }
+
+    /**
+     * Clear any AI suggestion error
+     */
+    fun clearAiSuggestionError() {
+        _uiState.value = _uiState.value.copy(
+            aiSuggestionsError = null
         )
     }
 
@@ -326,6 +455,11 @@ class AddReminderViewModel @Inject constructor(
                         selectedListName = selectedListName,
                         imageUri = reminderToEdit.imageUri,
                         availableLists = lists,
+                        // AI suggestion fields
+                        aiSuggestions = reminderToEdit.aiSuggestions,
+                        hasAiSuggestions = reminderToEdit.hasAiSuggestions,
+                        showAiSuggestions = false, // Always start with dialog closed
+                        // State flags
                         isLoading = false,
                         isEditMode = true,
                         isModified = false // Start in non-modified state
@@ -375,16 +509,45 @@ class AddReminderViewModel @Inject constructor(
             try {
                 // Create reminder object from current state
                 val reminder = createReminderFromState(state)
-                
-                // Either update or create based on edit mode
-                if (state.isEditMode) {
-                    updateReminderUseCase(reminder)
+
+                // Make sure we include any existing suggestions
+                val reminderWithSuggestions =
+                    if (state.hasAiSuggestions && state.aiSuggestions.isNotEmpty()) {
+                        reminder.copy(
+                            hasAiSuggestions = true,
+                            aiSuggestions = state.aiSuggestions
+                        )
                 } else {
-                    addReminderUseCase(reminder)
+                        reminder
                 }
-                
-                // Update state with success
-                _uiState.value = state.copy(isLoading = false, isSuccess = true)
+
+                // Save reminder with suggestions option
+                val shouldFetchSuggestions =
+                    state.aiSuggestions.isEmpty() && !state.hasAiSuggestions
+                val result = saveReminderWithSuggestionsUseCase(
+                    reminder = reminderWithSuggestions,
+                    shouldFetchSuggestions = shouldFetchSuggestions
+                )
+
+                if (result.isSuccess) {
+                    val savedReminder = result.getOrNull()
+
+                    // If we got AI suggestions, update the UI state with them
+                    if (savedReminder != null && savedReminder.hasAiSuggestions && savedReminder.aiSuggestions.isNotEmpty()) {
+                        _uiState.value = state.copy(
+                            isLoading = false,
+                            isSuccess = true,
+                            aiSuggestions = savedReminder.aiSuggestions,
+                            hasAiSuggestions = true,
+                            showAiSuggestions = false // Don't show suggestions dialog after saving
+                        )
+                    } else {
+                        // Regular success without suggestions
+                        _uiState.value = state.copy(isLoading = false, isSuccess = true)
+                    }
+                } else {
+                    throw result.exceptionOrNull() ?: Exception("Failed to save reminder")
+                }
             } catch (e: Exception) {
                 // Handle errors
                 _uiState.value = state.copy(
@@ -424,14 +587,26 @@ class AddReminderViewModel @Inject constructor(
                     availableLists = lists, 
                     isLoading = false,
                     isModified = false,
-                    isEditMode = false // Reset edit mode
+                    isEditMode = false, // Reset edit mode
+                    // Reset AI fields
+                    aiSuggestions = emptyList(),
+                    hasAiSuggestions = false,
+                    isLoadingAiSuggestions = false,
+                    showAiSuggestions = false, // Ensure dialog is closed
+                    aiSuggestionsError = null
                 )
             } catch (e: Exception) {
                 // Just reset to the default state
                 _uiState.value = AddReminderUiState(
                     isLoading = false,
                     isModified = false,
-                    isEditMode = false // Reset edit mode
+                    isEditMode = false, // Reset edit mode
+                    // Reset AI fields
+                    aiSuggestions = emptyList(),
+                    hasAiSuggestions = false,
+                    isLoadingAiSuggestions = false,
+                    showAiSuggestions = false, // Ensure dialog is closed
+                    aiSuggestionsError = null
                 )
             }
         }
@@ -442,5 +617,22 @@ class AddReminderViewModel @Inject constructor(
      */
     fun hasUnsavedChanges(): Boolean {
         return _uiState.value.isModified
+    }
+
+    /**
+     * Discard the reminder and any generated suggestions
+     * This is called when the user explicitly discards a reminder
+     */
+    fun discardReminder() {
+        val state = _uiState.value
+
+        // If we've generated suggestions for an unsaved reminder, we should clean them up
+        if (!state.isEditMode && state.hasAiSuggestions && state.aiSuggestions.isNotEmpty()) {
+            // No need to do anything special; since the reminder is never saved,
+            // the suggestions won't be persisted in the database
+        }
+
+        // Reset the state as usual
+        resetState()
     }
 }

@@ -1,11 +1,27 @@
 package com.ohmz.remindersapp.data.mapper
 
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import com.ohmz.remindersapp.data.local.entity.ReminderEntity
 import com.ohmz.remindersapp.domain.model.Priority
 import com.ohmz.remindersapp.domain.model.Reminder
 import java.util.Date
 
+private val gson = Gson()
+
 fun ReminderEntity.toDomainModel(): Reminder {
+    // Parse the AI suggestions from a JSON string to a List<String>
+    val suggestionsList = if (!aiSuggestions.isNullOrBlank()) {
+        try {
+            val type = object : TypeToken<List<String>>() {}.type
+            gson.fromJson<List<String>>(aiSuggestions, type)
+        } catch (e: Exception) {
+            emptyList()
+        }
+    } else {
+        emptyList()
+    }
+    
     return Reminder(
         id = id,
         title = title,
@@ -20,11 +36,20 @@ fun ReminderEntity.toDomainModel(): Reminder {
         },
         tags = tags?.split(",")?.map { it.trim() } ?: emptyList(),
         listId = listId,
-        imageUri = imageUri
+        imageUri = imageUri,
+        hasAiSuggestions = hasAiSuggestions,
+        aiSuggestions = suggestionsList
     )
 }
 
 fun Reminder.toEntity(): ReminderEntity {
+    // Convert the AI suggestions from a List<String> to a JSON string
+    val suggestionsJson = if (aiSuggestions.isNotEmpty()) {
+        gson.toJson(aiSuggestions)
+    } else {
+        null
+    }
+    
     return ReminderEntity(
         id = id,
         title = title,
@@ -35,7 +60,9 @@ fun Reminder.toEntity(): ReminderEntity {
         priority = priority.name,
         tags = if (tags.isEmpty()) null else tags.joinToString(","),
         listId = listId,
-        imageUri = imageUri
+        imageUri = imageUri,
+        hasAiSuggestions = hasAiSuggestions,
+        aiSuggestions = suggestionsJson
     )
 }
 

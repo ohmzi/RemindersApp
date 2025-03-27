@@ -93,7 +93,7 @@ fun AddReminderScreen(
             onDismiss = { showDiscardDialog = false },
             onDiscard = {
                 showDiscardDialog = false
-                viewModel.resetState()
+                viewModel.discardReminder() // Special discard method to clean up suggestions
                 onNavigateBack()
             },
             onContinueEditing = {
@@ -274,6 +274,45 @@ fun AddReminderScreen(
                     .fillMaxWidth()
                     .padding(16.dp)
             )
+
+            // Suggestions button
+            if (uiState.title.isNotBlank()) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    TextButton(
+                        onClick = { viewModel.toggleAiSuggestions() },
+                        modifier = Modifier.padding(vertical = 4.dp)
+                    ) {
+                        Text(
+                            text = "Suggestions",
+                            color = MaterialTheme.colorScheme.primary,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+
+                    if (uiState.hasAiSuggestions) {
+                        Text(
+                            text = "${uiState.aiSuggestions.size} available",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(start = 8.dp)
+                        )
+                    }
+                }
+            }
+
+            // Show suggestions dialog when toggled
+            if (uiState.showAiSuggestions) {
+                com.ohmz.remindersapp.presentation.components.SuggestionsDialog(
+                    suggestions = uiState.aiSuggestions,
+                    isLoading = uiState.isLoadingAiSuggestions,
+                    onDismiss = { viewModel.toggleAiSuggestions() }
+                )
+            }
 
             // The list selector is now handled in AccessoryBar with the new style
 

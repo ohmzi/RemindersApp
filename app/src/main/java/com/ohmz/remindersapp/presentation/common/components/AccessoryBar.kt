@@ -22,7 +22,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -176,7 +175,7 @@ fun AccessoryBar(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 16.dp)
+                .padding(horizontal = 8.dp, vertical = 16.dp)
                 .background(com.ohmz.remindersapp.presentation.common.theme.AppTheme.cardBackground),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
@@ -211,7 +210,7 @@ fun AccessoryBar(
                 }
                 
                 Icon(
-                    imageVector = Icons.Default.List,
+                    imageVector = Icons.AutoMirrored.Filled.List,
                     contentDescription = "List",
                     tint = iconColor,
                     modifier = Modifier.size(28.dp)

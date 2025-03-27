@@ -16,5 +16,7 @@ data class Reminder(
     val priority: Priority = Priority.MEDIUM,
     val tags: List<String> = emptyList(),
     val listId: Int? = null,        // Reference to the ReminderList it belongs to
-    val imageUri: String? = null
+    val imageUri: String? = null,
+    val hasAiSuggestions: Boolean = false, // Flag to indicate if AI has already analyzed this reminder
+    val aiSuggestions: List<String> = emptyList() // List of suggestions from AI
 )

@@ -52,10 +52,23 @@ class ReminderRepositoryImpl @Inject constructor(
     }
 
     override suspend fun deleteReminder(reminder: Reminder) {
-        reminderDao.deleteReminder(reminder.toEntity())
+        // Convert to entity and ensure any suggestions are deleted with the reminder
+        val entity = reminder.toEntity()
+
+        // Delete the reminder from database
+        reminderDao.deleteReminder(entity)
         
         // Cancel any scheduled notifications
         notificationScheduler.cancelReminderNotifications(reminder.id)
+    }
+
+    override suspend fun saveReminder(reminder: Reminder): Long {
+        return if (reminder.id > 0) {
+            updateReminder(reminder)
+            reminder.id.toLong()
+        } else {
+            addReminder(reminder)
+        }
     }
 
     override fun getRemindersByCompletionStatus(isCompleted: Boolean): Flow<List<Reminder>> {

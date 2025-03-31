@@ -9,7 +9,7 @@ class ApiKeyConfig private constructor() {
         // Replace with your actual OpenAI API key
         // Note: In a real production app, this should be stored securely
         // (e.g., encrypted preferences, Android Keystore, or fetched from a secure server)
-        private const val OPENAI_API_KEY = "sk-proj-"
+        private const val OPENAI_API_KEY = "YOUR_API_KEY"
 
         /**
          * Get the OpenAI API key

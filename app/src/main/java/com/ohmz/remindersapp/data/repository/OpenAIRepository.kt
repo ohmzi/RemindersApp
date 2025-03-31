@@ -59,6 +59,7 @@ class OpenAIRepository @Inject constructor(
 
     /**
      * Build the prompt for the AI based on reminder details
+     * Only creates meaningful suggestions for actual tasks, not random gibberish
      */
     private fun buildReminderPrompt(title: String, notes: String?): String {
         val prompt = StringBuilder()
@@ -66,15 +67,21 @@ class OpenAIRepository @Inject constructor(
         if (!notes.isNullOrBlank()) {
             prompt.append("Reminder Notes: $notes\n")
         }
-        prompt.append("\nBased on this reminder, suggest 3-5 actionable tips or improvements.")
+        prompt.append("\nAnalyze if this reminder is meaningful text representing an actual task or conversation. If it appears to be random gibberish, nonsense text, or test input, respond with exactly \"NO_SUGGESTIONS\". Otherwise, suggest 3-5 actionable tips or improvements related to this reminder.")
 
         return prompt.toString()
     }
 
     /**
      * Parse suggestions from the AI response text
+     * Returns empty list if AI determined the reminder is gibberish
      */
     private fun parseSuggestionsFromResponse(content: String): List<String> {
+        // Check if AI determined this is gibberish
+        if (content.trim() == "NO_SUGGESTIONS") {
+            return emptyList()
+        }
+        
         // Simple parsing: split by newlines and remove numbering/bullets
         return content.split("\n")
             .filter { it.isNotBlank() }
@@ -93,7 +100,9 @@ class OpenAIRepository @Inject constructor(
         private val SYSTEM_PROMPT = """
             You are a helpful AI assistant for a reminder app. Your role is to give actionable tips
             and suggestions for improving reminders or enhancing productivity. 
-            Format your response as a bulleted or numbered list with 3-5 concise suggestions.
+            First determine if the reminder is meaningful text representing an actual task or conversation.
+            If it's random gibberish, nonsense, or test input, respond with exactly "NO_SUGGESTIONS".
+            Otherwise, format your response as a bulleted or numbered list with 3-5 concise suggestions.
             Each suggestion should be clear, actionable, and directly related to the reminder.
             Do not include any general introduction or conclusion text.
         """.trimIndent()

@@ -148,6 +148,7 @@ class AddReminderViewModel @Inject constructor(
     /**
      * Checks if content has changed significantly enough to warrant refreshing suggestions
      * Uses debouncing to avoid too many API calls
+     * Only refreshes suggestions in the background without showing the dialog
      */
     private fun checkContentChangeAndRefreshSuggestions() {
         val state = _uiState.value
@@ -168,15 +169,81 @@ class AddReminderViewModel @Inject constructor(
             
             // Only refresh if title or notes have changed from original values
             if ((titleChanged || notesChanged) && state.title.isNotBlank()) {
-                // Clear old suggestions so UI shows loading state
-                _uiState.value = state.copy(
+                // Get current dialog visibility state - we'll maintain it
+                val currentDialogVisibility = _uiState.value.showAiSuggestions
+                
+                // Clear old suggestions but don't change dialog visibility
+                _uiState.value = _uiState.value.copy(
                     hasAiSuggestions = false,
                     aiSuggestions = emptyList(),
-                    isLoadingAiSuggestions = state.showAiSuggestions // Only show loading if suggestions dialog is open
+                    // Only show loading indicator if the dialog is already visible
+                    isLoadingAiSuggestions = currentDialogVisibility
                 )
                 
-                // Re-fetch suggestions if content has changed
-                loadAiSuggestions(forceRefresh = true)
+                // Re-fetch suggestions without showing dialog
+                refreshSuggestionsInBackground(forceRefresh = true)
+            }
+        }
+    }
+    
+    /**
+     * Refreshes suggestions in the background without showing the dialog
+     * Used when content changes during editing
+     */
+    private fun refreshSuggestionsInBackground(forceRefresh: Boolean = true) {
+        val state = _uiState.value
+        
+        // Skip if no title or already loading
+        if (state.title.isBlank() || state.isLoadingAiSuggestions) {
+            return
+        }
+        
+        viewModelScope.launch {
+            try {
+                // Get current dialog visibility - we'll maintain it
+                val currentDialogVisibility = _uiState.value.showAiSuggestions
+                
+                // Create a temporary reminder object to get suggestions for
+                val reminder = createReminderFromState(state)
+                
+                // Get suggestions, passing forceRefresh to the use case
+                val suggestionsResult = getAiSuggestionsUseCase(reminder, forceRefresh)
+                
+                // Update state with suggestions but don't show dialog
+                if (suggestionsResult.isSuccess) {
+                    val suggestions = suggestionsResult.getOrDefault(emptyList())
+                    _uiState.value = _uiState.value.copy(
+                        aiSuggestions = suggestions,
+                        hasAiSuggestions = suggestions.isNotEmpty(),
+                        isLoadingAiSuggestions = false,
+                        // Maintain current dialog visibility (don't auto-show)
+                        showAiSuggestions = currentDialogVisibility
+                    )
+                    
+                    // For existing reminders, immediately save the new suggestions
+                    if (state.isEditMode && state.id > 0) {
+                        saveSuggestions(suggestions)
+                    }
+                    
+                    // Update our tracking of the original content
+                    originalTitle = state.title
+                    originalNotes = state.notes
+                } else {
+                    val error = suggestionsResult.exceptionOrNull()?.message ?: "Failed to get suggestions"
+                    _uiState.value = _uiState.value.copy(
+                        isLoadingAiSuggestions = false,
+                        aiSuggestionsError = error,
+                        // Maintain current dialog visibility (don't auto-show)
+                        showAiSuggestions = currentDialogVisibility
+                    )
+                }
+            } catch (e: Exception) {
+                // Silently handle errors since this is a background operation
+                _uiState.value = _uiState.value.copy(
+                    isLoadingAiSuggestions = false,
+                    // Maintain current dialog visibility (don't auto-show)
+                    showAiSuggestions = _uiState.value.showAiSuggestions
+                )
             }
         }
     }

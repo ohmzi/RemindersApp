@@ -60,6 +60,7 @@ class OpenAIRepository @Inject constructor(
     /**
      * Build the prompt for the AI based on reminder details
      * Only creates meaningful suggestions for actual tasks, not random gibberish
+     * Suggestions are ordered from most specific/catered to most generic
      */
     private fun buildReminderPrompt(title: String, notes: String?): String {
         val prompt = StringBuilder()
@@ -67,7 +68,7 @@ class OpenAIRepository @Inject constructor(
         if (!notes.isNullOrBlank()) {
             prompt.append("Reminder Notes: $notes\n")
         }
-        prompt.append("\nAnalyze if this reminder is meaningful text representing an actual task or conversation. If it appears to be random gibberish, nonsense text, or test input, respond with exactly \"NO_SUGGESTIONS\". Otherwise, suggest 3-5 actionable tips or improvements related to this reminder.")
+        prompt.append("\nAnalyze if this reminder is meaningful text representing an actual task or conversation. If it appears to be random gibberish, nonsense text, or test input, respond with exactly \"NO_SUGGESTIONS\". Otherwise, suggest 3-5 actionable tips or improvements related to this reminder. Order your suggestions from most specific and directly related to the context of the reminder (most catered) to more general and broadly applicable (most generic).")
 
         return prompt.toString()
     }
@@ -103,7 +104,13 @@ class OpenAIRepository @Inject constructor(
             First determine if the reminder is meaningful text representing an actual task or conversation.
             If it's random gibberish, nonsense, or test input, respond with exactly "NO_SUGGESTIONS".
             Otherwise, format your response as a bulleted or numbered list with 3-5 concise suggestions.
-            Each suggestion should be clear, actionable, and directly related to the reminder.
+            
+            IMPORTANT: Order your suggestions as follows:
+            1. Start with highly specific suggestions that directly relate to the unique content of the reminder
+            2. Follow with moderately specific suggestions that relate to the general category of the reminder
+            3. End with more generic productivity tips that could apply more broadly
+            
+            Each suggestion should be clear, actionable, and properly ordered from most tailored to most generic.
             Do not include any general introduction or conclusion text.
         """.trimIndent()
     }

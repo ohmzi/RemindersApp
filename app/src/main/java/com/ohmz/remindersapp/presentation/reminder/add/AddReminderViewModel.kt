@@ -114,24 +114,71 @@ class AddReminderViewModel @Inject constructor(
                priority != Priority.MEDIUM
     }
 
+    // Track original title and notes for detecting changes
+    private var originalTitle: String = ""
+    private var originalNotes: String = ""
+    private var contentChangeDebounceJob: kotlinx.coroutines.Job? = null
+
     /**
-     * Updates the title of the reminder
+     * Updates the title of the reminder and refreshes suggestions if content has changed significantly
      */
     fun updateTitle(title: String) {
         _uiState.value = _uiState.value.copy(
             title = title,
             isModified = isModified(title = title)
         )
+        
+        // Check for content changes and possibly refresh suggestions
+        checkContentChangeAndRefreshSuggestions()
     }
 
     /**
-     * Updates the notes of the reminder
+     * Updates the notes of the reminder and refreshes suggestions if content has changed significantly
      */
     fun updateNotes(notes: String) {
         _uiState.value = _uiState.value.copy(
             notes = notes,
             isModified = isModified(notes = notes)
         )
+        
+        // Check for content changes and possibly refresh suggestions
+        checkContentChangeAndRefreshSuggestions()
+    }
+    
+    /**
+     * Checks if content has changed significantly enough to warrant refreshing suggestions
+     * Uses debouncing to avoid too many API calls
+     */
+    private fun checkContentChangeAndRefreshSuggestions() {
+        val state = _uiState.value
+        
+        // Only consider refreshing if we're in edit mode and already have suggestions
+        if (!state.isEditMode || !state.hasAiSuggestions) return
+        
+        // Cancel any pending debounce job
+        contentChangeDebounceJob?.cancel()
+        
+        // Start a new debounce job with 1.5 second delay
+        contentChangeDebounceJob = viewModelScope.launch {
+            kotlinx.coroutines.delay(1500) // 1.5 second debounce
+            
+            // Check if content has changed significantly
+            val titleChanged = state.title != originalTitle
+            val notesChanged = state.notes != originalNotes
+            
+            // Only refresh if title or notes have changed from original values
+            if ((titleChanged || notesChanged) && state.title.isNotBlank()) {
+                // Clear old suggestions so UI shows loading state
+                _uiState.value = state.copy(
+                    hasAiSuggestions = false,
+                    aiSuggestions = emptyList(),
+                    isLoadingAiSuggestions = state.showAiSuggestions // Only show loading if suggestions dialog is open
+                )
+                
+                // Re-fetch suggestions if content has changed
+                loadAiSuggestions(forceRefresh = true)
+            }
+        }
     }
 
     /**
@@ -299,8 +346,9 @@ class AddReminderViewModel @Inject constructor(
 
     /**
      * Load AI suggestions for the reminder
+     * @param forceRefresh If true, forces a refresh of suggestions even if they already exist
      */
-    fun loadAiSuggestions() {
+    fun loadAiSuggestions(forceRefresh: Boolean = false) {
         val state = _uiState.value
 
         // Skip if no title or already loading
@@ -308,8 +356,8 @@ class AddReminderViewModel @Inject constructor(
             return
         }
 
-        // If we already have suggestions, just show them without making a new API call
-        if (state.hasAiSuggestions && state.aiSuggestions.isNotEmpty()) {
+        // If we already have suggestions and aren't forcing a refresh, just show them without making a new API call
+        if (!forceRefresh && state.hasAiSuggestions && state.aiSuggestions.isNotEmpty()) {
             _uiState.value = state.copy(
                 showAiSuggestions = true
             )
@@ -328,8 +376,8 @@ class AddReminderViewModel @Inject constructor(
                 // Create a temporary reminder object to get suggestions for
                 val reminder = createReminderFromState(state)
 
-                // Get suggestions
-                val suggestionsResult = getAiSuggestionsUseCase(reminder)
+                // Get suggestions, passing forceRefresh to the use case
+                val suggestionsResult = getAiSuggestionsUseCase(reminder, forceRefresh)
 
                 // Update state with suggestions
                 if (suggestionsResult.isSuccess) {
@@ -344,6 +392,10 @@ class AddReminderViewModel @Inject constructor(
                     if (state.isEditMode && state.id > 0) {
                         saveSuggestions(suggestions)
                     }
+                    
+                    // Update our tracking of the original content since we just regenerated suggestions
+                    originalTitle = state.title
+                    originalNotes = state.notes
                 } else {
                     val error =
                         suggestionsResult.exceptionOrNull()?.message ?: "Failed to get suggestions"
@@ -441,6 +493,10 @@ class AddReminderViewModel @Inject constructor(
                     val selectedListName = reminderToEdit.listId?.let { listId ->
                         lists.find { it.id == listId }?.name
                     }
+                    
+                    // Save original title and notes for detecting changes
+                    originalTitle = reminderToEdit.title
+                    originalNotes = reminderToEdit.notes ?: ""
                     
                     // Update the UI state with the loaded reminder's values
                     _uiState.value = _uiState.value.copy(
@@ -587,6 +643,14 @@ class AddReminderViewModel @Inject constructor(
                     showAiSuggestions = false, // Ensure dialog is closed
                     aiSuggestionsError = null
                 )
+                
+                // Reset content tracking fields
+                originalTitle = ""
+                originalNotes = ""
+                
+                // Cancel any pending debounce jobs
+                contentChangeDebounceJob?.cancel()
+                contentChangeDebounceJob = null
             } catch (e: Exception) {
                 // Just reset to the default state
                 _uiState.value = AddReminderUiState(
@@ -600,6 +664,14 @@ class AddReminderViewModel @Inject constructor(
                     showAiSuggestions = false, // Ensure dialog is closed
                     aiSuggestionsError = null
                 )
+                
+                // Reset content tracking fields
+                originalTitle = ""
+                originalNotes = ""
+                
+                // Cancel any pending debounce jobs
+                contentChangeDebounceJob?.cancel()
+                contentChangeDebounceJob = null
             }
         }
     }
